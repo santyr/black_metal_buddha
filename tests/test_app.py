@@ -3,6 +3,7 @@ import struct
 
 from fastapi.testclient import TestClient
 
+from app.catalog import PRODUCTS
 from app.main import app
 
 client = TestClient(app)
@@ -126,11 +127,22 @@ def test_longchenpa_product_is_in_catalog_and_print_asset_is_served():
     assert "Longchenpa — Rest in Illusion" in page.text
     assert "Rest in Illusion." in page.text
     assert "LINEAGE SERIES" in page.text
-    assert "/print-assets/02_two_ink_vector/longchenpa_rest_in_illusion_two_ink.svg" in page.text
+    assert "/static/products/longchenpa-rest-in-illusion.webp" in page.text
 
     art = client.get("/print-assets/02_two_ink_vector/longchenpa_rest_in_illusion_two_ink.svg")
     assert art.status_code == 200
     assert "image/svg+xml" in art.headers["content-type"]
+
+
+def test_every_product_uses_a_tshirt_mockup():
+    for product in PRODUCTS:
+        assert product.image == f"/static/products/{product.slug}.webp"
+        response = client.get(product.image)
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("image/webp")
+        assert response.content[:4] == b"RIFF"
+        assert response.content[8:12] == b"WEBP"
+        assert len(response.content) > 5000
 
 
 def test_mockup_restyled_home_structure():
