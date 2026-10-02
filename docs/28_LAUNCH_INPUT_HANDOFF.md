@@ -46,23 +46,26 @@ thumbnail and a reusable scene preset are separate things.
 **Provide:** Test-store name, secure access location, staging hostname and DNS
 contact. Production and staging credentials must stay separate.
 
-## Step 3 Finish Square payment setup
+## Step 3 Finish payment readiness and staging
 
-1. Open the Square Developer Console and select the intended application.
-2. Confirm the merchant account can accept payments and that settlement is set up.
-3. Select **Production**. Save its access token and selected merchant location
-   as `SQUARE_ACCESS_TOKEN` and `SQUARE_LOCATION_ID` in the private production settings.
-4. Set `SQUARE_ENVIRONMENT=production` for those production credentials. Leave
-   the checkout activation switches closed until the launch checks pass.
-5. Create the payment/refund webhook subscription using the callback shown in
-   the private handoff. Save its signing key and exact notification URL as
-   `SQUARE_WEBHOOK_SIGNATURE_KEY` and `SQUARE_WEBHOOK_NOTIFICATION_URL`.
-6. Confirm the tax settings you want for launch with the person responsible for them.
-7. Obtain separate Square **Sandbox** credentials and location for staging.
+Your Square production settings have been supplied. You do not need to submit
+them again unless they change.
 
-**Provide:** Confirmation of readiness, approved tax settings, and secure settings
-locations. I will validate access and signatures and check checkout totals.
-No live charge is needed for credential validation.
+1. Confirm the merchant account can accept payments and that settlement is set up.
+2. Confirm the tax settings you want for launch with the person responsible for them.
+3. Obtain separate Square **Sandbox** credentials and location for staging. Save
+   them in the private staging settings, keeping production access separate.
+4. Leave checkout activation switches closed until the launch checks pass.
+
+**Provide:** Merchant/settlement readiness, approved tax settings, and the secure
+location of staging credentials. Production callback delivery and checkout totals
+will be checked during the controlled order.
+
+For future credential changes, use the intended application's **Production**
+settings. Save `SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`,
+`SQUARE_WEBHOOK_SIGNATURE_KEY` and the exact `SQUARE_WEBHOOK_NOTIFICATION_URL`
+privately, with `SQUARE_ENVIRONMENT=production`. I will verify access and
+configuration before using replacement settings.
 
 Reference: [Square access tokens](https://developer.squareup.com/docs/build-basics/access-tokens).
 
