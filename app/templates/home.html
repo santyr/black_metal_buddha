@@ -43,7 +43,7 @@
     <span class="heading-rule" aria-hidden="true"></span>
     <div>
       <p class="eyebrow">Featured collection</p>
-      <h2>Three paths. One truth. All things pass.</h2>
+      <h2>Wear impermanence. All things pass.</h2>
     </div>
     <span class="heading-rule" aria-hidden="true"></span>
     <a class="button button-ghost collection-view-all" href="/shop">View all products <span aria-hidden="true">→</span></a>
@@ -54,12 +54,12 @@
     {% for item in products[:3] %}{% include "partials/product_card.html" %}{% endfor %}
   </div>
 
-  {% if products | length > 3 %}
+  {% for item in products[3:] %}
   <div class="shell collection-coda">
-    <span>Lineage series</span>
-    <a href="/products/longchenpa-rest-in-illusion">Longchenpa — Rest in Illusion <span aria-hidden="true">→</span></a>
+    <span>{{ item.series }}</span>
+    <a href="/products/{{ item.slug }}">{{ item.name }} <span aria-hidden="true">→</span></a>
   </div>
-  {% endif %}
+  {% endfor %}
 </section>
 
 <section class="manifesto shell">

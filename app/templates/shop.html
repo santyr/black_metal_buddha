@@ -10,13 +10,13 @@
   {% if phase1_enabled and price_floors %}
     <p>Choose a design, size, and quantity. Checkout is handled securely through Square.</p>
   {% else %}
-    <p>Comfort Colors 1717 in S–XXL: $35.00 plus shipping. Browse the collection now; purchasing opens after fulfillment setup and the final launch checks pass.</p>
+    <p>{{ catalog_overview }} Browse the collection now; purchasing opens after fulfillment setup and the final launch checks pass.</p>
   {% endif %}
   </div>
 </section>
 <section class="section shell">
   <div class="product-grid product-grid-shop">
-    {% for item in products %}{% include "partials/product_card.html" %}{% endfor %}
+    {% for item in products %}{% include "partials/product_card.html" %}{% else %}<p>New products are coming soon.</p>{% endfor %}
   </div>
 </section>
 {% endblock %}

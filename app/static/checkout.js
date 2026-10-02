@@ -1,6 +1,7 @@
-(() => {
+(async () => {
   const app = document.querySelector('[data-checkout-app]');
   if (!app || !window.BMBCart || !window.BMBCart.phase1) return;
+  await window.BMBCart.ready;
 
   const cart = window.BMBCart.read();
   const form = app.querySelector('[data-checkout-form]');
@@ -100,6 +101,7 @@
       recipient,
       items: cart.map((item) => ({
         sku: item.sku,
+        printful_variant_id: item.variantId || null,
         quantity: Math.max(1, Math.min(10, Number(item.quantity) || 1))
       }))
     };

@@ -69,6 +69,7 @@
     } else {
       cart.push({
         sku,
+        variantId: option.dataset.variantId || null,
         slug: panel.dataset.productSlug,
         name: panel.dataset.productName,
         image: panel.dataset.productImage,
@@ -103,6 +104,32 @@
     button.textContent = label;
     button.addEventListener('click', handler);
     return button;
+  }
+
+  async function refreshCatalog() {
+    try {
+      const response = await fetch('/catalog.json', { cache: 'no-store', credentials: 'same-origin' });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data.products) || data.products.some((product) => !product
+        || typeof product.slug !== 'string' || typeof product.name !== 'string'
+        || typeof product.image !== 'string' || !Array.isArray(product.variants))) return;
+      const products = new Map(data.products.map((product) => [product.slug, product]));
+      const cart = readCart().flatMap((item) => {
+        const product = products.get(item.slug);
+        if (!product) return [];
+        if (!phase1) return [{ ...item, name: product.name, image: product.image }];
+        const variant = product.variants.find((entry) => entry.available &&
+          (item.variantId ? entry.variantId === item.variantId : entry.sku === item.sku));
+        if (!variant || !Number.isInteger(variant.priceCents) || variant.priceCents <= 0
+          || variant.currency !== 'USD' || variant.size !== item.size || variant.color !== item.color) return [];
+        return [{ ...item, sku: variant.sku, variantId: variant.variantId,
+          name: product.name, image: product.image, size: variant.size,
+          color: variant.color, currency: variant.currency, priceCents: variant.priceCents }];
+      });
+      writeCart(cart);
+      renderCart();
+    } catch (_) { /* Keep the previous cart when the current catalog cannot be fetched. */ }
   }
 
   function renderCart() {
@@ -215,7 +242,8 @@
       renderCart();
     },
     formatMoney,
-    phase1
+    phase1,
+    ready: refreshCatalog()
   };
 
   updateCount();

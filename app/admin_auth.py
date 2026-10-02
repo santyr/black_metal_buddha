@@ -13,7 +13,7 @@ security = HTTPBasic(auto_error=False)
 
 
 def require_admin(credentials: HTTPBasicCredentials | None = Depends(security)) -> str:
-    if not settings.admin_enabled:
+    if not settings.owner_console_enabled or not settings.admin_enabled:
         raise HTTPException(status_code=404, detail="Admin unavailable")
     if credentials is None:
         raise HTTPException(

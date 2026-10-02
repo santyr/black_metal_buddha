@@ -34,8 +34,10 @@ CART = [{"sku": "BMB-LONGCHENPA-CC1717-BLK-XXL",
 def render(name, **context):
     request = Request({"type": "http", "method": "GET", "path": "/layout-audit"})
     request.state.csp_nonce = "layout-audit"
-    return templates.get_template(name).render(page_context(
-        request, title="Layout audit", canonical="", phase1_enabled=True, **context))
+    values = page_context(request, title="Layout audit", canonical="",
+                          phase1_enabled=True, products=PRODUCTS)
+    values.update(context)
+    return templates.get_template(name).render(values)
 
 
 def fixtures():
@@ -123,6 +125,12 @@ def main():
             path = urlsplit(route.request.url).path
             if route.request.method != "GET" or path.startswith("/api/"):
                 route.abort()
+            elif path == "/catalog.json":
+                route.fulfill(json={"products": [{
+                    "slug": item["slug"], "name": item["name"],
+                    "image": PRODUCT_BY_SLUG[item["slug"]].image,
+                    "variants": [{**item, "variantId": "audit-variant", "available": True}],
+                } for item in CART]})
             elif path in rendered:
                 route.fulfill(content_type="text/html", body=rendered[path])
             else:
@@ -141,6 +149,9 @@ def main():
                 response = page.goto(base + path, wait_until="load")
                 expected = 404 if path == "/layout-audit-missing-page" else 200
                 assert response.status == expected, (path, response.status)
+                page.evaluate("async () => { await window.BMBCart?.ready; }")
+                if path == "/layout-audit/checkout":
+                    page.locator(".checkout-item").wait_for()
                 issues = page.evaluate(GEOMETRY)
                 if path == "/layout-audit/cart":
                     assert page.locator(".cart-row").count() == 1

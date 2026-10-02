@@ -23,6 +23,7 @@ from .orders import (
     set_square_checkout,
     shipping_quote_is_fresh,
     sync_square_pricing,
+    validate_pending_catalog,
 )
 from .payments.square import SquareClient, verify_square_webhook
 from .rate_limit import limiter
@@ -245,6 +246,10 @@ def api_square_checkout(
         return _order_out(order, order.square_checkout_url)
     if not shipping_quote_is_fresh(order):
         raise HTTPException(status_code=409, detail="Shipping quote is missing or expired")
+    try:
+        validate_pending_catalog(session, order)
+    except OrderError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None
 
     client = SquareClient()
     try:

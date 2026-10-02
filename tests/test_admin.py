@@ -49,6 +49,7 @@ def base_config(**overrides):
 def test_admin_auth_and_csrf(monkeypatch):
     fake = SimpleNamespace(
         admin_enabled=True,
+        owner_console_enabled=True,
         admin_username="owner",
         admin_password="secret",
         app_secret_key="csrf-secret",

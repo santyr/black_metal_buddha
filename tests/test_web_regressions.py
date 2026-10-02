@@ -13,7 +13,9 @@ from app.admin import money_to_cents
 
 
 def test_admin_auth_challenge_survives_error_handler(monkeypatch):
-    monkeypatch.setattr(admin_auth, 'settings', SimpleNamespace(admin_enabled=True))
+    monkeypatch.setattr(admin_auth, 'settings', replace(
+        admin_auth.settings, admin_username='audit', admin_password='audit-password',
+        app_secret_key='audit-secret', owner_console_enabled=True))
     with TestClient(main.app) as client:
         response = client.get('/admin')
     assert response.status_code == 401

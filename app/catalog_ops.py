@@ -6,7 +6,7 @@ import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .catalog import PRODUCT_BY_SLUG
+from .catalog import products_by_slug
 from .models import ProductVariant
 
 
@@ -46,9 +46,10 @@ def catalog_fingerprint(session: Session) -> str:
 
 
 def catalog_errors(session: Session) -> list[str]:
+    known_products = products_by_slug(session)
     errors: list[str] = []
     variants = session.scalars(select(ProductVariant).order_by(ProductVariant.sku)).all()
-    sellable_by_product: dict[str, int] = {slug: 0 for slug in PRODUCT_BY_SLUG}
+    sellable_by_product: dict[str, int] = {slug: 0 for slug in known_products}
 
     seen_skus: set[str] = set()
     for item in variants:
@@ -56,7 +57,7 @@ def catalog_errors(session: Session) -> list[str]:
             errors.append(f"Duplicate SKU: {item.sku}")
         seen_skus.add(item.sku)
 
-        if item.product_slug not in PRODUCT_BY_SLUG:
+        if (item.active or item.sellable) and item.product_slug not in known_products:
             errors.append(f"{item.sku}: unknown product slug {item.product_slug}")
         if item.currency != "USD":
             errors.append(f"{item.sku}: launch catalog currency must be USD")
@@ -101,6 +102,7 @@ def import_catalog_manifest(
     *,
     apply: bool,
 ) -> dict:
+    known_products = products_by_slug(session)
     if manifest.get("version") != 1:
         raise ValueError("Unsupported catalog manifest version")
     if manifest.get("currency") != "USD":
@@ -110,7 +112,7 @@ def import_catalog_manifest(
     for raw in manifest.get("variants") or []:
         product_slug = str(raw.get("product_slug") or "")
         sku = str(raw.get("sku") or "").upper()
-        if product_slug not in PRODUCT_BY_SLUG:
+        if product_slug not in known_products:
             raise ValueError(f"Unknown product slug: {product_slug}")
         if not sku:
             raise ValueError("Every variant requires a SKU")

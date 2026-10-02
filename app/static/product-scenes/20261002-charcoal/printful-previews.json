@@ -1,0 +1,45 @@
+{
+  "verified_utc": "20261002T170837Z",
+  "products": [
+    {
+      "slug": "lotus-of-the-void",
+      "product_id": 477390424,
+      "variant_count": 7,
+      "saved_image_role": "product thumbnail",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/lotus-of-the-void.jpg",
+      "production_artwork_preserved": true,
+      "price_usd": "35.00",
+      "thumbnail_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/lotus-of-the-void.jpg"
+    },
+    {
+      "slug": "dharma-of-decay",
+      "product_id": 477393030,
+      "variant_count": 7,
+      "saved_image_role": "product thumbnail",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/dharma-of-decay.jpg",
+      "production_artwork_preserved": true,
+      "price_usd": "35.00",
+      "thumbnail_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/dharma-of-decay.jpg"
+    },
+    {
+      "slug": "meditate-on-death",
+      "product_id": 477393297,
+      "variant_count": 7,
+      "saved_image_role": "product thumbnail",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/meditate-on-death.jpg",
+      "production_artwork_preserved": true,
+      "price_usd": "35.00",
+      "thumbnail_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/meditate-on-death.jpg"
+    },
+    {
+      "slug": "longchenpa-rest-in-illusion",
+      "product_id": 477393494,
+      "variant_count": 7,
+      "saved_image_role": "product thumbnail",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/longchenpa-rest-in-illusion.jpg",
+      "production_artwork_preserved": true,
+      "price_usd": "35.00",
+      "thumbnail_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/longchenpa-rest-in-illusion.jpg"
+    }
+  ]
+}

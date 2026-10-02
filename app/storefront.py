@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .catalog import PRODUCT_BY_SLUG
+from .catalog import get_product, products_by_slug
 from .models import ProductVariant
 
 
@@ -33,6 +33,7 @@ class StorefrontVariant:
     color: str
     currency: str
     retail_price_cents: int
+    printful_variant_id: str | None = None
 
     @property
     def price_display(self) -> str:
@@ -40,7 +41,7 @@ class StorefrontVariant:
 
 
 def sellable_variants_for_product(session: Session, product_slug: str) -> list[StorefrontVariant]:
-    product = PRODUCT_BY_SLUG.get(product_slug)
+    product = get_product(product_slug, session)
     if product is None:
         return []
 
@@ -62,6 +63,7 @@ def sellable_variants_for_product(session: Session, product_slug: str) -> list[S
             color=row.color,
             currency=row.currency,
             retail_price_cents=int(row.retail_price_cents or 0),
+            printful_variant_id=row.printful_variant_id,
         )
         for row in rows
     ]
@@ -78,7 +80,7 @@ def sellable_variants_for_product(session: Session, product_slug: str) -> list[S
 
 def sellable_catalog(session: Session) -> list[StorefrontVariant]:
     result: list[StorefrontVariant] = []
-    for product_slug in PRODUCT_BY_SLUG:
+    for product_slug in products_by_slug(session):
         result.extend(sellable_variants_for_product(session, product_slug))
     return result
 

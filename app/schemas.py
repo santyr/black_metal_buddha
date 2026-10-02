@@ -40,6 +40,7 @@ class OrderLineIn(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
     sku: str = Field(min_length=1, max_length=128)
     quantity: int = Field(ge=1, le=10)
+    printful_variant_id: str | None = Field(default=None, min_length=1, max_length=128)
 
 
 class CreateOrderIn(BaseModel):

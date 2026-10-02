@@ -53,10 +53,13 @@ jobs:
             sleep 1
           done
           python tools/audit_responsive.py http://127.0.0.1:8088 --screenshots
+          python tools/audit_storefront.py http://127.0.0.1:8088
+          python tools/audit_checkout.py http://127.0.0.1:8088
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: responsive-layout-audit
           path: |
             /tmp/bmb-responsive-audit
+            /tmp/bmb-browser-audit
             /tmp/bmb-preview.log

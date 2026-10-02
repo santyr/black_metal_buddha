@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 
 def _bool(name: str, default: bool = False) -> bool:
@@ -41,12 +42,15 @@ class Settings:
     admin_password: str | None = None
     admin_refunds_enabled: bool = False
     admin_cancel_fulfillment_enabled: bool = False
+    owner_console_enabled: bool = False
     production_checkout_enabled: bool = False
     production_canary_approved: bool = False
     production_catalog_approved: bool = False
     production_catalog_fingerprint: str | None = None
     production_canary_mode: bool = False
     support_email: str | None = None
+    printful_catalog_sync_enabled: bool = False
+    printful_catalog_image_dir: str = str(Path(__file__).resolve().parents[1] / ".runtime" / "product-images")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -79,12 +83,16 @@ class Settings:
             admin_password=os.getenv("ADMIN_PASSWORD"),
             admin_refunds_enabled=_bool("ADMIN_REFUNDS_ENABLED", False),
             admin_cancel_fulfillment_enabled=_bool("ADMIN_CANCEL_FULFILLMENT_ENABLED", False),
+            owner_console_enabled=_bool("OWNER_CONSOLE_ENABLED", False),
             production_checkout_enabled=_bool("PRODUCTION_CHECKOUT_ENABLED", False),
             production_canary_approved=_bool("PRODUCTION_CANARY_APPROVED", False),
             production_catalog_approved=_bool("PRODUCTION_CATALOG_APPROVED", False),
             production_catalog_fingerprint=os.getenv("PRODUCTION_CATALOG_FINGERPRINT"),
             production_canary_mode=_bool("PRODUCTION_CANARY_MODE", False),
             support_email=os.getenv("SUPPORT_EMAIL"),
+            printful_catalog_sync_enabled=_bool("PRINTFUL_CATALOG_SYNC_ENABLED", False),
+            printful_catalog_image_dir=os.getenv("PRINTFUL_CATALOG_IMAGE_DIR") or
+                str(Path(__file__).resolve().parents[1] / ".runtime" / "product-images"),
         )
 
     @property
@@ -98,6 +106,8 @@ class Settings:
         return bool(self.admin_username and self.admin_password and self.app_secret_key)
 
     def validate_safety(self) -> None:
+        if self.printful_catalog_sync_enabled and (not self.printful_token or not self.printful_store_id):
+            raise ValueError("Printful catalog sync requires a token and store ID")
         if self.printful_mode not in {"disabled", "draft", "production"}:
             raise ValueError("PRINTFUL_MODE must be disabled, draft, or production")
         if self.email_mode not in {"disabled", "console", "smtp"}:
