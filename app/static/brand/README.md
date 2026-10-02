@@ -2,19 +2,21 @@
 
 ## Approved
 
-- `black-metal-buddha-logo.webp` — production website logo derived from the user-approved Black Metal Buddha master.
-- `black-metal-buddha-logo-source.png` — optimized PNG source copy retained alongside the production WebP.
+- `black-metal-buddha-logo.webp` — verified production website logo derived from the user-approved Black Metal Buddha artwork.
 
 The approved mark is the stark Black Metal Buddha full lockup centered on the recognizable Dzogchen A inside a sparse spiked halo, rendered primarily in bone white with restrained ritual-red accents.
 
-### Current asset integrity
+### Production asset integrity
 
-- WebP: 900 × 900, valid RIFF/WebP image
-- WebP SHA-256: `35dade10bbc8dcb89ae2eaf8f7a72324072325f138116036293ec22dc537aeeb`
-- PNG source: 900 × 900 indexed sRGB PNG
-- PNG SHA-256: `c87ce99f306cf1d74df81868080fd3710c04a5db70a4d80704ee641303154b12`
+- dimensions: **384 × 384**
+- format: **WebP**
+- file size: **13,334 bytes**
+- SHA-256: `6e73625e42533c906a777b18056b98a34e84697983ee181f6f395d4427c4614a`
+- RIFF declared size must exactly match the file length
 
-The production WebP is intentionally optimized for the site while preserving the approved appearance.
+The production file is intentionally web-sized because the logo is rendered at approximately 220 px or less in the storefront. The original approved user upload is retained outside the repository workflow; a previous connector path truncated larger binary uploads, so the repository no longer carries an unverified duplicate PNG source.
+
+CI checks the exact byte length, RIFF/WebP container signature, declared RIFF length, and SHA-256 digest.
 
 See `docs/17_BRAND_GUIDELINES.md` before creating or modifying brand artwork.
 
