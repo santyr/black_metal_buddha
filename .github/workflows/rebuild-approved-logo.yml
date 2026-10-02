@@ -1,4 +1,5 @@
 name: rebuild approved logo
+# payload complete; rerun with all chunks present
 
 on:
   push:
