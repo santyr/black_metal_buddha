@@ -1,3 +1,6 @@
+import hashlib
+import struct
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -26,20 +29,19 @@ def test_home_has_seo_products_and_branding():
     assert "Longchenpa — Rest in Illusion" in response.text
 
 
-def test_logo_asset_is_served():
+def test_logo_asset_is_complete_and_valid_webp_container():
     response = client.get("/static/brand/black-metal-buddha-logo.webp")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("image/webp")
-    assert len(response.content) > 1000
-    assert response.content[:4] == b"RIFF"
-    assert response.content[8:12] == b"WEBP"
 
-
-def test_logo_source_png_is_served():
-    response = client.get("/static/brand/black-metal-buddha-logo-source.png")
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("image/png")
-    assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
+    data = response.content
+    assert len(data) == 13334
+    assert data[:4] == b"RIFF"
+    assert data[8:12] == b"WEBP"
+    assert struct.unpack("<I", data[4:8])[0] + 8 == len(data)
+    assert hashlib.sha256(data).hexdigest() == (
+        "6e73625e42533c906a777b18056b98a34e84697983ee181f6f395d4427c4614a"
+    )
 
 
 def test_product_schema():
