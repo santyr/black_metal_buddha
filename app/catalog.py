@@ -25,8 +25,8 @@ PRODUCTS = (
             "framed by ravens, smoke, and a thorned lotus. The piece joins black-metal visual "
             "language with themes of impermanence and non-self."
         ),
-        image="/prints/lotus_of_the_void_REFERENCE_ONLY.jpg",
-        image_alt="Black T-shirt mockup for Lotus of the Void, featuring a skeletal meditating figure and red eclipse halo.",
+        image="/static/products/lotus-of-the-void.webp",
+        image_alt="Lotus of the Void printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-LOTUS",
     ),
     Product(
@@ -39,8 +39,8 @@ PRODUCTS = (
             "candles, mist, and a muted red lunar accent. Its theme is simple: all conditioned things "
             "change, and every form passes."
         ),
-        image="/prints/dharma_of_decay_REFERENCE_ONLY.jpg",
-        image_alt="Black T-shirt mockup for Dharma of Decay, featuring a mountain stupa, ravens, candles, and red lunar accent.",
+        image="/static/products/dharma-of-decay.webp",
+        image_alt="Dharma of Decay printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-DHARMA",
     ),
     Product(
@@ -53,8 +53,8 @@ PRODUCTS = (
             "beads, lotus petals, smoke, and a distressed red sun. The design points toward mortality "
             "as a contemplative subject rather than spectacle."
         ),
-        image="/prints/meditate_on_death_REFERENCE_ONLY.jpg",
-        image_alt="Black T-shirt mockup for Meditate on Death, featuring a skeletal monk, prayer beads, lotus petals, and red sun.",
+        image="/static/products/meditate-on-death.webp",
+        image_alt="Meditate on Death printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-MEDITATE",
     ),
     Product(
@@ -73,11 +73,10 @@ PRODUCTS = (
             "The design draws its theme from contemplative teachings on illusion while remaining an "
             "original artistic interpretation rather than a traditional iconographic depiction."
         ),
-        image="/print-assets/02_two_ink_vector/longchenpa_rest_in_illusion_two_ink.svg",
+        image="/static/products/longchenpa-rest-in-illusion.webp",
         image_alt=(
-            "Two-ink Black Metal Buddha artwork for Longchenpa — Rest in Illusion, "
-            "featuring a wrathful seated master, eclipse halo, phantom reflections, lotus imagery, "
-            "and bone-white and ritual-red details."
+            "Longchenpa — Rest in Illusion printed on a black T-shirt against the "
+            "Black Metal Buddha ash-charcoal background."
         ),
         sku="BMB-LONGCHENPA",
         series="Lineage Series",
