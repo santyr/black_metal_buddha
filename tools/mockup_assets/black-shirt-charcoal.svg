@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#242424"/>
+      <stop offset=".48" stop-color="#343434"/>
+      <stop offset="1" stop-color="#202020"/>
+    </linearGradient>
+    <radialGradient id="shirt" cx=".5" cy=".32" r=".72">
+      <stop offset="0" stop-color="#171717"/>
+      <stop offset=".55" stop-color="#0c0c0c"/>
+      <stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <radialGradient id="collar" cx=".5" cy=".3" r=".7">
+      <stop offset="0" stop-color="#020202"/>
+      <stop offset="1" stop-color="#111"/>
+    </radialGradient>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="23" result="noise"/>
+      <feColorMatrix in="noise" type="matrix"
+        values=".18 0 0 0 .16
+                0 .18 0 0 .16
+                0 0 .18 0 .16
+                0 0 0 .22 0"/>
+      <feBlend in="SourceGraphic" mode="soft-light"/>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+      <feOffset dy="18"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="640" height="640" fill="url(#bg)"/>
+  <rect width="640" height="640" fill="#2b2b2b" opacity=".28" filter="url(#grain)"/>
+  <ellipse cx="320" cy="590" rx="190" ry="23" fill="#000" opacity=".52"/>
+  <g filter="url(#shadow)">
+    <path d="M236 70
+             C252 82 277 88 320 88
+             C363 88 388 82 404 70
+             L477 101
+             C492 108 501 119 511 136
+             L590 213
+             L535 278
+             L470 236
+             L455 575
+             C411 594 229 594 185 575
+             L170 236
+             L105 278
+             L50 213
+             L129 136
+             C139 119 148 108 163 101 Z"
+          fill="url(#shirt)" stroke="#252525" stroke-width="2"/>
+    <path d="M236 70 C260 104 380 104 404 70
+             C390 111 366 129 320 129
+             C274 129 250 111 236 70 Z"
+          fill="#151515"/>
+    <ellipse cx="320" cy="98" rx="69" ry="35" fill="url(#collar)" stroke="#282828" stroke-width="5"/>
+    <ellipse cx="320" cy="94" rx="53" ry="24" fill="#030303"/>
+    <path d="M163 103 C210 117 223 132 236 157" fill="none" stroke="#222" stroke-width="2" opacity=".8"/>
+    <path d="M477 103 C430 117 417 132 404 157" fill="none" stroke="#222" stroke-width="2" opacity=".8"/>
+    <path d="M170 237 L184 253" fill="none" stroke="#262626" stroke-width="2"/>
+    <path d="M470 237 L456 253" fill="none" stroke="#262626" stroke-width="2"/>
+    <path d="M184 570 C230 584 410 584 456 570" fill="none" stroke="#252525" stroke-width="3"/>
+    <path d="M205 138 C188 244 197 431 211 545" fill="none" stroke="#151515" stroke-width="7" opacity=".45"/>
+    <path d="M435 138 C452 244 443 431 429 545" fill="none" stroke="#151515" stroke-width="7" opacity=".45"/>
+    <path d="M275 125 C260 248 265 430 277 558" fill="none" stroke="#1f1f1f" stroke-width="6" opacity=".38"/>
+    <path d="M365 125 C380 248 375 430 363 558" fill="none" stroke="#1f1f1f" stroke-width="6" opacity=".38"/>
+  </g>
+</svg>
