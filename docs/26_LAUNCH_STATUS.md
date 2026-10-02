@@ -12,8 +12,8 @@ provider configuration and a controlled production order.
 - Price: **$35.00 USD per shirt in every size, plus shipping and applicable tax**,
   selected by the owner on 2026-10-02 with Blackcraft as the market reference.
 - Four designs and 20 Black variant SKUs. Production and private staging each
-  have 20 records priced at 3500 cents, inactive and unsellable. Printful mappings
-  remain empty. See [the SKU guide](25_PRODUCT_SKUS.md).
+  have 20 records priced at 3500 cents, inactive and unsellable. Production’s 20
+  Printful mappings are verified; staging mappings remain empty. See [the SKU guide](25_PRODUCT_SKUS.md).
 - The corrected approved WebP from remote main commit
   `83bbe7142fd617a1bf4fc6f546c0451d4ec7db51` fully decodes as 384 × 384.
   It is 13,334 bytes, its RIFF length matches the file, and its SHA-256 is
@@ -27,8 +27,8 @@ provider configuration and a controlled production order.
 | --- | --- | --- |
 | Source | Remote repository is `santyr/black_metal_buddha`; [PR #20](https://github.com/santyr/black_metal_buddha/pull/20) is merged, and main commit `fd0c4f6` and its 184 verified source files form the base of the reviewed follow-up release | Release metadata records the exact deployed commit and rollback targets |
 | Tests | Main passed 129 checks; the follow-up passes 131, including exact logo checksum/container length, all four shirt mockups, and $35 preview price assertions for products, cart, and FAQ | Two dependency deprecation warnings; no live provider transactions |
-| Browser | The corrected audit passed all 26 local page/viewport checks against the deployed application, verifying page identity, product images, decoding, preview cart, malformed data, and blocked storage | Direct public browser navigation and screenshot capture remain unreliable in this environment; public HTTPS, asset checksums, and full Pillow decoding pass |
-| Printful | Saved-product orders use real `sync_variant_id`, explicit draft creation, gated confirmation, and external-ID lookup; v2 shipping resolves saved IDs to blank catalog IDs; costs/shipments normalized | Real saved products and provider validation remain |
+| Browser | The corrected audit passed all 26 local page/viewport checks against the deployed application, verifying page identity, product images, decoding, preview cart, malformed data, and blocked storage | The post-deployment local browser rerun timed out, as did direct public navigation and optional screenshots; no post-deployment browser pass is claimed. Public HTTPS, asset checksums, and full Pillow decoding pass |
+| Printful | Production access is verified; all four products have seven synced Black CC1717 sizes, S–4XL, at $35; the 20 S–XXL production SKUs are mapped; eight signed webhook subscriptions are configured; a synthetic callback passed signature and deduplication checks | Final website size range, native storefront mockups, actual provider event delivery, and real fulfillment/canary remain |
 | Database | PostgreSQL 18.6, local peer authentication, migrations through `0007_refund_requests`, 20 reserved production SKUs | No live orders |
 | Services | Production web, worker, PostgreSQL, and daily local backup timer verified active | Reconciliation remains disabled until provider credentials are configured |
 | Staging | Separate Unix/PostgreSQL role `bmbstaging`, separate database, localhost-only service on 8091 | Public HTTPS, signed callbacks, and sandbox credentials remain |
@@ -53,17 +53,19 @@ visible heading, branding, and expected product images before checking images
 and cart behavior. The previous network-idle wait timed out on otherwise
 loadable pages. This follows [Playwright navigation guidance](https://playwright.dev/python/docs/api/class-page#page-goto).
 
-Production and staging were inspected again: Square and Printful access and
-webhook keys, SMTP sender/access, support contact, and owner-console credentials
-remain absent. Live transactions and native Printful mockups remain unverified.
+Production Printful access and signing keys are now installed privately. Square
+access/signing keys, SMTP sender/access, support contact, and owner-console
+credentials remain absent. Staging has separate settings and still lacks provider
+access. Live transactions and native storefront mockups remain unverified.
 
 ## Remaining owner inputs
 
 Follow [the step-by-step launch handoff](28_LAUNCH_INPUT_HANDOFF.md). It covers:
 
-1. Publish the four saved Printful products with the exact SKUs, artwork, blank,
-   sizes, technique, and placement. Identify what the approved sample covers.
-2. Provide store-scoped Printful API access and actual saved-product mappings.
+1. Review the four now-published Printful products and confirm the website size
+   range and what the approved physical sample covers.
+2. Production Printful access and S–XXL mappings are verified; provide a designated
+   test store for isolated staging. Real provider callbacks still need the canary.
 3. Provide production and sandbox Square access, merchant location, signed
    webhook configuration, and approved tax settings.
 4. Verify an email sender and supply SMTP access plus a working support address.

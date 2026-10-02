@@ -6,12 +6,14 @@ This document tells you what to do in your accounts and what to provide so I can
 
 - Physical sample approved; garment is Comfort Colors 1717.
 - Sizes are S, M, L, XL, and XXL, represented as `2XL` in SKUs.
-- Four designs have 20 reserved Black variant SKUs in [the SKU worksheet](../catalog/comfort-colors-1717-skus.csv).
+- All four designs are published in the production Printful store with seven Black sizes each, S–4XL. The website retains the earlier S–XXL launch range pending the owner’s size decision; its 20 reserved SKUs now have verified saved Printful product and variant mappings. See [the SKU worksheet](../catalog/comfort-colors-1717-skus.csv).
 - Launch retail price is **$35.00 USD for every size, plus calculated shipping and applicable tax**. No size surcharge is applied.
 - The repaired approved logo has passed a complete WebP decode and checksum check. You do not need to provide the logo again.
 - Production database, background worker, local backups, restore verification, and private staging are prepared. Public purchasing remains closed while the remaining work is completed.
 
 ## Price research and decision
+
+The owner reports that the **Large test T-shirt cost $22.10 USD including shipping**. Record this as the sample order total; the shirt and shipping amounts have not been itemized. Launch retail remains **$35.00 plus separately calculated shipping**.
 
 Checked on 2026-10-02 in the US dollar view. [Printful's 1717 page](https://www.printful.com/custom/mens/all/unisex-garment-dyed-heavyweight-shirt-comfort-colors-1717) displays **$15.60 with one print included**, with US shipping **starting at $4.95**. These are advertised starting figures; size, color, technique, placement, taxes, and delivery address can change the actual cost. They are not a quote for every Black S–2XL variant.
 
@@ -19,9 +21,24 @@ The owner selected **$35 per shirt** on 2026-10-02, using Blackcraft as the mark
 
 At the advertised $15.60 product cost, $35 leaves **$19.40, or 55.4% of merchandise revenue**, before payment fees, Printful taxes, overhead, claims, and extra print charges. This is a preliminary merchandise margin, not net profit. A starting example customer total is $35 + $4.95 = **$39.95 before tax**, but the site will use the actual shipping quote. I will check real S–2XL costs once your Printful account is available before enabling sales.
 
+Current Printful catalog API prices for Black 1717 variants, checked with the production token on 2026-10-02:
+
+| Size | Catalog product price USD |
+| --- | ---: |
+| S, M, L, XL | $15.60 |
+| 2XL | $17.60 |
+| 3XL | $19.60 |
+| 4XL | $21.60 |
+
+These are catalog product prices, not delivered-order totals. Shipping, tax, and any order-specific charges must be checked for the actual recipient and saved print setup.
+
 ## Step 1 Prepare the Printful store and products
 
-**You do:**
+**Production setup completed:** Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion are saved in the Black Metal Buddha store. Each has seven synced Black Comfort Colors 1717 variants at $35.00. Lotus’s generated SKUs were replaced with the reserved BMB SKUs while preserving its saved artwork, variant IDs, and prices. The other three use the approved 3600 × 4800 production PNGs pinned to a verified repository commit. All 20 existing S–XXL website variants are mapped and remain inactive.
+
+**Remaining:** Confirm the website launch range, review the three new saved products in Printful, and confirm which designs the physical sample approval covers. Native storefront mockups and the real fulfillment canary remain unverified.
+
+**Reference procedure:**
 
 1. Sign in to [Printful](https://www.printful.com/dashboard). If you already have a store for this project, use it rather than creating a duplicate.
 2. For a new custom website store, open **Stores** and choose **Connect via API**. Name it Black Metal Buddha. See [Printful's instructions](https://help.printful.com/hc/en-us/articles/50262225690257-How-do-I-create-and-use-a-manual-order-API-store).
@@ -37,11 +54,13 @@ At the advertised $15.60 product cost, $35 leaves **$19.40, or 55.4% of merchand
 
 ## Step 2 Provide Printful API access
 
-**You do:**
+**Production access completed:** The supplied token was verified for orders, saved-product management, files, and webhooks and stored privately in the production environment file. Eight signed order/shipment event subscriptions are configured at the storefront callback. The public callback rejects invalid signatures and accepts/deduplicates a synthetic signed probe. Actual provider event delivery still needs the real canary. Staging remains isolated and needs a designated test-store configuration.
+
+**Reference procedure:**
 
 1. Open the [Printful Developer Portal](https://developers.printful.com/login) and sign in.
 2. Create a private token for this store. Prefer store access limited to Black Metal Buddha.
-3. Enable the scopes required for orders, saved product reads, and webhook setup: `orders`, `sync_products/read`, and `webhooks`. I will verify the token permissions before integration. See [Printful authorization documentation](https://developers.printful.com/docs/#tag/Authorization).
+3. Enable the scopes required for orders, saved product reads, and webhook setup: `orders`, `sync_products`, `file_library`, and `webhooks`. I will verify the token permissions before integration. See [Printful authorization documentation](https://developers.printful.com/docs/#tag/Authorization).
 4. Put the token and store ID in the secure server settings as `PRINTFUL_TOKEN` and `PRINTFUL_STORE_ID`, using the secure handoff instructions below.
 
 **Provide:** The secure configuration location and the store ID or store name. If a webhook is already configured, also provide the secure location of its signing keys.
@@ -142,4 +161,4 @@ Staging hostname and DNS contact:
 Test SKU and recipient details secure location:
 ```
 
-You do not need to finish every step at once. Printful products/access and Square access are the best next handoff because they allow me to replace the remaining mocked provider checks with real integration evidence.
+You do not need to finish every step at once. Production Printful products and access are now configured. Square production/sandbox access and the verified email sender are the best next handoff; the remaining policy, backup, staging, and canary inputs still apply.
