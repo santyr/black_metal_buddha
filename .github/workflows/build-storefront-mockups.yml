@@ -1,0 +1,65 @@
+name: build storefront shirt mockups
+
+on:
+  push:
+    branches:
+      - main
+      - storefront/product-shirt-mockups
+    paths:
+      - "tools/build_storefront_mockups.py"
+      - "black_metal_buddhist_prints/03_two_ink_png/**"
+      - ".github/workflows/build-storefront-mockups.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Generate product shirt mockups
+        run: python tools/build_storefront_mockups.py
+      - name: Validate generated mockups
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          from PIL import Image
+
+          slugs = [
+              "lotus-of-the-void",
+              "dharma-of-decay",
+              "meditate-on-death",
+              "longchenpa-rest-in-illusion",
+          ]
+          for slug in slugs:
+              path = Path("app/static/products") / f"{slug}.webp"
+              data = path.read_bytes()
+              assert data[:4] == b"RIFF", slug
+              assert data[8:12] == b"WEBP", slug
+              assert struct.unpack("<I", data[4:8])[0] + 8 == len(data), slug
+              with Image.open(path) as image:
+                  image.load()
+                  assert image.format == "WEBP", slug
+                  assert image.size == (900, 900), (slug, image.size)
+          print("validated", len(slugs), "product mockups")
+          PY
+      - name: Commit generated mockups
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/static/products
+          if git diff --cached --quiet; then
+            echo "Product mockups already current."
+          else
+            git commit -m "Generate storefront T-shirt mockups"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
