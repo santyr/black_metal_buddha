@@ -11,7 +11,7 @@ is not complete.
 - Production garment: Comfort Colors 1717, Unisex Garment-Dyed Heavyweight T-Shirt.
 - Launch sizes: S, M, L, XL, XXL (SKU size code `2XL`).
 - Owner is sourcing the valid approved Dzogchen-A logo; both assets in remote
-  commit `a33277d` still fail decoding.
+  commit `a33277d` still fail strict decoding (Chromium accepts the PNG).
 - Twenty unique Black variant SKUs have been reserved for the four current
   designs. See `25_PRODUCT_SKUS.md` and `../catalog/comfort-colors-1717-skus.csv`.
   Prices and provider mappings are empty. All 20 records are now installed in
@@ -26,6 +26,7 @@ is not complete.
 | Deployed application | Reviewed Printful correction, worker change, backup unit, and SKU CSV match the workspace by SHA-256 at `/opt/blackmetalbuddha/current`; public smoke check passes after restart | Verified 2026-10-02; source preserved in draft PR #20 |
 | Browse and preview cart | Local browser audit passes 26 page/viewport checks at 1280px and 360px, image decoding, add/remove, malformed cart data, and blocked storage | Verified 2026-10-02 |
 | Existing software checks | Prior deployed suite: 128 passed; rebased source suite: 129 passed, including upstream PNG signature check, with two dependency deprecation warnings; 7 provider contract failures reproduced before correction, all 8 targeted checks pass afterward | Verified; live providers not covered; signatures do not establish image integrity |
+| Remote source checks | GitHub Actions `test` and GitGuardian checks both completed successfully for PR #20 commit `e72ab6eec2d802d18d8901491516a629d44db0c0` | Verified 2026-10-02; PR remains draft and unmerged |
 | Printful API contract | v1 saved-product orders use `items.sync_variant_id`, explicit draft creation, gated confirmation, and external-ID lookup; v2 shipping resolves saved IDs to blank catalog IDs; v1 shipments/costs normalized | Reviewed independently and deployed; real provider validation remains |
 | Checkout browser behavior | Existing mocked browser audit passes provider failure/retry, server totals, shipping selection, and Square redirect with session storage blocked when run alone | Verified 2026-10-02; no real orders or payments |
 | Physical product | Owner approval and garment selection | Approved; sampled design, process, placement, and artwork revision not identified |
