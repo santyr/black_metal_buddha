@@ -36,7 +36,16 @@ These are catalog product prices, not delivered-order totals. Shipping, tax, and
 
 **Production setup completed:** Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion are saved in the Black Metal Buddha store. Each has seven synced Black Comfort Colors 1717 variants at $35.00. Lotus’s generated SKUs were replaced with the reserved BMB SKUs while preserving its saved artwork, variant IDs, and prices. The other three use the approved 3600 × 4800 production PNGs pinned to a verified repository commit. All 20 existing S–XXL website variants are mapped and remain inactive.
 
-**Remaining:** Confirm the website launch range, review the three new saved products in Printful, and confirm which designs the physical sample approval covers. Native storefront mockups and the real fulfillment canary remain unverified.
+**Remaining:** Confirm the website launch range, review the three new saved products in Printful, and confirm which designs the physical sample approval covers. All four native shirt mockups are created and saved as Printful product thumbnails; the real fulfillment canary remains unverified.
+
+**Review the new mockups:**
+
+1. Open Printful → Stores → Black Metal Buddha and review the thumbnails on Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion.
+2. Compare the artwork size and placement with your approved physical sample. Tell me which designs that approval covers.
+3. Confirm whether the website should retain S–XXL or include the saved Printful 3XL and 4XL variants.
+4. For a reusable scene inside Printful’s Dashboard editor, download [the charcoal background](https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/charcoal-scene-background.jpg), upload it as your background, and save the scene using the available [Custom Mockup Maker controls](https://help.printful.com/hc/en-us/articles/50266361810577-What-is-the-Custom-Mockup-Maker-and-how-to-use-it). The API updates product thumbnails; it does not create a Dashboard Scene preset. Printful may show its newer AI mockup interface instead.
+
+The shirt layers come from Printful’s native Flat / Front renderer. The faint lotus, thorn, and eclipse decorations belong to the shared background. Lotus’s mockup uses the saved uploaded artwork’s provider preview; its full-resolution production print file is preserved. The other three use their saved production PNGs. Mockup images do not replace the physical sample check.
 
 **Reference procedure:**
 
@@ -134,14 +143,7 @@ These are catalog product prices, not delivered-order totals. Shipping, tax, and
 
 ## How to hand off settings securely
 
-Production settings are in `/etc/blackmetalbuddha/blackmetalbuddha.env`. Staging settings are in `/etc/blackmetalbuddha-staging/staging.env`. If you have SSH access, edit the appropriate file with:
-
-```bash
-sudoedit /etc/blackmetalbuddha/blackmetalbuddha.env
-sudoedit /etc/blackmetalbuddha-staging/staging.env
-```
-
-Update the credential entries for the relevant step and leave the launch switches at their current values. Tell me which file is ready; I will validate it and handle activation. Alternatively, provide the location of a secure file or password-manager item that I can access. Keep secret values out of chat, Git, and this document. Square production credentials and sandbox credentials belong in their separate files.
+Keep production and staging credentials in separate private settings files or password-manager items. Use the private operational handoff for server-specific locations. Update the entries for the relevant step and leave the launch switches at their current values. Tell me which secure file or item is ready; I will validate it and handle activation. Keep secret values out of chat, Git, and this document. Square production and sandbox credentials belong in their separate configurations.
 
 Use this handoff message as you finish each step:
 

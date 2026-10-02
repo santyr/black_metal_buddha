@@ -1,0 +1,60 @@
+{
+  "generated_scene": "AI-edited charcoal background with faint lotus, thorn and eclipse overlays",
+  "provider_style": "Printful Flat / Front, lifelike visual option",
+  "production_artwork_modified": false,
+  "render_width_px": 2000,
+  "products": [
+    {
+      "slug": "lotus-of-the-void",
+      "product_id": 477390424,
+      "render_variant": "Black / M",
+      "art_file_id": 1078326427,
+      "source_is_saved_file_preview": true,
+      "native_sha256": "541eaf883183d969b7e1c871e036e9eef0fdb655edd3e6c054e1071917935d70",
+      "scene_png_sha256": "ed359b76d339eb7d6720370eab7728a8bb8aba07bdf2fd380b4c958796d7756c",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/lotus-of-the-void.jpg",
+      "storefront_webp_sha256": "12ecfc77214e89e6e3546b45683b680eb35fb93f586a580f0ceb4e92d804d750",
+      "native_opaque_pixels_preserved": true,
+      "scene_jpeg_sha256": "efaf4d74df8488ed517b2d627b0128cbe47f26366326a759723c5e43c29bbcbe"
+    },
+    {
+      "slug": "dharma-of-decay",
+      "product_id": 477393030,
+      "render_variant": "Black / M",
+      "art_file_id": 1078334623,
+      "source_is_saved_file_preview": false,
+      "native_sha256": "ee2d6d7b4242130dbd997305c8e09933921cd6539b3d8913f303c75ca35f54de",
+      "scene_png_sha256": "100f080a4b1cd8806ff57b422f2936650374084c89313e17e5956d6c024527a3",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/dharma-of-decay.jpg",
+      "storefront_webp_sha256": "dc6efd76978a9ed41675ea49b3d359b6351268a7d930b938964e642dc6197bee",
+      "native_opaque_pixels_preserved": true,
+      "scene_jpeg_sha256": "d7b4eefd4f87fecc04269f10e9945268d5648455c5311015e292bb24a0e91f1f"
+    },
+    {
+      "slug": "meditate-on-death",
+      "product_id": 477393297,
+      "render_variant": "Black / M",
+      "art_file_id": 1078335440,
+      "source_is_saved_file_preview": false,
+      "native_sha256": "9f3ff196c4fc3d124a283f88d7adc26ea05016433e7aef92bbe31cf51d45da2a",
+      "scene_png_sha256": "4a5d28de4e9397ddaf4712e403d410893d9935b0f4b08db17027095d35a88345",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/meditate-on-death.jpg",
+      "storefront_webp_sha256": "d3cc6ecbd1841b8e2c627ced90a94a2af8b8b1387630babc8651e93ed251f139",
+      "native_opaque_pixels_preserved": true,
+      "scene_jpeg_sha256": "1af4562058e8e7b0129539360418c1da5cbb5b5e4672c3c1ccab824e06385462"
+    },
+    {
+      "slug": "longchenpa-rest-in-illusion",
+      "product_id": 477393494,
+      "render_variant": "Black / M",
+      "art_file_id": 1078335545,
+      "source_is_saved_file_preview": false,
+      "native_sha256": "9902d0327502be5ba57eccc7d35947ac1059bef5250cc620174d78cd5855b631",
+      "scene_png_sha256": "e9fb6b980dfb69eacac676e306e77b9b3ec9a229f57a5935e423cd1903336d58",
+      "scene_url": "https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/longchenpa-rest-in-illusion.jpg",
+      "storefront_webp_sha256": "50721d57c7de8abcac349c7eb14d418c3b9e839771ec1f8184534dba305f2fb7",
+      "native_opaque_pixels_preserved": true,
+      "scene_jpeg_sha256": "c27c9daafb1277b2e1c4b08a75962ab5b9fded2cffe1bfb454785ce3389b7109"
+    }
+  ]
+}
