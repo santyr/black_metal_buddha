@@ -29,7 +29,8 @@
                   data-size="{{ variant.size }}"
                   data-color="{{ variant.color }}"
                   data-price-cents="{{ variant.retail_price_cents }}"
-                  data-currency="{{ variant.currency }}">
+                  data-currency="{{ variant.currency }}"
+                  data-variant-id="{{ variant.printful_variant_id or '' }}">
                   {{ variant.size }} · {{ variant.color }}
                 </option>
               {% endfor %}
@@ -48,10 +49,12 @@
         </div>
         <p class="microcopy">Price and availability are verified again by the server at checkout.</p>
       </div>
+    {% elif phase1_enabled %}
+      <div class="launch-note"><strong>Currently unavailable.</strong><span>Please check back for available sizes and colors.</span></div>
     {% else %}
       <div class="launch-note">
         <strong>Pre-launch preview.</strong>
-        <span>Comfort Colors 1717 · S–XXL · {{ product.launch_price_display }} plus shipping. Purchasing opens after fulfillment setup and launch checks are complete.</span>
+        <span>{{ product.garment_name }} · {{ product.size_display }} · {% if product.variable_price %}From {% endif %}{{ product.launch_price_display }} plus shipping. Purchasing opens after fulfillment setup and launch checks are complete.</span>
       </div>
       <button class="button button-primary" type="button" data-add-preview data-product-slug="{{ product.slug }}" data-product-name="{{ product.name }}">Add design to preview cart</button>
       <p class="microcopy">Checkout is intentionally disabled until production approval.</p>
@@ -72,7 +75,7 @@
       {% if variants %}
         <p>This product has approved sellable variants in the store catalog.</p>
       {% else %}
-        <p>Comfort Colors 1717 is the selected garment. Each design's final artwork, print placement, and fulfillment variants must be confirmed before sales open.</p>
+        <p>{{ product.garment_name }} is the selected garment. Purchasing opens after fulfillment setup and the final launch checks.</p>
       {% endif %}
     </div>
   </div>

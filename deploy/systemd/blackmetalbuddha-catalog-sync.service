@@ -1,0 +1,21 @@
+[Unit]
+Description=Refresh Black Metal Buddha catalog from Printful
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=blackmetalbuddha
+Group=blackmetalbuddha
+WorkingDirectory=/opt/blackmetalbuddha/current
+EnvironmentFile=/etc/blackmetalbuddha/blackmetalbuddha.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/blackmetalbuddha/venv/bin/python -m app.manage sync-printful-catalog
+TimeoutStartSec=20min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/blackmetalbuddha/product-images
+

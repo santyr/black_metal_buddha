@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -16,10 +16,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .admin import router as admin_router
 from .branding import LOGO_PATH, LOGO_TYPE
 from .api_phase1 import router as phase1_router
-from .catalog import PRODUCT_BY_SLUG, PRODUCTS
+from .catalog import catalog_overview, get_products
 from .catalog_ops import assert_production_catalog
 from .db import SessionLocal, init_db
 from .orders import get_order
+from .models import PrintfulCatalogState, ProductVariant
+from sqlalchemy import select
 from .rate_limit import limiter
 from .settings import settings as phase1_settings
 from .storefront import price_floor_by_product, sellable_catalog, sellable_variants_for_product
@@ -41,10 +43,12 @@ async def lifespan(_: FastAPI):
         init_db()
     elif phase1_settings.phase1_api_enabled:
         with SessionLocal() as session:
-            assert_production_catalog(
-                session,
-                phase1_settings.production_catalog_fingerprint,
-            )
+            if phase1_settings.printful_catalog_sync_enabled:
+                state = session.get(PrintfulCatalogState, 1)
+                if state is None or state.store_id != phase1_settings.printful_store_id:
+                    raise RuntimeError("The approved Printful catalog has not been imported")
+            else:
+                assert_production_catalog(session, phase1_settings.production_catalog_fingerprint)
     yield
 
 
@@ -56,6 +60,8 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
+app.mount("/product-images", StaticFiles(directory=phase1_settings.printful_catalog_image_dir,
+                                        check_dir=False), name="product-images")
 app.mount(
     "/prints",
     StaticFiles(directory=ROOT / "black_metal_buddhist_prints" / "05_original_mockups"),
@@ -100,6 +106,9 @@ async def security_headers(request: Request, call_next):
 
 
 def page_context(request: Request, **kwargs):
+    products = kwargs.pop("products", None)
+    if products is None:
+        products = get_products()
     return {
         "request": request,
         "site_name": SITE_NAME,
@@ -107,7 +116,8 @@ def page_context(request: Request, **kwargs):
         "logo_path": LOGO_PATH,
         "logo_type": LOGO_TYPE,
         "default_description": DEFAULT_DESCRIPTION,
-        "products": PRODUCTS,
+        "products": products,
+        "catalog_overview": catalog_overview(products),
         "phase1_enabled": phase1_settings.phase1_api_enabled,
         "support_email": phase1_settings.support_email,
         **kwargs,
@@ -192,10 +202,7 @@ def shop(request: Request):
         page_context(
             request,
             title="Shop Black Metal Buddha | Dark Buddhist-Inspired Apparel",
-            description=(
-                "Explore Black Metal Buddha apparel including Lotus of the Void, Dharma of Decay, "
-                "Meditate on Death, and Longchenpa — Rest in Illusion."
-            ),
+            description="Explore the current Black Metal Buddha collection, sizes, and prices.",
             canonical=f"{BASE_URL}/shop",
             price_floors=storefront_price_floors(),
         ),
@@ -204,7 +211,8 @@ def shop(request: Request):
 
 @app.get("/products/{slug}", include_in_schema=False)
 def product_detail(request: Request, slug: str):
-    product = PRODUCT_BY_SLUG.get(slug)
+    products = get_products()
+    product = next((item for item in products if item.slug == slug), None)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -241,11 +249,12 @@ def product_detail(request: Request, slug: str):
         page_context(
             request,
             product=product,
+            products=products,
             variants=variants,
             title=f"{product.name} | Black Metal Buddha",
             description=product.summary,
             canonical=f"{BASE_URL}/products/{product.slug}",
-            structured_data=json.dumps(product_schema),
+            structured_data=json.dumps(product_schema).replace("<", "\\u003c").replace("&", "\\u0026"),
         ),
     )
 
@@ -450,7 +459,24 @@ def robots() -> str:
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap() -> Response:
     paths = ["/", "/shop", "/about", "/faq", "/contact", "/terms", "/shipping-returns", "/privacy"]
-    paths.extend(f"/products/{product.slug}" for product in PRODUCTS)
+    paths.extend(f"/products/{product.slug}" for product in get_products())
     urls = "".join(f"<url><loc>{BASE_URL}{path}</loc></url>" for path in paths)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
     return Response(content=xml, media_type="application/xml")
+
+
+@app.get("/catalog.json", include_in_schema=False)
+def public_catalog() -> JSONResponse:
+    with SessionLocal() as session:
+        products = get_products(session)
+        variants = session.scalars(select(ProductVariant)).all()
+        data = []
+        for product in products:
+            current = [v for v in variants if v.product_slug == product.slug and
+                       (v.catalog_visible if phase1_settings.printful_catalog_sync_enabled else v.active)]
+            data.append({"slug": product.slug, "name": product.name, "image": product.image,
+                         "variants": [{"sku": v.sku, "variantId": v.printful_variant_id,
+                                       "size": v.size, "color": v.color,
+                                       "priceCents": v.retail_price_cents, "currency": v.currency,
+                                       "available": bool(v.active and v.sellable)} for v in current]})
+    return JSONResponse({"products": data}, headers={"Cache-Control": "no-store"})

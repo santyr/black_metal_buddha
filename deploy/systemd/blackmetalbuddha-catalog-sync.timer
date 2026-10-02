@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh the Printful product catalog every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=60s
+Unit=blackmetalbuddha-catalog-sync.service
+
+[Install]
+WantedBy=timers.target

@@ -7,7 +7,7 @@
 <section class="section shell faq-list">
   <details open><summary>Can I buy the shirts yet?</summary>
     {% if phase1_enabled %}<p>Yes. Choose a sellable size on a product page, enter your shipping address, select an available Printful shipping method, and complete payment on Square.</p>
-    {% else %}<p>Not yet. Launch shirts are Comfort Colors 1717 in S–XXL, $35.00 plus shipping. Purchasing opens after fulfillment setup and the final launch checks.</p>{% endif %}
+    {% else %}<p>Not yet. {{ catalog_overview }} Purchasing opens after fulfillment setup and the final launch checks.</p>{% endif %}
   </details>
   <details><summary>Who prints and ships the shirts?</summary><p>Printful handles automated print-on-demand production and shipment after Black Metal Buddha verifies a completed Square payment.</p></details>
   <details><summary>How are payments handled?</summary><p>Card and other enabled fiat checkout methods are processed on Square's hosted checkout. Black Metal Buddha does not handle raw card details.</p></details>

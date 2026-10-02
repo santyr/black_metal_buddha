@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from .admin_auth import csrf_token, require_admin, verify_csrf
 from .audit import record_audit
 from .branding import LOGO_PATH, LOGO_TYPE
-from .catalog import PRODUCT_BY_SLUG
+from .catalog import products_by_slug
 from .db import SessionLocal
 from .fulfillment.printful import PrintfulClient
 from .models import (
@@ -66,6 +66,8 @@ def redirect(path: str, message: str | None = None) -> RedirectResponse:
 
 
 def require_catalog_writable() -> None:
+    if settings.printful_catalog_sync_enabled:
+        raise HTTPException(status_code=409, detail="Manage products in Printful")
     if settings.app_env == "production" and settings.phase1_api_enabled:
         raise HTTPException(
             status_code=409,
@@ -417,7 +419,7 @@ def catalog(
             actor,
             title="Catalog | Black Metal Buddha Admin",
             variants=variants,
-            products=PRODUCT_BY_SLUG,
+            products=products_by_slug(session),
             token_new=csrf_token("create_variant", "new"),
             token_edit={item.id: csrf_token("edit_variant", str(item.id)) for item in variants},
             message=request.query_params.get("message"),
@@ -459,7 +461,7 @@ async def create_variant_action(
     verify_csrf(str(form.get("csrf") or ""), "create_variant", "new")
     product_slug = str(form.get("product_slug") or "").strip()
     sku = str(form.get("sku") or "").strip().upper()[:128]
-    if product_slug not in PRODUCT_BY_SLUG:
+    if product_slug not in products_by_slug(session):
         return redirect("/admin/catalog", "Unknown product.")
     if not sku:
         return redirect("/admin/catalog", "SKU is required.")

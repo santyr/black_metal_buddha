@@ -7,9 +7,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .catalog import PRODUCT_BY_SLUG
+from .catalog import get_product
 from .models import Job, Order, OrderItem, ProductVariant
 from .schemas import CreateOrderIn
+from .settings import settings
 
 
 class OrderError(ValueError):
@@ -40,6 +41,11 @@ def enqueue_job(session: Session, order: Order, job_type: str) -> bool:
 
 
 def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = False) -> Order:
+    from .printful_catalog import CatalogSyncError, require_current_catalog
+    try:
+        require_current_catalog(session)
+    except CatalogSyncError as exc:
+        raise OrderError(str(exc)) from None
     order_id = str(uuid4())
     order_number = new_order_number()
     items: list[OrderItem] = []
@@ -56,8 +62,11 @@ def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = Fal
         )
         if variant is None or variant.retail_price_cents is None:
             raise OrderError(f"SKU is not currently sellable: {line.sku}")
+        if ((settings.printful_catalog_sync_enabled or line.printful_variant_id) and
+                line.printful_variant_id != variant.printful_variant_id):
+            raise OrderError("A product selection changed; refresh your cart and select the size again")
 
-        product = PRODUCT_BY_SLUG.get(variant.product_slug)
+        product = get_product(variant.product_slug, session)
         if product is None:
             raise OrderError(f"Unknown product for SKU: {line.sku}")
 
@@ -110,6 +119,25 @@ def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = Fal
     session.commit()
     session.refresh(order)
     return order
+
+
+def validate_pending_catalog(session: Session, order: Order) -> None:
+    if not settings.printful_catalog_sync_enabled:
+        return
+    from .printful_catalog import CatalogSyncError, require_current_catalog
+    try:
+        require_current_catalog(session)
+    except CatalogSyncError as exc:
+        raise OrderError(str(exc)) from None
+    for item in order.items:
+        variant = session.get(ProductVariant, item.product_variant_id)
+        if (variant is None or not variant.active or not variant.sellable or
+                variant.printful_product_id != item.printful_product_id_snapshot or
+                variant.printful_variant_id != item.printful_variant_id_snapshot or
+                variant.retail_price_cents != item.unit_price_cents or
+                variant.currency != order.currency or variant.size != item.size_snapshot or
+                variant.color != item.color_snapshot):
+            raise OrderError("A product selection changed; return to your cart and start checkout again")
 
 
 def get_order(session: Session, order_number: str) -> Order | None:

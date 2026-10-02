@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
-from .catalog import PRODUCT_BY_SLUG
+from .catalog import get_product
 from .catalog_ops import (
     assert_production_catalog,
     catalog_errors,
@@ -23,6 +23,7 @@ from .orders import (
     set_shipping_rate,
     set_square_checkout,
     sync_square_pricing,
+    validate_pending_catalog,
 )
 from .payments.square import SquareClient
 from .reconcile import reconcile_orders, reconcile_printful_order, reconcile_square_order
@@ -34,10 +35,9 @@ from .settings import settings
 def seed_sandbox_variant(args: argparse.Namespace) -> None:
     if settings.app_env == "production":
         raise SystemExit("Sandbox variant seeding is disabled in production.")
-    if args.product_slug not in PRODUCT_BY_SLUG:
-        raise SystemExit(f"Unknown product slug: {args.product_slug}")
-
     with SessionLocal() as session:
+        if get_product(args.product_slug, session) is None:
+            raise SystemExit(f"Unknown product slug: {args.product_slug}")
         existing = session.scalar(select(ProductVariant).where(ProductVariant.sku == args.sku))
         if existing:
             raise SystemExit(f"SKU already exists: {args.sku}")
@@ -99,6 +99,9 @@ def reconcile(_: argparse.Namespace) -> None:
 
 
 def checkout_input(args: argparse.Namespace) -> CreateOrderIn:
+    with SessionLocal() as session:
+        variant = session.scalar(select(ProductVariant).where(ProductVariant.sku == args.sku))
+        variant_id = variant.printful_variant_id if variant else None
     return CreateOrderIn(
         recipient={
             "name": args.name,
@@ -111,7 +114,7 @@ def checkout_input(args: argparse.Namespace) -> CreateOrderIn:
             "postal_code": args.postal_code,
             "country_code": args.country,
         },
-        items=[{"sku": args.sku, "quantity": args.quantity}],
+        items=[{"sku": args.sku, "quantity": args.quantity, "printful_variant_id": variant_id}],
     )
 
 
@@ -143,6 +146,7 @@ def create_checkout_from_cli(args: argparse.Namespace, *, is_canary: bool) -> Or
         )
 
         square = SquareClient()
+        validate_pending_catalog(session, order)
         link = square.create_payment_link(order)
         square_order = square.get_order(link["order_id"])
         sync_square_pricing(session, order, square_order)
@@ -301,6 +305,8 @@ def catalog_export(args: argparse.Namespace) -> None:
 
 
 def catalog_import(args: argparse.Namespace) -> None:
+    if settings.printful_catalog_sync_enabled:
+        raise SystemExit("Manage products in Printful while automatic catalog sync is enabled")
     if settings.app_env == "production" and settings.phase1_api_enabled:
         raise SystemExit("Disable public production checkout before importing catalog data")
     manifest = json.loads(Path(args.path).read_text(encoding="utf-8"))
@@ -318,6 +324,27 @@ def catalog_import(args: argparse.Namespace) -> None:
         print(f"sellable_fingerprint={fingerprint}")
     else:
         print("Dry run only. Re-run with --apply to persist.")
+
+
+def sync_printful_catalog(args: argparse.Namespace) -> None:
+    from .printful_catalog import CatalogSyncError, sync_catalog
+    try:
+        with SessionLocal() as session:
+            result = sync_catalog(session, apply=not args.dry_run)
+    except CatalogSyncError as exc:
+        raise SystemExit(str(exc)) from None
+    print(json.dumps(result, sort_keys=True))
+
+
+def printful_catalog_status(_: argparse.Namespace) -> None:
+    from .models import PrintfulCatalogState
+    with SessionLocal() as session:
+        state = session.get(PrintfulCatalogState, 1)
+        print(json.dumps({"enabled": settings.printful_catalog_sync_enabled,
+                          "store_matches": bool(state and state.store_id == settings.printful_store_id),
+                          "synced_at": state.synced_at.isoformat() if state else None,
+                          "products": state.product_count if state else 0,
+                          "variants": state.variant_count if state else 0}, sort_keys=True))
 
 
 def add_checkout_arguments(parser: argparse.ArgumentParser) -> None:
@@ -340,7 +367,7 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
 
     seed = sub.add_parser("seed-sandbox-variant")
-    seed.add_argument("--product-slug", required=True, choices=sorted(PRODUCT_BY_SLUG))
+    seed.add_argument("--product-slug", required=True)
     seed.add_argument("--sku", required=True)
     seed.add_argument("--size", required=True)
     seed.add_argument("--color", default="Black")
@@ -391,6 +418,13 @@ def parser() -> argparse.ArgumentParser:
     importer.add_argument("path")
     importer.add_argument("--apply", action="store_true")
     importer.set_defaults(func=catalog_import)
+
+    sync = sub.add_parser("sync-printful-catalog")
+    sync.add_argument("--dry-run", action="store_true")
+    sync.set_defaults(func=sync_printful_catalog)
+
+    status = sub.add_parser("printful-catalog-status")
+    status.set_defaults(func=printful_catalog_status)
 
     return p
 

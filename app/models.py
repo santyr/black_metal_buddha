@@ -12,6 +12,32 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class PrintfulProduct(Base):
+    __tablename__ = "printful_products"
+
+    printful_product_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    slug: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    garment_name: Mapped[str] = mapped_column(String(255))
+    image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    source_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_etag: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_last_modified: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    visible: Mapped[bool] = mapped_column(Boolean, default=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=100)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class PrintfulCatalogState(Base):
+    __tablename__ = "printful_catalog_state"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    store_id: Mapped[str] = mapped_column(String(128))
+    synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    product_count: Mapped[int] = mapped_column(Integer)
+    variant_count: Mapped[int] = mapped_column(Integer)
+
+
 class ProductVariant(Base):
     __tablename__ = "product_variants"
 
@@ -24,6 +50,7 @@ class ProductVariant(Base):
     retail_price_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=False)
     sellable: Mapped[bool] = mapped_column(Boolean, default=False)
+    catalog_visible: Mapped[bool] = mapped_column(Boolean, default=False)
     printful_product_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     printful_variant_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -83,7 +110,7 @@ class OrderItem(Base):
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
     product_variant_id: Mapped[int] = mapped_column(ForeignKey("product_variants.id"))
     sku_snapshot: Mapped[str] = mapped_column(String(128))
-    name_snapshot: Mapped[str] = mapped_column(String(200))
+    name_snapshot: Mapped[str] = mapped_column(String(255))
     size_snapshot: Mapped[str] = mapped_column(String(32))
     color_snapshot: Mapped[str] = mapped_column(String(64))
     unit_price_cents: Mapped[int] = mapped_column(Integer)

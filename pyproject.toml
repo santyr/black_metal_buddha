@@ -12,6 +12,7 @@ dependencies = [
   "alembic>=1.14,<2",
   "psycopg[binary]>=3.2,<4",
   "python-multipart>=0.0.9,<1",
+  "Pillow>=12,<13",
 ]
 
 [project.optional-dependencies]

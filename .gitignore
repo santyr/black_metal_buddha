@@ -8,3 +8,6 @@ __pycache__/
 *.sqlite3
 *.dump
 *.dump.sha256
+.runtime/
+.superpowers/
+output/private-launch-handoff/
