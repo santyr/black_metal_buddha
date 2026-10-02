@@ -188,4 +188,5 @@ def test_previews_show_selected_price_before_sales_open(path):
     assert response.status_code == 200
     assert "$35.00 plus shipping" in response.text
     assert "Comfort Colors 1717" in response.text
+    assert "S–XXL" in response.text
     assert 'data-checkout-link' not in response.text
