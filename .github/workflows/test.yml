@@ -25,3 +25,38 @@ jobs:
       - run: bash -n deploy/*.sh
       - run: alembic upgrade head
       - run: pytest -q
+
+  responsive:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: development
+      DATABASE_URL: sqlite:///./responsive-ci.db
+      PHASE1_API_ENABLED: "false"
+      PRINTFUL_MODE: disabled
+      PHASE0_5_APPROVED: "false"
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt playwright
+      - run: playwright install --with-deps chromium
+      - name: Audit responsive layouts
+        run: |
+          uvicorn app.main:app --host 127.0.0.1 --port 8088 --no-access-log > /tmp/bmb-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8088/healthz > /dev/null; then break; fi
+            sleep 1
+          done
+          python tools/audit_responsive.py http://127.0.0.1:8088 --screenshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: responsive-layout-audit
+          path: |
+            /tmp/bmb-responsive-audit
+            /tmp/bmb-preview.log
