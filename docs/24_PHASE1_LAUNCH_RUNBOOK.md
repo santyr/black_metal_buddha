@@ -4,9 +4,12 @@ This document is the final software-side launch procedure.
 
 The store is still not authorized for public transactions until the physical-product gate and live canary pass.
 
-## 1. Freeze and validate the production catalog
+## 1. Validate and archive the launch catalog
 
-After sample approval, enter/import the final variants.
+After sample approval, review the final variants in Printful. With
+`PRINTFUL_CATALOG_SYNC_ENABLED=true`, the complete published Printful catalog
+supplies the storefront; wait for a successful sync before validating. Use the
+manual import instructions below only when automatic Printful sync is disabled.
 
 Validate:
 
@@ -31,14 +34,21 @@ PRODUCTION_CATALOG_APPROVED=true
 
 The fingerprint covers sellable SKU, product, size, color, price, active/sellable state, and Printful mappings.
 
-At public production startup BMB:
+The controlled canary verifies the archived fingerprint against the current
+catalog before creating checkout. Review and archive a new fingerprint if the
+catalog changes before that order.
 
-1. validates the launch catalog
-2. recomputes the fingerprint from PostgreSQL
-3. compares it to `PRODUCTION_CATALOG_FINGERPRINT`
-4. refuses startup if anything drifted
+At public production startup, automatic Printful mode checks that the imported
+catalog belongs to the configured store. Subsequent complete snapshots continue
+to update products, prices and availability; new checkout and pending payment
+links require a fresh catalog and valid current variants. The archived launch
+fingerprint remains a launch prerequisite, but it does not freeze future
+Printful edits.
 
-Catalog writes are blocked through the admin UI while public production checkout is enabled.
+When automatic sync is disabled, production startup validates the catalog and
+compares its current fingerprint to `PRODUCTION_CATALOG_FINGERPRINT`, refusing
+startup if it differs. Website admin catalog writes are blocked while public
+checkout is enabled. With automatic sync enabled, manage products in Printful.
 
 ### Catalog import
 
@@ -119,7 +129,7 @@ python -m app.manage production-canary \
 
 Without `--i-understand-this-is-live`, the command refuses to create the production checkout.
 
-The example SKU is one of the reserved Comfort Colors 1717 variants. It must
+Use an actual SKU from the latest imported catalog in place of the example. It must
 have an approved price and actual Printful mappings and be active and sellable
 before running the canary; reserving the SKU alone does not satisfy these gates.
 

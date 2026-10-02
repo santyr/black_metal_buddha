@@ -27,6 +27,20 @@ See [the product admin guide](29_PRINTFUL_PRODUCT_ADMIN.md) for adding, editing
 and removing products in Printful. Existing product URLs remain stable when
 names change, and historical orders retain their original details.
 
+## Browser verification
+
+The Chromium job for the source merged into the current release passed in
+[GitHub Actions](https://github.com/santyr/black_metal_buddha/actions/runs/37067261103).
+It checked 324 page/viewport layouts at 18 widths from 320 to 1920 pixels,
+including breakpoint boundaries, heading wrapping, hero centering, tablet
+content stacking and populated cart/checkout/admin fixtures. Separate storefront
+and mocked checkout audits passed too.
+
+These browser checks use preview data and local fixtures. They do not prove
+live payment, fulfillment, email delivery or provider callbacks. The deployed
+public catalog was checked separately for its four native mockups, 28 variants,
+$35 prices and S–4XL sizes.
+
 ## Remaining owner steps
 
 Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): review the products and
