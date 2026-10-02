@@ -126,11 +126,11 @@ def test_longchenpa_product_is_in_catalog_and_print_asset_is_served():
     assert "Longchenpa — Rest in Illusion" in page.text
     assert "Rest in Illusion." in page.text
     assert "LINEAGE SERIES" in page.text
-    assert "/print-assets/02_two_ink_vector/longchenpa_rest_in_illusion_two_ink.svg" in page.text
+    assert "/static/products/longchenpa-rest-in-illusion.webp" in page.text
 
-    art = client.get("/print-assets/02_two_ink_vector/longchenpa_rest_in_illusion_two_ink.svg")
+    art = client.get("/static/products/longchenpa-rest-in-illusion.webp")
     assert art.status_code == 200
-    assert "image/svg+xml" in art.headers["content-type"]
+    assert art.headers["content-type"].startswith("image/webp")
 
 
 def test_mockup_restyled_home_structure():
@@ -154,3 +154,24 @@ def test_mockup_restyled_shop_and_product_structure():
     assert product.status_code == 200
     assert 'class="product-image-frame"' in product.text
     assert 'class="product-notes-band"' in product.text
+
+
+def test_all_products_use_generated_tshirt_mockups():
+    slugs = [
+        "lotus-of-the-void",
+        "dharma-of-decay",
+        "meditate-on-death",
+        "longchenpa-rest-in-illusion",
+    ]
+    for slug in slugs:
+        path = f"/static/products/{slug}.webp"
+        page = client.get(f"/products/{slug}")
+        assert page.status_code == 200
+        assert path in page.text
+
+        image = client.get(path)
+        assert image.status_code == 200
+        assert image.headers["content-type"].startswith("image/webp")
+        assert image.content[:4] == b"RIFF"
+        assert image.content[8:12] == b"WEBP"
+        assert struct.unpack("<I", image.content[4:8])[0] + 8 == len(image.content)
