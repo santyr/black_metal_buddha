@@ -63,16 +63,16 @@ Software implementation is substantially complete:
 - PostgreSQL backups and restore-verification tooling
 - deployment and operational smoke tests
 
-Current deployment (2026-10-02): PostgreSQL and the worker are active, the 20
-S–XXL SKU records are installed as inactive, and daily local backups plus a
-restore test are verified. Printful saved-product API contract corrections are
-deployed. All 20 variants have an owner-selected $35.00 price. Live provider
-configuration, saved-product mappings, an off-host backup
-destination, owner-console approval, and the controlled live canary remain.
+Current storefront (2026-10-02): the complete Printful catalog automatically
+supplies product names, prices, sizes/colors, SKUs, availability and native
+mockup thumbnails. The current four designs each include seven sizes, S–4XL,
+at $35.00 plus shipping. Responsive layouts adapt product pages, grids,
+navigation, forms and carts to the available window width.
 
-Private staging is installed on `127.0.0.1:8091` with a separate account and
-PostgreSQL database. See `docs/27_PRIVATE_STAGING.md` for access and verification.
-Provider callbacks and sandbox transactions still require configuration.
+Manage products using [the Printful admin guide](docs/29_PRINTFUL_PRODUCT_ADMIN.md).
+Payments, chargeable fulfillment and owner-console activation remain behind
+separate launch gates. The remaining account, policy, backup and controlled
+order steps are in [the owner handoff](docs/28_LAUNCH_INPUT_HANDOFF.md).
 
 **All real-sales gates remain OFF by default.**
 
