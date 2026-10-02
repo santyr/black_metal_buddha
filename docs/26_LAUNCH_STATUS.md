@@ -25,9 +25,9 @@ provider configuration and a controlled production order.
 
 | Requirement | Evidence | Limit |
 | --- | --- | --- |
-| Source | Remote repository is `santyr/black_metal_buddha`; launch work is preserved in draft [PR #20](https://github.com/santyr/black_metal_buddha/pull/20), with corrected main merged into the release source | PR is unmerged; release metadata records the deployed commit |
-| Tests | Full release suite passes 128 checks, including exact logo checksum/container length and $35 preview price assertions | Two dependency deprecation warnings; no live provider transactions |
-| Browser | Prior local audit passed 26 page/viewport checks, image decoding, preview cart, malformed data, and blocked storage | Public release checks are recorded separately during deployment |
+| Source | Remote repository is `santyr/black_metal_buddha`; [PR #20](https://github.com/santyr/black_metal_buddha/pull/20) is merged, and main commit `fd0c4f6` and its 184 verified source files form the base of the reviewed follow-up release | Release metadata records the exact deployed commit and rollback targets |
+| Tests | Main passed 129 checks; the follow-up passes 131, including exact logo checksum/container length, all four shirt mockups, and $35 preview price assertions for products, cart, and FAQ | Two dependency deprecation warnings; no live provider transactions |
+| Browser | The corrected audit passed all 26 local page/viewport checks against the deployed application, verifying page identity, product images, decoding, preview cart, malformed data, and blocked storage | Direct public browser navigation and screenshot capture remain unreliable in this environment; public HTTPS, asset checksums, and full Pillow decoding pass |
 | Printful | Saved-product orders use real `sync_variant_id`, explicit draft creation, gated confirmation, and external-ID lookup; v2 shipping resolves saved IDs to blank catalog IDs; costs/shipments normalized | Real saved products and provider validation remain |
 | Database | PostgreSQL 18.6, local peer authentication, migrations through `0007_refund_requests`, 20 reserved production SKUs | No live orders |
 | Services | Production web, worker, PostgreSQL, and daily local backup timer verified active | Reconciliation remains disabled until provider credentials are configured |
@@ -40,6 +40,22 @@ The earlier malformed logo in commit `a33277d` is superseded by the repaired
 asset above. Earlier evidence about its failed decoding does not describe the
 current source. Pricing is settled; actual fulfillment costs must still be
 checked in the configured Printful account before sales activation.
+
+## Verification environment
+
+The temporary filesystem quota reached 247 MB of its 300 MB user limit. An
+obsolete 116 MB review checkout was removed only after all 175 source files
+were verified as preserved in Git and a recovery archive was checked. Usage
+fell to 131 MB and normal Chromium blank-page rendering succeeded.
+
+The page audit now waits for document content and verifies the requested URL,
+visible heading, branding, and expected product images before checking images
+and cart behavior. The previous network-idle wait timed out on otherwise
+loadable pages. This follows [Playwright navigation guidance](https://playwright.dev/python/docs/api/class-page#page-goto).
+
+Production and staging were inspected again: Square and Printful access and
+webhook keys, SMTP sender/access, support contact, and owner-console credentials
+remain absent. Live transactions and native Printful mockups remain unverified.
 
 ## Remaining owner inputs
 

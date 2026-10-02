@@ -34,12 +34,23 @@ def main():
         paths = [urlsplit(el.text).path for el in ElementTree.fromstring(sitemap.text()).iter()
                  if el.tag.endswith('}loc')]
         paths.append('/cart')
+        product_paths = [path for path in paths if path.startswith('/products/')]
         results = []
         for width in (1280, 360):
             page.set_viewport_size({'width': width, 'height': 900})
             for path in paths:
-                response = page.goto(base + path, wait_until='networkidle')
+                response = page.goto(base + path, wait_until='domcontentloaded')
                 assert response.status == 200, (path, response.status)
+                assert urlsplit(page.url).path == path, (path, page.url)
+                page.locator('h1').wait_for(state='visible')
+                assert 'Black Metal Buddha' in page.title(), (path, page.title())
+                assert page.locator('img[src*="black-metal-buddha-logo.webp"]').count() > 0, path
+                if path == '/shop':
+                    assert page.locator('.product-card').count() == len(product_paths), path
+                elif path in product_paths:
+                    mockup = '/static/products/' + path.rsplit('/', 1)[1] + '.webp'
+                    assert page.locator(f'img[src="{mockup}"]').count() > 0, (path, mockup)
+                    assert page.locator('[data-add-preview]').count() == 1, path
                 images = page.evaluate('''async () => Promise.all([...document.images].map(async img => {
                     try { await img.decode(); return {src: img.getAttribute('src'), valid: img.naturalWidth > 0}; }
                     catch (_) { return {src: img.getAttribute('src'), valid: false}; }

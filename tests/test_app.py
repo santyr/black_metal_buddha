@@ -1,6 +1,8 @@
 import hashlib
 import struct
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -178,3 +180,12 @@ def test_all_products_use_generated_tshirt_mockups():
         assert image.content[:4] == b"RIFF"
         assert image.content[8:12] == b"WEBP"
         assert struct.unpack("<I", image.content[4:8])[0] + 8 == len(image.content)
+
+
+@pytest.mark.parametrize("path", ["/cart", "/faq"])
+def test_previews_show_selected_price_before_sales_open(path):
+    response = client.get(path)
+    assert response.status_code == 200
+    assert "$35.00 plus shipping" in response.text
+    assert "Comfort Colors 1717" in response.text
+    assert 'data-checkout-link' not in response.text
