@@ -16,12 +16,19 @@ SHIRT_BASE = (8, 8, 8)
 SHIRT_HIGHLIGHT = (20, 20, 20)
 SHIRT_SHADOW = (2, 2, 2)
 
-# Until a final Printful blank/variant is frozen, mockups use the conservative
-# smaller-garment large-front reference described by Printful: ~11.5 x 13.8 in.
-# The visual chest box below preserves that 5:6-ish proportion and keeps all
-# critical text/details well inside the garment.
-REFERENCE_PRINT_IN = (11.5, 13.8)
-PRINT_BOX = (392, 275, 808, 774)  # 416 x 499 px, 0.834 ratio
+# Production is frozen on the Printful Comfort Colors 1717 DTG front placement.
+# Printful's current guidance uses a 12 x 16 inch full-front area for most tees;
+# the 15 x 18 inch large-front program applies only to selected products and does
+# not currently list the 1717. The approved BMB masters are already 3600 x 4800
+# px at 300 dpi (12 x 16 in), so the storefront mockup now models that exact
+# canvas instead of the smaller-garment 11.5 x 13.8 in large-front fallback.
+REFERENCE_PRINT_IN = (12.0, 16.0)
+REFERENCE_PRINT_PX = (3600, 4800)
+
+# Printful recommends positioning a full-front design roughly 3-4 inches below
+# the collar. This box is centered on the shirt and visually calibrated to that
+# placement while preserving the production 3:4 aspect ratio exactly.
+PRINT_BOX = (405, 310, 795, 830)  # 390 x 520 px, exact 12:16 ratio
 
 PRODUCTS = {
     "lotus-of-the-void": PRINTS / "03_two_ink_png" / "lotus_of_the_void_two_ink_12x16_300dpi.png",
@@ -121,18 +128,27 @@ def _collar_and_seams(canvas: Image.Image) -> None:
     d.line((365, 1015, 835, 1015), fill=seam, width=4)
 
 
-def _trim_art(image: Image.Image) -> Image.Image:
+def _prepare_art(image: Image.Image) -> Image.Image:
     image = image.convert("RGBA")
-    bbox = image.getchannel("A").getbbox()
-    if not bbox:
+    if image.size != REFERENCE_PRINT_PX:
+        raise RuntimeError(
+            f"print master must be {REFERENCE_PRINT_PX[0]}x{REFERENCE_PRINT_PX[1]} px; "
+            f"got {image.size[0]}x{image.size[1]}"
+        )
+    if not image.getchannel("A").getbbox():
         raise RuntimeError("print master is fully transparent")
-    return image.crop(bbox)
+    return image
 
 
 def _place_art(canvas: Image.Image, art: Image.Image) -> None:
     x0, y0, x1, y1 = PRINT_BOX
     box_w, box_h = x1 - x0, y1 - y0
-    art = _trim_art(art)
+    art = _prepare_art(art)
+
+    # Scale the *entire* 12 x 16 transparent production canvas. This preserves
+    # the intentional offsets/margins recorded in PRINT_SPECIFICATIONS.json,
+    # which is closer to how the uploaded Printful print file is positioned than
+    # cropping to the non-transparent artwork bounds first.
     scale = min(box_w / art.width, box_h / art.height)
     size = (max(1, round(art.width * scale)), max(1, round(art.height * scale)))
     art = art.resize(size, Image.Resampling.LANCZOS)
@@ -171,7 +187,11 @@ def build(slug: str, source: Path) -> Path:
 
 
 def main() -> None:
-    print(f"Mockup reference print area: {REFERENCE_PRINT_IN[0]} x {REFERENCE_PRINT_IN[1]} in")
+    print(
+        "Mockup reference: Printful Comfort Colors 1717 DTG front, "
+        f"{REFERENCE_PRINT_IN[0]:g} x {REFERENCE_PRINT_IN[1]:g} in; "
+        "full-front placement calibrated ~3-4 in below collar"
+    )
     for slug, source in PRODUCTS.items():
         path = build(slug, source)
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
