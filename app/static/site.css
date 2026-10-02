@@ -252,12 +252,14 @@ h1, h2, h3 { font-weight: 600; }
 }
 .product-card:hover img { transform: scale(1.02); }
 .product-card-body {
+  min-width: 0;
   min-height: 210px;
   padding: 1.15rem 1.2rem 1.35rem;
   border-top: 1px solid var(--line);
 }
 .product-card-meta {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
   align-items: baseline;
@@ -283,7 +285,7 @@ h1, h2, h3 { font-weight: 600; }
   color: var(--bone);
   font-size: .76rem;
   font-weight: 800;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .manifesto {
@@ -322,8 +324,7 @@ h1, h2, h3 { font-weight: 600; }
   padding-top: .75rem;
 }
 .page-hero h1 {
-  max-width: 12ch;
-  font-size: clamp(3.8rem, 7vw, 7.8rem);
+  font-size: clamp(2.8rem, 6.3vw, 5rem);
 }
 .page-hero-copy { color: var(--bone-dim); max-width: 38ch; }
 .section { padding-block: clamp(4rem, 7vw, 7rem); }
@@ -346,8 +347,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-image-frame img { width: 100%; max-height: 800px; object-fit: contain; }
 .product-detail-copy { position: sticky; top: 2rem; }
 .product-detail-copy h1 {
-  max-width: 9ch;
-  font-size: clamp(3.4rem, 6vw, 6.8rem);
+  font-size: clamp(2.8rem, 3.6vw, 4rem);
 }
 .product-subtitle {
   margin: 1rem 0 2rem;
@@ -580,9 +580,9 @@ details p { color: var(--bone-dim); max-width: 70ch; }
   .primary-nav a { padding-inline: .9rem; }
   .product-grid,
   .product-grid-shop { grid-template-columns: 1fr; }
-  .hero-copy h1,
+  .hero-copy h1 { font-size: clamp(3rem, 17vw, 4.5rem); }
   .page-hero h1,
-  .product-detail-copy h1 { font-size: clamp(3rem, 17vw, 4.5rem); }
+  .product-detail-copy h1 { font-size: clamp(1.7rem, 8.5vw, 2.8rem); }
   .collection-heading { display: block; }
   .collection-heading .text-link { margin-top: 1rem; }
   .manifesto { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -755,6 +755,7 @@ textarea {
   min-height: clamp(560px, 61vw, 690px);
   padding: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   position: relative;
   overflow: hidden;
@@ -1184,6 +1185,7 @@ textarea {
 .manifesto-divider::after { bottom: 31%; }
 
 .manifesto-copy {
+  grid-column: auto;
   max-width: 46ch;
 }
 

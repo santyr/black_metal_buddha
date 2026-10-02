@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('base_url')
-    parser.add_argument('--browser', default='/usr/bin/chromium-browser')
+    parser.add_argument('--browser', help='Use an existing Chromium executable; defaults to Playwright Chromium')
     parser.add_argument('--output', default='/tmp/bmb-browser-audit')
     parser.add_argument('--screenshots', action='store_true')
     args = parser.parse_args()

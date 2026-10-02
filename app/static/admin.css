@@ -36,7 +36,10 @@
 .admin-form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; align-items: end; }
 .check-label { display: flex !important; flex-direction: row; align-items: center; gap: .45rem !important; }
 .check-label input { width: auto; }
-.variant-editor { display: grid; grid-template-columns: 1.2fr repeat(5, 1fr) auto auto auto; gap: .6rem; align-items: end; border-top: 1px solid var(--line); padding: .9rem 0; }
+.variant-editor { display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(5, minmax(0, 1fr)) auto auto auto; gap: .6rem; align-items: end; border-top: 1px solid var(--line); padding: .9rem 0; }
+.variant-editor > * { min-width: 0; }
+.variant-editor > div { overflow-wrap: anywhere; }
+.variant-editor input:not([type="checkbox"]) { min-width: 0; width: 100%; }
 .variant-editor > div { display: grid; }
 .variant-editor > div span { color: var(--bone-dim); font-size: .76rem; }
 .gate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }

@@ -119,12 +119,21 @@ Browser checks (requires `pip install playwright` and an installed Chromium):
 ~~~bash
 python tools/audit_storefront.py http://127.0.0.1:8088 --browser /path/to/chromium
 PYTHONPATH=. python tools/audit_checkout.py http://127.0.0.1:8088 --browser /path/to/chromium
+PYTHONPATH=. python tools/audit_responsive.py http://127.0.0.1:8088 --browser /path/to/chromium --screenshots
 ~~~
 
 The storefront audit decodes images, checks desktop/mobile overflow, and tests
 the preview cart. Run it in preview mode. The checkout audit uses mocked API
 responses and never creates real orders or payments. Pass `--screenshots` to
 the storefront audit to also save homepage screenshots.
+
+The responsive audit checks 18 widths from 320px to 1920px, including both
+sides of layout breakpoints. It checks internal clipping as well as page
+overflow, unbroken heading words, hero centering, and the tablet practice section. Populated product,
+cart, checkout, and admin catalog templates are rendered with local fixtures;
+API requests and form submissions are blocked. Screenshots and the JSON report
+go to `/tmp/bmb-responsive-audit` (override with `--output`). Omit `--browser`
+to use Chromium installed by `playwright install chromium`.
 
 ## Roadmap
 
