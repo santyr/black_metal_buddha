@@ -12,6 +12,11 @@ class Product:
     image_alt: str
     sku: str
     series: str = "Core Collection"
+    launch_price_cents: int | None = None
+
+    @property
+    def launch_price_display(self) -> str:
+        return "$" + format(self.launch_price_cents / 100, ".2f") if self.launch_price_cents else ""
 
 
 PRODUCTS = (
@@ -28,6 +33,7 @@ PRODUCTS = (
         image="/prints/lotus_of_the_void_REFERENCE_ONLY.jpg",
         image_alt="Black T-shirt mockup for Lotus of the Void, featuring a skeletal meditating figure and red eclipse halo.",
         sku="BMB-LOTUS",
+        launch_price_cents=3500,
     ),
     Product(
         slug="dharma-of-decay",
@@ -42,6 +48,7 @@ PRODUCTS = (
         image="/prints/dharma_of_decay_REFERENCE_ONLY.jpg",
         image_alt="Black T-shirt mockup for Dharma of Decay, featuring a mountain stupa, ravens, candles, and red lunar accent.",
         sku="BMB-DHARMA",
+        launch_price_cents=3500,
     ),
     Product(
         slug="meditate-on-death",
@@ -56,6 +63,7 @@ PRODUCTS = (
         image="/prints/meditate_on_death_REFERENCE_ONLY.jpg",
         image_alt="Black T-shirt mockup for Meditate on Death, featuring a skeletal monk, prayer beads, lotus petals, and red sun.",
         sku="BMB-MEDITATE",
+        launch_price_cents=3500,
     ),
     Product(
         slug="longchenpa-rest-in-illusion",
@@ -80,6 +88,7 @@ PRODUCTS = (
             "and bone-white and ritual-red details."
         ),
         sku="BMB-LONGCHENPA",
+        launch_price_cents=3500,
         series="Lineage Series",
     ),
 )

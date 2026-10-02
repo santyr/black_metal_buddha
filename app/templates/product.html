@@ -51,7 +51,7 @@
     {% else %}
       <div class="launch-note">
         <strong>Pre-launch preview.</strong>
-        <span>Garment blank, sizing, final price, and print details will be published after sample approval.</span>
+        <span>Comfort Colors 1717 · S–XXL · {{ product.launch_price_display }} plus shipping. Purchasing opens after fulfillment setup and launch checks are complete.</span>
       </div>
       <button class="button button-primary" type="button" data-add-preview data-product-slug="{{ product.slug }}" data-product-name="{{ product.name }}">Add design to preview cart</button>
       <p class="microcopy">Checkout is intentionally disabled until production approval.</p>
@@ -72,7 +72,7 @@
       {% if variants %}
         <p>This product has approved sellable variants in the store catalog.</p>
       {% else %}
-        <p>Artwork is prepared for print review. Physical samples will be inspected before this design is offered for sale.</p>
+        <p>Comfort Colors 1717 is the selected garment. Each design's final artwork, print placement, and fulfillment variants must be confirmed before sales open.</p>
       {% endif %}
     </div>
   </div>

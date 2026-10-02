@@ -7,13 +7,14 @@
 
 The owner confirmed that the physical sample is approved and selected the
 **Comfort Colors 1717 — Unisex Garment-Dyed Heavyweight T-Shirt**.
-The owner will recover the valid approved logo separately. Both logo assets in
-remote commit `a33277d` were checked on 2026-10-02 and still fail decoding.
+The owner supplied a repaired approved WebP logo in remote commit `83bbe714`.
+It passed full decoding and checksum validation on 2026-10-02.
 
 The approval does not identify the sampled design, print method, exact placement,
 or final artwork revision. Record those details with the Printful product setup.
 Launch sizes are Small, Medium, Large, XL, and XXL, as confirmed by the owner.
-Final prices and Printful product/variant mappings still need to be entered
+The owner selected $35.00 per shirt plus shipping on 2026-10-02. Actual Printful
+saved-product/variant mappings and fulfillment costs still need validation
 before the production catalog can be approved. SKU reservations are in
 `25_PRODUCT_SKUS.md` and `../catalog/comfort-colors-1717-skus.csv`.
 

@@ -1,6 +1,7 @@
 # Open Decisions Before Public Launch
 
-These do not block Phase 0. Updated with owner decisions from 2026-10-01.
+These do not block Phase 0. Updated with owner decisions through 2026-10-02.
+See [the step-by-step launch handoff](28_LAUNCH_INPUT_HANDOFF.md) for account setup and required inputs.
 
 ## Confirmed product decisions
 
@@ -8,12 +9,13 @@ These do not block Phase 0. Updated with owner decisions from 2026-10-01.
 - Production garment: Comfort Colors 1717, Unisex Garment-Dyed Heavyweight T-Shirt.
 - Launch sizes: Small, Medium, Large, XL, XXL (`S`, `M`, `L`, `XL`, `2XL`).
 - Variant SKU convention and reservations: `25_PRODUCT_SKUS.md`.
+- Retail price: $35.00 USD per shirt in every launch size, plus shipping.
+- Corrected approved WebP logo received and fully decoded.
 
 ## Product
 
 - final art after samples
 - print technique
-- retail price
 
 ## Shipping
 
@@ -49,7 +51,6 @@ Messages:
 
 ## Branding
 
-- valid approved Dzogchen-A logo still needed: both assets in remote commit `a33277d` fail decoding
 - favicon
 - color/type system
 - commercial font licensing

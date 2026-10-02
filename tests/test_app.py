@@ -1,3 +1,6 @@
+import hashlib
+import struct
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -27,21 +30,15 @@ def test_home_has_seo_products_and_branding():
     assert "Longchenpa — Rest in Illusion" in response.text
 
 
-def test_logo_asset_is_served():
+def test_logo_asset_is_complete_and_valid_webp_container():
     response = client.get(LOGO_PATH)
     assert response.status_code == 200
     assert response.headers["content-type"].startswith(LOGO_TYPE)
-    from xml.etree import ElementTree
-    root = ElementTree.fromstring(response.content)
-    assert root.tag == "{http://www.w3.org/2000/svg}svg"
-    assert "Black Metal Buddha" in response.text
-
-
-def test_logo_source_png_is_served():
-    response = client.get("/static/brand/black-metal-buddha-logo-source.png")
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("image/png")
-    assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
+    data = response.content
+    assert len(data) == 13334
+    assert data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    assert struct.unpack("<I", data[4:8])[0] + 8 == len(data)
+    assert hashlib.sha256(data).hexdigest() == "6e73625e42533c906a777b18056b98a34e84697983ee181f6f395d4427c4614a"
 
 
 def test_product_schema():
@@ -50,6 +47,9 @@ def test_product_schema():
     assert 'application/ld+json' in response.text
     assert '"@type": "Product"' in response.text
     assert "Checkout is intentionally disabled" in response.text
+    assert "$35.00 plus shipping" in response.text
+    assert "Comfort Colors 1717" in response.text
+    assert 'data-add-variant' not in response.text
 
 
 def test_branded_404_is_noindex():
@@ -151,6 +151,7 @@ def test_mockup_restyled_shop_and_product_structure():
     assert shop.status_code == 200
     assert 'class="page-hero shell editorial-hero"' in shop.text
     assert 'class="product-grid product-grid-shop"' in shop.text
+    assert "$35.00 plus shipping" in shop.text
 
     product = client.get("/products/lotus-of-the-void")
     assert product.status_code == 200

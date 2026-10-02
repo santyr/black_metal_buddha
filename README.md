@@ -18,7 +18,7 @@ Black Metal Buddha owns its storefront, catalog, cart, order database, Square in
 Implemented:
 
 - responsive Black Metal Buddha storefront
-- shared text wordmark while the valid approved Dzogchen-A logo is recovered
+- repaired approved Dzogchen-A logo, verified by complete WebP decoding
 - four design pages (three core designs and Longchenpa in the Lineage Series)
 - SEO metadata, structured data, sitemap, robots rules
 - security headers and deployment configuration
@@ -30,8 +30,9 @@ Implemented:
 1717 (Unisex Garment-Dyed Heavyweight T-Shirt) for production.
 
 Public production checkout remains gated on the completed production catalog,
-final pricing, provider configuration, and the live canary. The logo assets in
-remote commit `a33277d` still fail decoding; the approved original is needed.
+provider configuration, and the live canary. The owner set the launch price
+to $35.00 plus shipping on 2026-10-02. The corrected logo from remote commit
+`83bbe714` passes checksum, container-length, and full image-decoding checks.
 
 Variant SKU reservations and the naming convention are documented in
 `docs/25_PRODUCT_SKUS.md`; the full reservation list is in
@@ -65,7 +66,8 @@ Software implementation is substantially complete:
 Current deployment (2026-10-02): PostgreSQL and the worker are active, the 20
 S–XXL SKU records are installed as inactive, and daily local backups plus a
 restore test are verified. Printful saved-product API contract corrections are
-deployed. Live provider configuration, prices/mappings, an off-host backup
+deployed. All 20 variants have an owner-selected $35.00 price. Live provider
+configuration, saved-product mappings, an off-host backup
 destination, owner-console approval, and the controlled live canary remain.
 
 Private staging is installed on `127.0.0.1:8091` with a separate account and
@@ -75,6 +77,7 @@ Provider callbacks and sandbox transactions still require configuration.
 **All real-sales gates remain OFF by default.**
 
 See docs/19 through docs/24 for the Phase 1 implementation and launch runbooks.
+For the remaining owner inputs, start with [the launch handoff](docs/28_LAUNCH_INPUT_HANDOFF.md).
 
 ## Safe defaults
 

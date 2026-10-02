@@ -40,8 +40,10 @@ Black, and the five owner-approved sizes from Small through XXL. Black follows
 the existing product direction. Current Printful availability must be confirmed
 when mapping the variants. Reservations do not make a variant available for purchase.
 
-Every row starts with `active=false` and `sellable=false`. Prices and Printful
-IDs are empty because they have not been supplied. The same 20 inactive records
+Every row has `active=false` and `sellable=false`. The owner selected launch
+pricing on 2026-10-02; every size is $35.00 USD (`retail_price_cents=3500`),
+plus calculated shipping and applicable tax. Printful IDs remain empty until
+the saved products are configured. The same 20 inactive records
 were installed in production PostgreSQL on 2026-10-02. This CSV is a setup
 worksheet, not the JSON manifest consumed by `app.manage catalog-import`.
 
@@ -51,7 +53,7 @@ For each selected launch variant:
 2. Enter its variant SKU in the Printful synced product setup.
 3. Record the actual Printful product ID and synced variant ID. The backend uses
    the synced variant ID for fulfillment; the SKU does not replace provider IDs.
-4. Set the approved retail price in cents, then mark it active and sellable in
+4. Verify the $35.00 launch price against actual fulfillment costs, then mark it active and sellable in
    the BMB catalog. Use only variants actually configured and available.
 5. Validate and export the catalog as described in `24_PHASE1_LAUNCH_RUNBOOK.md`.
 
