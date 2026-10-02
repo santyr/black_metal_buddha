@@ -117,7 +117,8 @@ class Refund(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
-    square_refund_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    square_refund_id: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(45), unique=True, nullable=True)
     amount_cents: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(3))
     status: Mapped[str] = mapped_column(String(32))

@@ -18,17 +18,24 @@ Black Metal Buddha owns its storefront, catalog, cart, order database, Square in
 Implemented:
 
 - responsive Black Metal Buddha storefront
-- approved Dzogchen-A black-metal identity
-- three launch-design pages
+- shared text wordmark while the valid approved Dzogchen-A logo is recovered
+- four design pages (three core designs and Longchenpa in the Lineage Series)
 - SEO metadata, structured data, sitemap, robots rules
 - security headers and deployment configuration
 - preview mode while transactional launch gates are closed
 
 ### Phase 0.5 — physical product validation
 
-**In progress.** The first physical test print has been ordered.
+**Physical sample approved.** On 2026-10-01 the owner selected Comfort Colors
+1717 (Unisex Garment-Dyed Heavyweight T-Shirt) for production.
 
-Public production checkout remains gated on final physical approval, production SKU mapping, and final pricing.
+Public production checkout remains gated on the completed production catalog,
+final pricing, provider configuration, and the live canary. The logo assets in
+remote commit `a33277d` still fail decoding; the approved original is needed.
+
+Variant SKU reservations and the naming convention are documented in
+`docs/25_PRODUCT_SKUS.md`; the full reservation list is in
+`catalog/comfort-colors-1717-skus.csv`.
 
 See docs/16_PHASE0_5_SAMPLE_VALIDATION.md.
 
@@ -54,6 +61,12 @@ Software implementation is substantially complete:
 - production launch fail-closed gates
 - PostgreSQL backups and restore-verification tooling
 - deployment and operational smoke tests
+
+Current deployment (2026-10-02): PostgreSQL and the worker are active, the 20
+S–XXL SKU records are installed as inactive, and daily local backups plus a
+restore test are verified. Printful saved-product API contract corrections are
+deployed. Live provider configuration, prices/mappings, an off-host backup
+destination, owner-console approval, and the controlled live canary remain.
 
 **All real-sales gates remain OFF by default.**
 
@@ -94,10 +107,22 @@ Run the test suite:
 pytest -q
 ~~~
 
+Browser checks (requires `pip install playwright` and an installed Chromium):
+
+~~~bash
+python tools/audit_storefront.py http://127.0.0.1:8088 --browser /path/to/chromium
+PYTHONPATH=. python tools/audit_checkout.py http://127.0.0.1:8088 --browser /path/to/chromium
+~~~
+
+The storefront audit decodes images, checks desktop/mobile overflow, and tests
+the preview cart. Run it in preview mode. The checkout audit uses mocked API
+responses and never creates real orders or payments. Pass `--screenshots` to
+the storefront audit to also save homepage screenshots.
+
 ## Roadmap
 
 - **Phase 0:** storefront — implemented
-- **Phase 0.5:** physical samples — in progress
+- **Phase 0.5:** physical sample approved; Comfort Colors 1717 selected
 - **Phase 1:** Square + Printful software — implemented, awaiting physical/canary launch gates
 - **Phase 2:** Printful-supported marketplaces/ecommerce channels
 - **Phase 3:** SEO/content/marketing expansion

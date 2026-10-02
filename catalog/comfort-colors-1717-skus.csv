@@ -1,0 +1,21 @@
+sku,product_slug,product_name,garment,color,size,currency,retail_price_cents,printful_product_id,printful_variant_id,active,sellable
+BMB-LOTUS-CC1717-BLK-S,lotus-of-the-void,Lotus of the Void,Comfort Colors 1717,Black,S,USD,,,,false,false
+BMB-LOTUS-CC1717-BLK-M,lotus-of-the-void,Lotus of the Void,Comfort Colors 1717,Black,M,USD,,,,false,false
+BMB-LOTUS-CC1717-BLK-L,lotus-of-the-void,Lotus of the Void,Comfort Colors 1717,Black,L,USD,,,,false,false
+BMB-LOTUS-CC1717-BLK-XL,lotus-of-the-void,Lotus of the Void,Comfort Colors 1717,Black,XL,USD,,,,false,false
+BMB-LOTUS-CC1717-BLK-2XL,lotus-of-the-void,Lotus of the Void,Comfort Colors 1717,Black,2XL,USD,,,,false,false
+BMB-DHARMA-CC1717-BLK-S,dharma-of-decay,Dharma of Decay,Comfort Colors 1717,Black,S,USD,,,,false,false
+BMB-DHARMA-CC1717-BLK-M,dharma-of-decay,Dharma of Decay,Comfort Colors 1717,Black,M,USD,,,,false,false
+BMB-DHARMA-CC1717-BLK-L,dharma-of-decay,Dharma of Decay,Comfort Colors 1717,Black,L,USD,,,,false,false
+BMB-DHARMA-CC1717-BLK-XL,dharma-of-decay,Dharma of Decay,Comfort Colors 1717,Black,XL,USD,,,,false,false
+BMB-DHARMA-CC1717-BLK-2XL,dharma-of-decay,Dharma of Decay,Comfort Colors 1717,Black,2XL,USD,,,,false,false
+BMB-MEDITATE-CC1717-BLK-S,meditate-on-death,Meditate on Death,Comfort Colors 1717,Black,S,USD,,,,false,false
+BMB-MEDITATE-CC1717-BLK-M,meditate-on-death,Meditate on Death,Comfort Colors 1717,Black,M,USD,,,,false,false
+BMB-MEDITATE-CC1717-BLK-L,meditate-on-death,Meditate on Death,Comfort Colors 1717,Black,L,USD,,,,false,false
+BMB-MEDITATE-CC1717-BLK-XL,meditate-on-death,Meditate on Death,Comfort Colors 1717,Black,XL,USD,,,,false,false
+BMB-MEDITATE-CC1717-BLK-2XL,meditate-on-death,Meditate on Death,Comfort Colors 1717,Black,2XL,USD,,,,false,false
+BMB-LONGCHENPA-CC1717-BLK-S,longchenpa-rest-in-illusion,Longchenpa — Rest in Illusion,Comfort Colors 1717,Black,S,USD,,,,false,false
+BMB-LONGCHENPA-CC1717-BLK-M,longchenpa-rest-in-illusion,Longchenpa — Rest in Illusion,Comfort Colors 1717,Black,M,USD,,,,false,false
+BMB-LONGCHENPA-CC1717-BLK-L,longchenpa-rest-in-illusion,Longchenpa — Rest in Illusion,Comfort Colors 1717,Black,L,USD,,,,false,false
+BMB-LONGCHENPA-CC1717-BLK-XL,longchenpa-rest-in-illusion,Longchenpa — Rest in Illusion,Comfort Colors 1717,Black,XL,USD,,,,false,false
+BMB-LONGCHENPA-CC1717-BLK-2XL,longchenpa-rest-in-illusion,Longchenpa — Rest in Illusion,Comfort Colors 1717,Black,2XL,USD,,,,false,false

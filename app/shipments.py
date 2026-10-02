@@ -34,7 +34,6 @@ def upsert_printful_shipment(
     shipment = session.scalar(
         select(Shipment).where(Shipment.printful_shipment_id == external_id)
     )
-    is_new = shipment is None
     if shipment is None:
         shipment = Shipment(
             order_id=order.id,
@@ -70,19 +69,19 @@ def upsert_printful_shipment(
         shipment.shipped_at = shipment.shipped_at or datetime.now(timezone.utc)
 
     pf_status = (printful_order_status or "").upper()
-    if pf_status == "FULFILLED":
+    if event_type == "shipment_returned":
+        order.fulfillment_state = "RETURNED"
+    elif pf_status == "FULFILLED":
         order.fulfillment_state = "FULFILLED"
         order.order_state = "SHIPPED"
     elif pf_status == "PARTIAL":
         order.fulfillment_state = "PARTIAL"
         order.order_state = "PARTIALLY_SHIPPED"
-    elif event_type == "shipment_returned":
-        order.fulfillment_state = "RETURNED"
     elif event_type == "shipment_sent" and order.order_state not in {"SHIPPED", "PARTIALLY_SHIPPED"}:
         order.fulfillment_state = "PARTIAL"
         order.order_state = "PARTIALLY_SHIPPED"
 
-    if event_type == "shipment_sent" and is_new:
+    if event_type == "shipment_sent":
         session.flush()
         enqueue_job(session, order, f"SEND_SHIPPING_NOTIFICATION:{shipment.id}")
 

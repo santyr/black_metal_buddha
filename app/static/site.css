@@ -15,6 +15,7 @@
 }
 
 * { box-sizing: border-box; }
+h1, h2, h3 { overflow-wrap: anywhere; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;

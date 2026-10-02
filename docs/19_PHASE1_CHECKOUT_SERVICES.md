@@ -9,10 +9,14 @@ BMB uses Printful's **v2 Shipping Rates API** immediately before checkout.
 The server sends:
 
 - recipient address
-- mapped Printful order items
+- blank catalog variant IDs resolved from the saved Printful sync variants
 - requested currency
 
 and receives the currently available shipping methods and rates.
+
+The saved sync variant ID is resolved with `GET /store/variants/{id}` and its
+saved product relationship is checked. The v2 rate request uses
+`source=catalog` and `catalog_variant_id`; saved sync IDs are not blank IDs.
 
 A buyer cannot submit an arbitrary shipping price. The browser can only select a shipping-method identifier; BMB re-queries Printful and stores the matching server-returned rate.
 
@@ -20,7 +24,8 @@ Shipping quotes expire before Square checkout. The current guard is **15 minutes
 
 Reference:
 
-- https://developers.printful.com/docs/v2-preview/#tag/Shipping-Rate-API-v2
+- https://developers.printful.com/docs/v2-beta/
+- https://developers.printful.com/docs/#tag/Products-API
 
 ## Address ownership
 

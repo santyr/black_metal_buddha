@@ -1,21 +1,30 @@
 # Brand Assets
 
-## Approved
+## Approved artwork awaiting valid source
 
-- `black-metal-buddha-logo.webp` — production website logo derived from the user-approved Black Metal Buddha master.
-- `black-metal-buddha-logo-source.png` — optimized PNG source copy retained alongside the production WebP.
+The intended identity is the user-approved Black Metal Buddha full lockup with
+recognizable Dzogchen A, a sparse spiked halo, bone white, and restrained red.
 
-The approved mark is the stark Black Metal Buddha full lockup centered on the recognizable Dzogchen A inside a sparse spiked halo, rendered primarily in bone white with restrained ritual-red accents.
+The site uses `black-metal-buddha-wordmark.svg`, a text-only temporary fallback.
+Restore the valid approved original, update `app/branding.py`, and verify image
+decoding before deployment. The fallback does not replace the approved identity.
 
-### Current asset integrity
+## Remote asset integrity — 2026-10-02
 
-- WebP: 900 × 900, valid RIFF/WebP image
-- WebP SHA-256: `35dade10bbc8dcb89ae2eaf8f7a72324072325f138116036293ec22dc537aeeb`
-- PNG source: 900 × 900 indexed sRGB PNG
-- PNG SHA-256: `c87ce99f306cf1d74df81868080fd3710c04a5db70a4d80704ee641303154b12`
+Remote commit `a33277d` describes its WebP and PNG as repaired, but the checked-out
+files and a direct raw WebP download do not match the documented checksums.
+Both files fail Pillow decoding; a valid file signature alone is insufficient.
+Chromium rejects the WebP but accepts the PNG as a 900 × 900 image. The PNG
+still fails strict decoding and does not match its documented checksum.
 
-The production WebP is intentionally optimized for the site while preserving the approved appearance.
+| File | Actual bytes | Actual SHA-256 |
+| --- | --- | --- |
+| `black-metal-buddha-logo.webp` | 14,633 | `e8e8665402681e22e1c8db72e010bafba2f93cf16b36502962c22c278b69290d` |
+| `black-metal-buddha-logo-source.png` | 7,182 | `0b7a5056584d23407b83ac0f5cfc586c0fd5623fd1f2911699610c42cbd1b39e` |
+
+The WebP RIFF header declares 90,550 bytes, exceeding the actual file length.
+The PNG cannot be decoded as a complete image. These assets remain archived;
+they are not used by the storefront or owner templates.
 
 See `docs/17_BRAND_GUIDELINES.md` before creating or modifying brand artwork.
-
-Important: do not reintroduce Christian crosses, cross-like lower points, or other cruciform ornamentation into the logo or supporting graphics.
+Do not introduce Christian crosses or cruciform supporting ornamentation.

@@ -4,10 +4,12 @@ import time
 
 from .db import SessionLocal, init_db
 from .jobs import process_pending_jobs
+from .settings import settings
 
 
 def main() -> None:
-    init_db()
+    if settings.app_env != "production":
+        init_db()
     while True:
         with SessionLocal() as session:
             process_pending_jobs(session)

@@ -1,11 +1,16 @@
 # Open Decisions Before Public Launch
 
-These do not block Phase 0.
+These do not block Phase 0. Updated with owner decisions from 2026-10-01.
+
+## Confirmed product decisions
+
+- Physical sample approved by the owner.
+- Production garment: Comfort Colors 1717, Unisex Garment-Dyed Heavyweight T-Shirt.
+- Launch sizes: Small, Medium, Large, XL, XXL (`S`, `M`, `L`, `XL`, `2XL`).
+- Variant SKU convention and reservations: `25_PRODUCT_SKUS.md`.
 
 ## Product
 
-- exact Printful shirt blank
-- sizes
 - final art after samples
 - print technique
 - retail price
@@ -44,7 +49,7 @@ Messages:
 
 ## Branding
 
-- wordmark/logo
+- valid approved Dzogchen-A logo still needed: both assets in remote commit `a33277d` fail decoding
 - favicon
 - color/type system
 - commercial font licensing

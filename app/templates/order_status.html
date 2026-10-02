@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="page-hero shell narrow"{% if order.payment_state == "COMPLETED" %} data-order-complete data-order-number="{{ order.order_number }}"{% endif %}>
+<section class="page-hero shell narrow"{% if order.payment_state == "COMPLETED" %} data-order-complete data-order-number="{{ order.order_number }}"{% elif order.order_state == "PENDING_PAYMENT" %} data-order-pending{% endif %}>
   <p class="eyebrow">ORDER {{ order.order_number }}</p>
   <h1>{{ status_heading }}</h1>
   <p>{{ status_message }}</p>
@@ -36,5 +36,5 @@
 {% endblock %}
 
 {% block scripts %}
-{% if order.payment_state == "COMPLETED" %}<script src="/static/order-status.js" defer></script>{% endif %}
+<script src="/static/order-status.js?v=2" defer></script>
 {% endblock %}

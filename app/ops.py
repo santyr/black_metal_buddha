@@ -27,7 +27,7 @@ def build_attention_report(
         )
     ).all()
     failed_refunds = session.scalars(
-        select(Refund).where(Refund.status == "FAILED")
+        select(Refund).where(Refund.status.in_(["FAILED", "REJECTED"]))
     ).all()
     returned_shipments = session.scalars(
         select(Shipment).where(Shipment.status == "RETURNED")
@@ -38,6 +38,7 @@ def build_attention_report(
         stale_paid = session.scalars(
             select(Order).where(
                 Order.payment_state == "COMPLETED",
+                Order.refund_state != "COMPLETED",
                 Order.printful_order_id.is_(None),
                 Order.paid_at.is_not(None),
                 Order.paid_at <= paid_stale_cutoff,
@@ -77,7 +78,7 @@ def build_attention_report(
         add(
             "failed_refund",
             order_numbers.get(refund.order_id, refund.order_id),
-            refund.square_refund_id,
+            refund.square_refund_id or f"Request {refund.idempotency_key}",
         )
     for shipment in returned_shipments:
         add(

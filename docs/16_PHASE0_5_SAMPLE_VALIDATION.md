@@ -1,7 +1,25 @@
 # Phase 0.5 — Physical Product & Print Validation
 
-**Status:** In progress — first physical test print ordered 2026-09-18  
+**Status:** Physical sample approved by the owner on 2026-10-01; Comfort Colors 1717 selected as the production garment.
 **Purpose:** establish the exact garment, print method, placement, and production artwork that Black Metal Buddha will sell before Phase 1 checkout is enabled.
+
+## Owner decision — 2026-10-01
+
+The owner confirmed that the physical sample is approved and selected the
+**Comfort Colors 1717 — Unisex Garment-Dyed Heavyweight T-Shirt**.
+The owner will recover the valid approved logo separately. Both logo assets in
+remote commit `a33277d` were checked on 2026-10-02 and still fail decoding.
+
+The approval does not identify the sampled design, print method, exact placement,
+or final artwork revision. Record those details with the Printful product setup.
+Launch sizes are Small, Medium, Large, XL, and XXL, as confirmed by the owner.
+Final prices and Printful product/variant mappings still need to be entered
+before the production catalog can be approved. SKU reservations are in
+`25_PRODUCT_SKUS.md` and `../catalog/comfort-colors-1717-skus.csv`.
+
+The sample comparison program below is retained as validation guidance and
+history. Comfort Colors 1717 is the selected garment; the other blanks are no
+longer competing launch candidates.
 
 ## Why this phase is a launch gate
 
@@ -13,7 +31,7 @@ Phase 1 must not publish prices, sizes, Printful variant IDs, or accept customer
 
 ---
 
-## Current leading blank candidates
+## Original blank candidates
 
 These candidates were checked against Printful's current U.S. catalog on 2026-09-17. Recheck availability, colors, sizes, pricing, and fulfillment regions immediately before creating the products.
 
@@ -23,7 +41,7 @@ These candidates were checked against Printful's current U.S. catalog on 2026-09
 | **Cotton Heritage MC1086** | cleaner/heavier premium blank | 100% combed ring-spun cotton; 6.5 oz/yd² (220 g/m²); relaxed fit; side-seamed; Black; S–4XL; DTG + DTFlex | **Primary premium comparison** |
 | **Gildan 5000** | conventional, lower-cost classic tee | Black; S–5XL; DTG + DTFlex | fallback / price-sensitive option only |
 
-### Starting position
+### Original comparison plan
 
 Begin by comparing **Comfort Colors 1717** and **Cotton Heritage MC1086**.
 

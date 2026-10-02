@@ -22,8 +22,8 @@ def require_admin(credentials: HTTPBasicCredentials | None = Depends(security)) 
             headers={"WWW-Authenticate": "Basic"},
         )
 
-    username_ok = secrets.compare_digest(credentials.username, settings.admin_username or "")
-    password_ok = secrets.compare_digest(credentials.password, settings.admin_password or "")
+    username_ok = secrets.compare_digest(credentials.username.encode("utf-8"), (settings.admin_username or "").encode("utf-8"))
+    password_ok = secrets.compare_digest(credentials.password.encode("utf-8"), (settings.admin_password or "").encode("utf-8"))
     if not (username_ok and password_ok):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,5 +41,5 @@ def csrf_token(action: str, object_id: str = "") -> str:
 
 
 def verify_csrf(token: str | None, action: str, object_id: str = "") -> None:
-    if not token or not secrets.compare_digest(token, csrf_token(action, object_id)):
+    if not token or not secrets.compare_digest(token.encode("utf-8"), csrf_token(action, object_id).encode("ascii")):
         raise HTTPException(status_code=403, detail="Invalid CSRF token")

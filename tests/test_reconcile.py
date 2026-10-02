@@ -135,3 +135,24 @@ def test_printful_reconciliation_uses_external_id(session):
     assert order.printful_order_id == "777"
     assert order.fulfillment_state == "DRAFT"
     assert order.order_state == "FULFILLMENT_SUBMITTED"
+
+
+def test_late_failed_payment_does_not_undo_completed_payment(session):
+    order = create_test_order(session)
+    order.square_order_id = 'SQORDER'
+    order.square_payment_id = 'PAY123'
+    order.payment_state = 'COMPLETED'
+    order.order_state = 'IN_PRODUCTION'
+    session.commit()
+
+    class LateFailure(SquarePaid):
+        def get_payment(self, payment_id):
+            payment = super().get_payment(payment_id)
+            payment['status'] = 'FAILED'
+            return payment
+
+    client = LateFailure()
+    client.order_number = order.order_number
+    reconcile_square_order(session, order, client=client)
+    assert order.payment_state == 'COMPLETED'
+    assert order.order_state == 'IN_PRODUCTION'

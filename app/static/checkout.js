@@ -23,6 +23,9 @@
 
   function errorMessage(error, fallback) {
     if (error && typeof error.detail === 'string') return error.detail;
+    if (Array.isArray(error?.detail)) {
+      return error.detail.map((item) => item.msg).filter(Boolean).join(' ') || fallback;
+    }
     return fallback;
   }
 
@@ -167,6 +170,7 @@
         body: JSON.stringify(orderPayload())
       });
       orderNumber = order.order_number;
+      subtotalEl.textContent = window.BMBCart.formatMoney(order.subtotal_cents, order.currency);
 
       const rates = await api('/api/v1/orders/' + encodeURIComponent(orderNumber) + '/shipping-rates');
       renderShippingRates(rates);
@@ -197,7 +201,7 @@
         body: '{}'
       });
       if (!checkout.square_checkout_url) throw new Error('Square checkout URL was not returned.');
-      sessionStorage.setItem('bmb-active-order', orderNumber);
+      try { sessionStorage.setItem('bmb-active-order', orderNumber); } catch (_) { /* Payment must work without browser storage. */ }
       window.location.assign(checkout.square_checkout_url);
     } catch (error) {
       squareButton.disabled = false;

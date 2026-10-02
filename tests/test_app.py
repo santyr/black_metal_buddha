@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.branding import LOGO_PATH, LOGO_TYPE
 
 client = TestClient(app)
 
@@ -16,10 +17,10 @@ def test_home_has_seo_products_and_branding():
     assert response.status_code == 200
     assert "<title>Black Metal Buddha" in response.text
     assert 'rel="canonical"' in response.text
-    assert "/static/brand/black-metal-buddha-logo.webp" in response.text
+    assert LOGO_PATH.replace("&", "&amp;") in response.text
     assert '"@type": "Organization"' in response.text
     assert '"@type": "WebSite"' in response.text
-    assert '"logo": "https://blackmetalbuddha.com/static/brand/black-metal-buddha-logo.webp"' in response.text
+    assert f'"logo": "https://blackmetalbuddha.com{LOGO_PATH}"' in response.text
     assert "Lotus of the Void" in response.text
     assert "Dharma of Decay" in response.text
     assert "Meditate on Death" in response.text
@@ -27,12 +28,13 @@ def test_home_has_seo_products_and_branding():
 
 
 def test_logo_asset_is_served():
-    response = client.get("/static/brand/black-metal-buddha-logo.webp")
+    response = client.get(LOGO_PATH)
     assert response.status_code == 200
-    assert response.headers["content-type"].startswith("image/webp")
-    assert len(response.content) > 1000
-    assert response.content[:4] == b"RIFF"
-    assert response.content[8:12] == b"WEBP"
+    assert response.headers["content-type"].startswith(LOGO_TYPE)
+    from xml.etree import ElementTree
+    root = ElementTree.fromstring(response.content)
+    assert root.tag == "{http://www.w3.org/2000/svg}svg"
+    assert "Black Metal Buddha" in response.text
 
 
 def test_logo_source_png_is_served():
@@ -102,6 +104,8 @@ def test_contact_page_and_sitemap_entry():
 
 def test_sensitive_routes_are_no_store_and_noindex():
     response = client.get("/checkout")
+    # Checkout is hidden with Phase 1 disabled, but sensitive response headers
+    # must still prevent browser/proxy caching and indexing.
     assert response.headers["cache-control"] == "no-store, max-age=0"
     assert response.headers["x-robots-tag"] == "noindex, nofollow"
 
@@ -139,7 +143,7 @@ def test_mockup_restyled_home_structure():
     assert 'class="hero-frame"' in response.text
     assert 'class="collection-band"' in response.text
     assert 'class="manifesto shell"' in response.text
-    assert "/static/brand/black-metal-buddha-logo.webp" in response.text
+    assert LOGO_PATH in response.text
 
 
 def test_mockup_restyled_shop_and_product_structure():
