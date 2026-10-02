@@ -212,7 +212,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-detail-copy h1,
 .product-notes h2 {
   margin: 0;
-  line-height: .92;
+  line-height: 1.08;
   letter-spacing: -.02em;
   text-transform: uppercase;
 }
@@ -254,6 +254,8 @@ h1, h2, h3 { font-weight: 600; }
 .product-card-body {
   min-width: 0;
   min-height: 210px;
+  display: flex;
+  flex-direction: column;
   padding: 1.15rem 1.2rem 1.35rem;
   border-top: 1px solid var(--line);
 }
@@ -272,7 +274,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-card h3 {
   margin: .65rem 0 .25rem;
   font-size: clamp(1.45rem, 2vw, 2rem);
-  line-height: 1;
+  line-height: 1.15;
 }
 .product-card h3 a { text-decoration: none; }
 .product-tagline {
@@ -429,7 +431,7 @@ h1, h2, h3 { font-weight: 600; }
   padding: clamp(2rem, 4vw, 4rem);
   background: var(--void);
 }
-.product-notes h2 { font-size: clamp(2rem, 3vw, 3.4rem); }
+.product-notes h2 { font-size: clamp(1.6rem, 3vw, 3.4rem); }
 .product-notes p { color: var(--bone-dim); max-width: 46ch; }
 .note-number { color: var(--ritual-bright) !important; font-size: .62rem; letter-spacing: .2em; }
 
@@ -862,7 +864,7 @@ textarea {
   max-width: none;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.4rem, 4.25vw, 4.7rem);
-  line-height: .96;
+  line-height: 1.06;
   font-weight: 500;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -1011,7 +1013,7 @@ textarea {
 
 .product-card-featured {
   min-height: 274px;
-  grid-template-columns: minmax(0,1.04fr) minmax(165px,.96fr);
+  grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr);
   grid-template-rows: 1fr;
   border: 1px solid var(--line);
   background:
@@ -1064,9 +1066,9 @@ textarea {
 
 .product-card-featured h3 {
   margin: .75rem 0 .45rem;
-  font-size: clamp(1.28rem, 1.65vw, 1.9rem);
-  line-height: 1.03;
-  letter-spacing: .08em;
+  font-size: clamp(1.125rem, 1.35vw, 1.5rem);
+  line-height: 1.15;
+  letter-spacing: .04em;
   text-transform: uppercase;
 }
 
@@ -1106,7 +1108,7 @@ textarea {
 }
 
 .product-grid-shop .product-card-button {
-  margin-top: .7rem;
+  margin-top: auto;
 }
 
 .collection-coda {
@@ -1151,7 +1153,7 @@ textarea {
 .manifesto-lead h2 {
   margin: .15rem 0 .75rem;
   font-size: clamp(2.1rem, 3vw, 3.4rem);
-  line-height: .95;
+  line-height: 1.1;
   letter-spacing: .12em;
 }
 
@@ -1582,4 +1584,30 @@ textarea {
   .product-detail-copy h1 { max-width: none; font-size: clamp(2rem, 10vw, 3.5rem); }
   .purchase-grid { grid-template-columns: minmax(0, 1fr); }
   .cart-row-details { flex-basis: 100%; }
+}
+
+/* Readable storefront labels and natural multiline headings. */
+.primary-nav a, .header-link, .cart-link,
+.button, .collection-view-all, .product-card-button,
+.manifesto-copy .button, .footer-links a {
+  font-size: .75rem;
+  letter-spacing: .1em;
+}
+.product-kicker, .eyebrow, .field-group label, .footer-heading,
+.image-caption, .page-index, .note-number, .step-number {
+  font-size: .75rem;
+}
+.product-tagline, .product-card-featured .product-tagline,
+.microcopy, .footer-callout p:last-child {
+  font-size: .875rem;
+}
+.footer-bottom { font-size: .6875rem; }
+.product-price { font-size: .875rem; }
+.product-card-meta { gap: .4rem 1rem; }
+.product-card h3, .product-detail-copy h1, .page-hero h1,
+.product-notes h2, .manifesto-lead h2 { text-wrap: balance; }
+/* Keep prices intact; product names may wrap at spaces. */
+.checkout-item strong, [data-checkout-subtotal], .cart-line-price { white-space: nowrap; }
+@media (max-width: 560px) {
+  .primary-nav a { padding-inline: .5rem; letter-spacing: .06em; }
 }
