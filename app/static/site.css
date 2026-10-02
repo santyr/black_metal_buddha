@@ -244,7 +244,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-card img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform .3s ease;
 }
 .product-card:hover img { transform: scale(1.02); }
