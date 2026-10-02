@@ -1,5 +1,5 @@
 name: rebuild approved logo
-# payload complete; rerun with all chunks present
+# transport order corrected; skip duplicated 04.part
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
       - name: Rebuild logo from transport-safe payload
         run: |
           mkdir -p app/static/brand
-          cat tools/logo_payload/*.part | base64 --decode > app/static/brand/black-metal-buddha-logo.webp
+          cat tools/logo_payload/00.part tools/logo_payload/01.part tools/logo_payload/02.part tools/logo_payload/03.part tools/logo_payload/05.part | base64 --decode > app/static/brand/black-metal-buddha-logo.webp
       - name: Validate exact remote asset
         run: |
           python - <<'PY'
