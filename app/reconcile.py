@@ -9,7 +9,7 @@ from .fulfillment.printful import PrintfulClient
 from .models import Order, Refund
 from .orders import mark_paid_and_enqueue, sync_square_pricing
 from .payments.square import SquareClient
-from .refunds import apply_refund_status
+from .refunds import TERMINAL_REFUND_STATES, apply_refund_status, submit_refund_request
 from .shipments import upsert_printful_shipment
 
 
@@ -54,7 +54,7 @@ def reconcile_square_order(
         mark_paid_and_enqueue(session, order, square_payment_id=payment_id)
         return "PAID"
 
-    if status in {"FAILED", "CANCELED"}:
+    if status in {"FAILED", "CANCELED"} and order.payment_state != "COMPLETED":
         order.payment_state = status
         order.order_state = "PAYMENT_FAILED"
         session.commit()
@@ -145,8 +145,12 @@ def reconcile_orders(
         "printful_errors": 0,
     }
 
+    if square_client is None and printful_client is None:
+        return counts
+    # Rotate through the oldest checked records. Selecting the newest orders
+    # every run permanently starves everything outside the first batch.
     orders = session.scalars(
-        select(Order).order_by(Order.created_at.desc()).limit(limit)
+        select(Order).order_by(Order.updated_at, Order.id).limit(limit)
     ).all()
 
     for order in orders:
@@ -162,11 +166,15 @@ def reconcile_orders(
             refunds = session.scalars(
                 select(Refund).where(
                     Refund.order_id == order.id,
-                    Refund.status.not_in(["COMPLETED", "FAILED"]),
+                    Refund.status.not_in(TERMINAL_REFUND_STATES),
                 )
             ).all()
             for refund in refunds:
                 try:
+                    if refund.status == "REQUESTED" and not refund.square_refund_id:
+                        submit_refund_request(session, refund, order, client=square_client)
+                        counts["refunds_checked"] += 1
+                        continue
                     data = square_client.get_refund(refund.square_refund_id)
                     apply_refund_status(
                         session,
@@ -190,5 +198,8 @@ def reconcile_orders(
             except Exception:
                 session.rollback()
                 counts["printful_errors"] += 1
+
+        order.updated_at = datetime.now(timezone.utc)
+        session.commit()
 
     return counts

@@ -278,3 +278,60 @@ def test_ops_report_flags_stale_paid_order_when_fulfillment_expected():
         assert report["counts"]["stale_paid_without_printful"] == 1
     finally:
         session.close()
+
+
+def test_refund_completion_cannot_be_reversed_by_late_events():
+    from app.refunds import apply_refund_status
+    session, order = session_and_order()
+    try:
+        refund = Refund(order_id=order.id, square_refund_id='late-refund', amount_cents=1000,
+                        currency='USD', status='PENDING')
+        session.add(refund)
+        session.flush()
+        for status in ['COMPLETED', 'PENDING', 'FAILED', 'COMPLETED']:
+            apply_refund_status(session, refund, order, status=status)
+        assert refund.status == 'COMPLETED'
+        assert order.refunded_cents == 1000
+        assert order.refund_state == 'PARTIAL'
+    finally:
+        session.close()
+
+
+def test_returned_shipment_takes_precedence_over_fulfilled_order():
+    session, order = session_and_order()
+    try:
+        upsert_printful_shipment(session, order, {'id': 901},
+                                event_type='shipment_returned', printful_order_status='fulfilled')
+        assert order.fulfillment_state == 'RETURNED'
+    finally:
+        session.close()
+
+
+def test_reconciled_shipment_gets_one_notification_when_it_ships():
+    session, order = session_and_order()
+    try:
+        for event in ['shipment_reconciled', 'shipment_sent', 'shipment_sent']:
+            upsert_printful_shipment(session, order, {'id': 902}, event_type=event)
+        jobs = session.scalars(select(Job).where(Job.job_type.like('SEND_SHIPPING_NOTIFICATION:%'))).all()
+        assert len(jobs) == 1
+    finally:
+        session.close()
+
+
+def test_fully_refunded_order_does_not_start_fulfillment():
+    from app.jobs import process_submit_printful_job
+    session, order = session_and_order()
+    try:
+        order.refund_state = 'COMPLETED'
+        order.refunded_cents = order.total_cents
+        job = Job(order_id=order.id, job_type='SUBMIT_PRINTFUL_ORDER', state='PENDING')
+        session.add(job)
+        session.commit()
+        class NoProviderCalls:
+            def get_order_by_external_id(self, _):
+                raise AssertionError('A fully refunded order must not be submitted')
+        process_submit_printful_job(session, job, config=config(), client=NoProviderCalls())
+        assert job.state == 'CANCELED'
+        assert order.printful_order_id is None
+    finally:
+        session.close()

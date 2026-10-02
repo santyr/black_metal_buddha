@@ -18,17 +18,25 @@ Black Metal Buddha owns its storefront, catalog, cart, order database, Square in
 Implemented:
 
 - responsive Black Metal Buddha storefront
-- approved Dzogchen-A black-metal identity
-- three launch-design pages
+- repaired approved Dzogchen-A logo, verified by complete WebP decoding
+- four design pages (three core designs and Longchenpa in the Lineage Series)
 - SEO metadata, structured data, sitemap, robots rules
 - security headers and deployment configuration
 - preview mode while transactional launch gates are closed
 
 ### Phase 0.5 — physical product validation
 
-**In progress.** The first physical test print has been ordered.
+**Physical sample approved.** On 2026-10-01 the owner selected Comfort Colors
+1717 (Unisex Garment-Dyed Heavyweight T-Shirt) for production.
 
-Public production checkout remains gated on final physical approval, production SKU mapping, and final pricing.
+Public production checkout remains gated on the completed production catalog,
+provider configuration, and the live canary. The owner set the launch price
+to $35.00 plus shipping on 2026-10-02. The corrected logo from remote commit
+`83bbe714` passes checksum, container-length, and full image-decoding checks.
+
+Variant SKU reservations and the naming convention are documented in
+`docs/25_PRODUCT_SKUS.md`; the full reservation list is in
+`catalog/comfort-colors-1717-skus.csv`.
 
 See docs/16_PHASE0_5_SAMPLE_VALIDATION.md.
 
@@ -55,9 +63,21 @@ Software implementation is substantially complete:
 - PostgreSQL backups and restore-verification tooling
 - deployment and operational smoke tests
 
+Current deployment (2026-10-02): PostgreSQL and the worker are active, the 20
+S–XXL SKU records are installed as inactive, and daily local backups plus a
+restore test are verified. Printful saved-product API contract corrections are
+deployed. All 20 variants have an owner-selected $35.00 price. Live provider
+configuration, saved-product mappings, an off-host backup
+destination, owner-console approval, and the controlled live canary remain.
+
+Private staging is installed on `127.0.0.1:8091` with a separate account and
+PostgreSQL database. See `docs/27_PRIVATE_STAGING.md` for access and verification.
+Provider callbacks and sandbox transactions still require configuration.
+
 **All real-sales gates remain OFF by default.**
 
 See docs/19 through docs/24 for the Phase 1 implementation and launch runbooks.
+For the remaining owner inputs, start with [the launch handoff](docs/28_LAUNCH_INPUT_HANDOFF.md).
 
 ## Safe defaults
 
@@ -94,10 +114,22 @@ Run the test suite:
 pytest -q
 ~~~
 
+Browser checks (requires `pip install playwright` and an installed Chromium):
+
+~~~bash
+python tools/audit_storefront.py http://127.0.0.1:8088 --browser /path/to/chromium
+PYTHONPATH=. python tools/audit_checkout.py http://127.0.0.1:8088 --browser /path/to/chromium
+~~~
+
+The storefront audit decodes images, checks desktop/mobile overflow, and tests
+the preview cart. Run it in preview mode. The checkout audit uses mocked API
+responses and never creates real orders or payments. Pass `--screenshots` to
+the storefront audit to also save homepage screenshots.
+
 ## Roadmap
 
 - **Phase 0:** storefront — implemented
-- **Phase 0.5:** physical samples — in progress
+- **Phase 0.5:** physical sample approved; Comfort Colors 1717 selected
 - **Phase 1:** Square + Printful software — implemented, awaiting physical/canary launch gates
 - **Phase 2:** Printful-supported marketplaces/ecommerce channels
 - **Phase 3:** SEO/content/marketing expansion

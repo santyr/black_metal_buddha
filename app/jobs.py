@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
 
 from .fulfillment.printful import (
@@ -25,6 +25,8 @@ def _fail_permanently(session: Session, job: Job, order: Order, exc: Exception) 
 
 
 def _retry_or_fail(session: Session, job: Job, exc: Exception) -> None:
+    # Recover the transaction before writing retry state after a DB failure.
+    session.rollback()
     job.attempt_count += 1
     job.state = "PENDING" if job.attempt_count < 8 else "FAILED"
     delay = min(60, 2 ** min(job.attempt_count, 6))
@@ -50,6 +52,19 @@ def process_submit_printful_job(
     if order.payment_state != "COMPLETED":
         job.state = "FAILED"
         job.last_error = "Order is not paid"
+        session.commit()
+        return
+
+    if order.refund_state == "COMPLETED" or order.refunded_cents >= order.total_cents:
+        job.state = "CANCELED"
+        job.last_error = "Order fully refunded; fulfillment submission canceled"
+        session.commit()
+        return
+
+    if order.refund_state == "PENDING":
+        job.state = "PENDING"
+        job.last_error = "Waiting for the pending refund to resolve before fulfillment"
+        job.next_attempt_at = datetime.now(timezone.utc) + timedelta(minutes=15)
         session.commit()
         return
 
@@ -90,6 +105,10 @@ def process_submit_printful_job(
             "partial",
             "fulfilled",
         }
+        # v1 can put an unconfirmed draft on hold while computing its costs.
+        # That hold is not proof that production has been confirmed.
+        if provider_status == "onhold" and cost_status != "done":
+            raise RuntimeError("Printful costs are not finished calculating")
         if not already_confirmed:
             if cost_status != "done":
                 raise RuntimeError("Printful costs are not finished calculating")
@@ -186,16 +205,41 @@ def process_pending_jobs(
     config: Settings = settings,
 ) -> int:
     now = datetime.now(timezone.utc)
-    jobs = session.scalars(
-        select(Job)
-        .where(Job.state == "PENDING", Job.next_attempt_at <= now)
+    eligible = or_(
+        and_(Job.state == "PENDING", Job.next_attempt_at <= now),
+        and_(Job.state == "RUNNING", or_(Job.locked_at.is_(None),
+                                        Job.locked_at <= now - timedelta(minutes=15))),
+    )
+    job_ids = session.scalars(
+        select(Job.id)
+        .where(eligible)
         .order_by(Job.created_at)
         .limit(limit)
     ).all()
 
-    for job in jobs:
-        if job.job_type == "SUBMIT_PRINTFUL_ORDER":
-            process_submit_printful_job(session, job, config=config)
-        elif job.job_type.startswith("SEND_"):
-            process_email_job(session, job, config=config)
-    return len(jobs)
+    processed = 0
+    for job_id in job_ids:
+        claimed = session.execute(
+            update(Job).where(Job.id == job_id, eligible)
+            .values(state="RUNNING", locked_at=datetime.now(timezone.utc))
+            .execution_options(synchronize_session=False)
+        ).rowcount
+        session.commit()
+        if not claimed:
+            continue
+        session.expire_all()
+        job = session.get(Job, job_id)
+        try:
+            if job.job_type == "SUBMIT_PRINTFUL_ORDER":
+                process_submit_printful_job(session, job, config=config)
+            elif job.job_type.startswith("SEND_"):
+                process_email_job(session, job, config=config)
+            else:
+                job.state = "FAILED"
+                job.last_error = f"Unknown job type: {job.job_type}"
+        except Exception as exc:
+            _retry_or_fail(session, job, exc)
+        job.locked_at = None
+        session.commit()
+        processed += 1
+    return processed

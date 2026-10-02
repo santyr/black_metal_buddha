@@ -25,7 +25,7 @@ This avoids losing a second tracking number on split orders.
 
 ## Order state
 
-Printful's v2 order statuses are mapped deliberately:
+Printful's order statuses are mapped deliberately:
 
 | Printful | BMB |
 | --- | --- |
@@ -46,16 +46,18 @@ The first `shipment_sent` event does **not** automatically mean the whole order 
 Provider reconciliation retrieves:
 
 ```
-GET /v2/orders/@BMB-.../shipments
+GET /orders/@BMB-...
 ```
 
-and upserts tracking records locally.
+and reads the response's embedded `shipments` list, converting Unix shipment
+timestamps to ISO timestamps before upserting tracking records locally.
 
 If the original shipment webhook was missed, this can repair both tracking state and the pending shipment-notification job.
 
 Reference:
 
-- https://developers.printful.com/docs/v2-preview/
+- https://developers.printful.com/docs/#tag/Orders-API
+- https://developers.printful.com/docs/v2-beta/
 
 ## Scheduled reconciliation
 

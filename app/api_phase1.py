@@ -6,11 +6,12 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .db import SessionLocal
 from .fulfillment.printful import PrintfulClient, verify_printful_webhook
-from .models import FulfillmentEvent, Order, PaymentEvent
+from .models import FulfillmentEvent, Order, PaymentEvent, Refund
 from .orders import (
     OrderError,
     create_order,
@@ -32,6 +33,39 @@ from .storefront import sellable_catalog
 from .shipments import upsert_printful_shipment
 
 router = APIRouter(prefix="/api/v1", tags=["phase1"])
+
+
+def _object(value, name: str) -> dict:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise HTTPException(status_code=400, detail=f"Invalid {name} object")
+    return value
+
+
+def _webhook_event(body: bytes) -> dict:
+    try:
+        event = json.loads(body)
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid webhook JSON") from exc
+    if not isinstance(event, dict) or not isinstance(event.get("type", ""), str):
+        raise HTTPException(status_code=400, detail="Invalid webhook event")
+    return event
+
+
+def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent) -> bool:
+    model = type(event)
+    provider, event_id = event.provider, event.provider_event_id
+    session.add(event)
+    try:
+        session.commit()
+        return False
+    except IntegrityError:
+        session.rollback()
+        if session.scalar(select(model).where(model.provider == provider,
+                                               model.provider_event_id == event_id)) is not None:
+            return True
+        raise
 
 
 def db_session():
@@ -239,10 +273,10 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
     if not verify_square_webhook(body, signature):
         raise HTTPException(status_code=401, detail="Invalid Square signature")
 
-    event = json.loads(body)
+    event = _webhook_event(body)
     event_id = event.get("event_id") or event.get("id")
     event_type = event.get("type") or ""
-    if not event_id:
+    if not isinstance(event_id, str) or not event_id or len(event_id) > 128:
         raise HTTPException(status_code=400, detail="Square event ID missing")
 
     existing = session.scalar(
@@ -254,17 +288,17 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
     if existing:
         return {"ok": True, "duplicate": True}
 
-    obj = event.get("data", {}).get("object", {})
-    payment = obj.get("payment") or {}
-    refund_data = obj.get("refund") or {}
+    obj = _object(_object(event.get("data"), "data").get("object"), "data.object")
+    payment = _object(obj.get("payment"), "payment")
+    refund_data = _object(obj.get("refund"), "refund")
     provider_payment_id = payment.get("id") or refund_data.get("payment_id")
     result = "IGNORED"
 
     if event_type in {"payment.created", "payment.updated"}:
         payment_id = payment.get("id")
         square_order_id = payment.get("order_id")
-        status = (payment.get("status") or "").upper()
-        amount_money = payment.get("amount_money") or {}
+        status = str(payment.get("status") or "").upper()
+        amount_money = _object(payment.get("amount_money"), "amount_money")
 
         if square_order_id:
             order = get_order_by_square_order_id(session, square_order_id)
@@ -277,13 +311,15 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
 
                 if amount_money.get("currency") != order.currency:
                     raise HTTPException(status_code=409, detail="Square currency mismatch")
-                if int(amount_money.get("amount", -1)) != order.total_cents:
+                if type(amount_money.get("amount")) is not int:
+                    raise HTTPException(status_code=400, detail="Invalid Square payment amount")
+                if amount_money["amount"] != order.total_cents:
                     raise HTTPException(status_code=409, detail="Square amount mismatch")
 
                 if status == "COMPLETED" and payment_id:
                     mark_paid_and_enqueue(session, order, square_payment_id=payment_id)
                     result = "PAID"
-                elif status in {"FAILED", "CANCELED"}:
+                elif status in {"FAILED", "CANCELED"} and order.payment_state != "COMPLETED":
                     order.payment_state = status
                     order.order_state = "PAYMENT_FAILED"
                     session.commit()
@@ -293,11 +329,43 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
 
     elif event_type in {"refund.created", "refund.updated"}:
         refund_id = refund_data.get("id")
+        if not isinstance(refund_id, str) or not refund_id or len(refund_id) > 255:
+            raise HTTPException(status_code=400, detail="Invalid Square refund ID")
+        refund_status = refund_data.get("status")
+        if not isinstance(refund_status, str) or refund_status not in {"PENDING", "COMPLETED", "REJECTED", "FAILED"}:
+            raise HTTPException(status_code=400, detail="Invalid Square refund status")
         if refund_id:
             refund = get_refund_by_square_id(session, str(refund_id))
+            if refund is None and refund_data.get("payment_id"):
+                order = session.scalar(select(Order).where(
+                    Order.square_payment_id == refund_data["payment_id"]))
+                if order is not None:
+                    unresolved = session.scalar(select(Refund.id).where(
+                        Refund.order_id == order.id, Refund.status == "REQUESTED",
+                        Refund.square_refund_id.is_(None)))
+                    if unresolved is not None:
+                        # A webhook can outrun the refund HTTP response. Do not
+                        # guess which request it belongs to using only its amount.
+                        raise HTTPException(status_code=503, detail="Refund request is still being resolved")
+                    money = _object(refund_data.get("amount_money"), "refund amount_money")
+                    if (type(money.get("amount")) is not int
+                            or not 0 < money["amount"] <= order.total_cents
+                            or money.get("currency") != order.currency):
+                        raise HTTPException(status_code=409, detail="Square refund amount or currency mismatch")
+                    refund = Refund(order_id=order.id, square_refund_id=str(refund_id),
+                                    amount_cents=money["amount"], currency=order.currency,
+                                    status="PENDING", reason=refund_data.get("reason"))
+                    session.add(refund)
+                    session.flush()
             if refund is not None:
                 order = session.get(Order, refund.order_id)
                 if order is not None:
+                    if refund_data.get("payment_id") not in (None, order.square_payment_id):
+                        raise HTTPException(status_code=409, detail="Square refund payment mismatch")
+                    if refund_data.get("amount_money") is not None:
+                        money = _object(refund_data["amount_money"], "refund amount_money")
+                        if money.get("amount") != refund.amount_cents or money.get("currency") != refund.currency:
+                            raise HTTPException(status_code=409, detail="Square refund amount or currency mismatch")
                     apply_refund_status(
                         session,
                         refund,
@@ -307,13 +375,13 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
                     result = refund.status
 
     event_time = None
-    if event.get("created_at"):
+    if isinstance(event.get("created_at"), str):
         try:
             event_time = datetime.fromisoformat(event["created_at"].replace("Z", "+00:00"))
         except ValueError:
             event_time = None
 
-    session.add(
+    duplicate = _store_event(session,
         PaymentEvent(
             provider="square",
             provider_event_id=event_id,
@@ -324,8 +392,7 @@ async def square_webhook(request: Request, session: Session = Depends(db_session
             processing_result=result,
         )
     )
-    session.commit()
-    return {"ok": True, "result": result}
+    return {"ok": True, "result": result, "duplicate": duplicate}
 
 
 @router.post("/webhooks/printful", include_in_schema=False)
@@ -339,7 +406,7 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
     if not verify_printful_webhook(body, signature):
         raise HTTPException(status_code=401, detail="Invalid Printful signature")
 
-    event = json.loads(body)
+    event = _webhook_event(body)
     event_type = event.get("type") or ""
     event_hash = hashlib.sha256(body).hexdigest()
 
@@ -352,8 +419,8 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
     if existing:
         return {"ok": True, "duplicate": True}
 
-    data = event.get("data") or {}
-    pf_order = data.get("order") or {}
+    data = _object(event.get("data"), "data")
+    pf_order = _object(data.get("order"), "order")
     external_id = pf_order.get("external_id")
     order = None
     if external_id:
@@ -361,7 +428,7 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
 
     result = "IGNORED"
     if order is not None:
-        pf_status = (pf_order.get("status") or "").upper()
+        pf_status = str(pf_order.get("status") or "").upper()
         if pf_order.get("id") is not None:
             order.printful_order_id = str(pf_order["id"])
 
@@ -391,7 +458,7 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
             shipment = upsert_printful_shipment(
                 session,
                 order,
-                data.get("shipment") or {},
+                _object(data.get("shipment"), "shipment"),
                 event_type=event_type,
                 printful_order_status=pf_order.get("status"),
             )
@@ -399,7 +466,7 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
                 order.shipped_at = order.shipped_at or shipment.shipped_at or datetime.now(timezone.utc)
             result = shipment.status if shipment is not None else "SHIPMENT_MISSING"
 
-    session.add(
+    duplicate = _store_event(session,
         FulfillmentEvent(
             provider="printful",
             provider_event_id=event_hash,
@@ -409,5 +476,4 @@ async def printful_webhook(request: Request, session: Session = Depends(db_sessi
             processing_result=result,
         )
     )
-    session.commit()
-    return {"ok": True, "result": result}
+    return {"ok": True, "result": result, "duplicate": duplicate}

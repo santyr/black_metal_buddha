@@ -1,19 +1,31 @@
 (() => {
   const phase1 = document.body.dataset.phase1Enabled === 'true';
   const key = phase1 ? 'bmb-cart-v2' : 'bmb-preview-cart-v1';
+  let memoryCart = [];
+
+  function normalizeCart(value) {
+    if (!Array.isArray(value)) return [];
+    return value.filter((item) => item && typeof item === 'object'
+      && typeof item.slug === 'string' && typeof item.name === 'string'
+      && (!phase1 || (typeof item.sku === 'string'
+        && /^[A-Z]{3}$/.test(item.currency || 'USD'))))
+      .map((item) => ({ ...item, quantity: Math.max(1, Math.min(10, Math.floor(Number(item.quantity) || 1))) }));
+  }
 
   function readCart() {
     try {
       const value = JSON.parse(localStorage.getItem(key) || '[]');
-      return Array.isArray(value) ? value : [];
+      memoryCart = normalizeCart(value);
+      return memoryCart;
     } catch (_) {
-      return [];
+      return memoryCart;
     }
   }
 
   function writeCart(cart) {
-    localStorage.setItem(key, JSON.stringify(cart));
-    updateCount(cart);
+    memoryCart = normalizeCart(cart);
+    try { localStorage.setItem(key, JSON.stringify(memoryCart)); } catch (_) { /* Storage may be unavailable. */ }
+    updateCount(memoryCart);
   }
 
   function formatMoney(cents, currency = 'USD') {

@@ -191,4 +191,4 @@ def verify_square_webhook(
         return False
     digest = hmac.new(key.encode(), url.encode() + body, hashlib.sha256).digest()
     expected = base64.b64encode(digest).decode()
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected.encode("ascii"), signature.encode("utf-8"))

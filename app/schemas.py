@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class AddressIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=200)
     email: str = Field(min_length=3, max_length=320)
     phone: str | None = Field(default=None, max_length=18)
@@ -13,6 +14,16 @@ class AddressIn(BaseModel):
     state: str = Field(min_length=1, max_length=128)
     postal_code: str = Field(min_length=1, max_length=32)
     country_code: str = Field(default="US", min_length=2, max_length=2)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        if value.count("@") != 1 or any(character.isspace() for character in value):
+            raise ValueError("A valid email address is required")
+        local, domain = value.split("@")
+        if not local or not domain or domain.startswith(".") or domain.endswith("."):
+            raise ValueError("A valid email address is required")
+        return value
 
     @model_validator(mode="after")
     def normalize_address(self):
@@ -26,6 +37,7 @@ class AddressIn(BaseModel):
 
 
 class OrderLineIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     sku: str = Field(min_length=1, max_length=128)
     quantity: int = Field(ge=1, le=10)
 
@@ -33,6 +45,12 @@ class OrderLineIn(BaseModel):
 class CreateOrderIn(BaseModel):
     recipient: AddressIn
     items: list[OrderLineIn] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode="after")
+    def reject_duplicate_skus(self):
+        if len({item.sku for item in self.items}) != len(self.items):
+            raise ValueError("Each SKU must appear once; use its quantity field")
+        return self
 
 
 class OrderOut(BaseModel):

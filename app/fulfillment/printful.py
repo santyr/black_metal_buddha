@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -67,19 +68,45 @@ class PrintfulClient:
                 raise PrintfulConfigurationError(f"Missing Printful mapping for {item.sku_snapshot}")
             order_items.append(
                 {
-                    "source": "product",
-                    "product_id": int(item.printful_product_id_snapshot),
-                    "variant_id": int(item.printful_variant_id_snapshot),
+                    # v1 uses the saved variant with its approved artwork and
+                    # placement. A catalog variant alone describes a blank.
+                    "sync_variant_id": int(item.printful_variant_id_snapshot),
                     "quantity": item.quantity,
                     "external_id": f"{order.order_number}-{item.id}",
                 }
             )
         return order_items
 
+    def _shipping_items(self, order: Order) -> list[dict[str, Any]]:
+        items = []
+        for item in order.items:
+            if not item.printful_product_id_snapshot or not item.printful_variant_id_snapshot:
+                raise PrintfulConfigurationError(f"Missing Printful mapping for {item.sku_snapshot}")
+            response = self.client.get(
+                f"{self.API_BASE}/store/variants/{item.printful_variant_id_snapshot}",
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            variant = response.json().get("result") or {}
+            if (
+                str(variant.get("id")) != item.printful_variant_id_snapshot
+                or str(variant.get("sync_product_id")) != item.printful_product_id_snapshot
+                or variant.get("synced") is not True
+                or not isinstance(variant.get("variant_id"), int)
+                or variant["variant_id"] <= 0
+            ):
+                raise PrintfulConfigurationError(f"Invalid saved Printful variant for {item.sku_snapshot}")
+            items.append({
+                "source": "catalog",
+                "catalog_variant_id": variant["variant_id"],
+                "quantity": item.quantity,
+            })
+        return items
+
     def get_shipping_rates(self, order: Order) -> list[dict[str, Any]]:
         payload = {
             "recipient": self._recipient(order),
-            "order_items": self._order_items(order),
+            "order_items": self._shipping_items(order),
             "currency": order.currency,
         }
         response = self.client.post(
@@ -120,30 +147,36 @@ class PrintfulClient:
             raise PrintfulConfigurationError("Printful confirmation gates are not satisfied")
 
         response = self.client.post(
-            f"{self.API_BASE}/v2/orders/{order_id_or_external_id}/confirmation",
+            f"{self.API_BASE}/orders/{order_id_or_external_id}/confirm",
             headers=self._headers(),
         )
         response.raise_for_status()
-        return response.json().get("data") or {}
+        return response.json().get("result") or {}
 
     def get_shipments(self, order_id_or_external_id: str) -> list[dict[str, Any]]:
         response = self.client.get(
-            f"{self.API_BASE}/v2/orders/{order_id_or_external_id}/shipments",
+            f"{self.API_BASE}/orders/{order_id_or_external_id}",
             headers=self._headers(),
-            params={"limit": 100, "offset": 0},
         )
         response.raise_for_status()
-        return response.json().get("data") or []
+        shipments = (response.json().get("result") or {}).get("shipments") or []
+        for shipment in shipments:
+            # v1 timestamps are Unix seconds; the application consumes ISO time.
+            for field in ("shipped_at", "delivered_at"):
+                value = shipment.get(field)
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    shipment[field] = datetime.fromtimestamp(value, timezone.utc).isoformat()
+        return shipments
 
     def get_order_by_external_id(self, external_id: str) -> dict[str, Any] | None:
         response = self.client.get(
-            f"{self.API_BASE}/v2/orders/@{external_id}",
+            f"{self.API_BASE}/orders/@{external_id}",
             headers=self._headers(),
         )
         if response.status_code == 404:
             return None
         response.raise_for_status()
-        return response.json().get("data") or {}
+        return response.json().get("result") or {}
 
     def create_draft_order(self, order: Order) -> dict[str, Any]:
         if self.config.printful_mode == "disabled":
@@ -155,16 +188,17 @@ class PrintfulClient:
             "external_id": order.order_number,
             "shipping": order.shipping_method,
             "recipient": self._recipient(order),
-            "order_items": self._order_items(order),
+            "items": self._order_items(order),
         }
 
         response = self.client.post(
-            f"{self.API_BASE}/v2/orders",
+            f"{self.API_BASE}/orders",
             headers=self._headers(),
             json=payload,
+            params={"confirm": "false", "update_existing": "false"},
         )
         response.raise_for_status()
-        return response.json().get("data") or {}
+        return response.json().get("result") or {}
 
 
 def verify_printful_webhook(
@@ -181,7 +215,7 @@ def verify_printful_webhook(
     except ValueError:
         return False
     expected = hmac.new(secret, body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected.encode("ascii"), signature.encode("utf-8"))
 
 
 def extract_printful_costs(data: dict[str, Any]) -> tuple[str, str | None, int | None]:
@@ -190,4 +224,7 @@ def extract_printful_costs(data: dict[str, Any]) -> tuple[str, str | None, int |
     currency = costs.get("currency")
     total = costs.get("total")
     cents = money_to_cents(total) if total is not None else None
+    if not status:
+        # Saved-product orders use v1, which omits calculation_status.
+        status = "done" if currency and cents is not None else "calculating"
     return status, str(currency) if currency else None, cents

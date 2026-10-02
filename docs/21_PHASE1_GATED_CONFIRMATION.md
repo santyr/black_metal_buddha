@@ -2,17 +2,28 @@
 
 This increment implements the chargeable Printful confirmation call **without enabling it**.
 
-Printful v2 creates orders as drafts. Fulfillment begins only after:
+BMB uses Printful's v1 Orders API for saved products so each order inherits the
+approved artwork and placement from its `sync_variant_id`. Draft creation uses
+`POST /orders` with `items` and explicit `confirm=false`, `update_existing=false`.
+Fulfillment begins only after:
 
 ```
-POST /v2/orders/{order_id}/confirmation
+POST /orders/{order_id}/confirm
 ```
 
-Printful documents that order costs are asynchronous. The `costs.calculation_status` field changes from `calculating` to `done` when the fulfillment cost is ready; confirmation is not allowed while costs are still calculating.
+Printful can calculate costs asynchronously and temporarily hold an unconfirmed
+draft. Its v1 costs omit `calculation_status`; BMB treats costs as ready only
+when currency and total are present. A hold without ready costs is retried and
+is not recorded as a confirmed production order.
+
+Printful v2 order creation accepts catalog variants with explicit artwork
+placements; it does not accept the saved-product payload originally used here.
+The application still uses v2 shipping quotes and signed webhook verification.
 
 Reference:
 
-- https://developers.printful.com/docs/v2-preview/
+- https://developers.printful.com/docs/#tag/Orders-API
+- https://developers.printful.com/docs/v2-beta/
 
 ## Activation gates
 

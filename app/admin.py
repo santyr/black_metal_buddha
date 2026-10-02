@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from .admin_auth import csrf_token, require_admin, verify_csrf
 from .audit import record_audit
+from .branding import LOGO_PATH, LOGO_TYPE
 from .catalog import PRODUCT_BY_SLUG
 from .db import SessionLocal
 from .fulfillment.printful import PrintfulClient
@@ -28,7 +29,7 @@ from .models import (
 from .ops import build_attention_report
 from .payments.square import SquareClient
 from .reconcile import reconcile_printful_order, reconcile_square_order
-from .refunds import request_refund
+from .refunds import RefundError, request_refund
 from .settings import settings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +50,8 @@ def admin_context(request: Request, actor: str, **kwargs):
         "request": request,
         "actor": actor,
         "site_name": "Black Metal Buddha",
+        "logo_path": LOGO_PATH,
+        "logo_type": LOGO_TYPE,
         "phase1_enabled": settings.phase1_api_enabled,
         "settings": settings,
         **kwargs,
@@ -82,9 +85,9 @@ def money_to_cents(value: str) -> int:
         amount = Decimal(value.strip())
     except (InvalidOperation, AttributeError) as exc:
         raise ValueError("Invalid price") from exc
-    cents = int((amount * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-    if cents < 0 or cents > 10_000_000:
+    if not amount.is_finite() or amount < 0 or amount > 100_000:
         raise ValueError("Price is outside the allowed range")
+    cents = int((amount * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     return cents
 
 
@@ -298,7 +301,10 @@ async def refund_action(
     verify_csrf(str(form.get("csrf") or ""), "refund", order_number)
     order = get_order_or_404(session, order_number)
     raw_amount = str(form.get("amount") or "").strip()
-    amount_cents = money_to_cents(raw_amount) if raw_amount else None
+    try:
+        amount_cents = money_to_cents(raw_amount) if raw_amount else None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     reason = str(form.get("reason") or "Customer refund").strip()[:192]
 
     try:
@@ -324,15 +330,24 @@ async def refund_action(
         return redirect(f"/admin/orders/{order_number}", f"Refund {refund.status.lower()}.")
     except Exception as exc:
         session.rollback()
+        unresolved = session.scalar(select(Refund.id).where(
+            Refund.order_id == order.id, Refund.status == "REQUESTED",
+            Refund.square_refund_id.is_(None)))
         record_audit(
             session,
             actor=actor,
-            action="request_refund_failed",
+            action="request_refund_pending" if unresolved is not None else "request_refund_failed",
             object_type="order",
             object_id=order.order_number,
             details={"error_type": type(exc).__name__},
         )
-        return redirect(f"/admin/orders/{order_number}", f"Refund failed: {type(exc).__name__}")
+        if unresolved is not None:
+            message = "Refund request recorded; awaiting confirmation. Retrying uses the same request."
+        elif isinstance(exc, RefundError):
+            message = str(exc)
+        else:
+            message = f"Refund failed: {type(exc).__name__}"
+        return redirect(f"/admin/orders/{order_number}", message)
 
 
 @router.post("/orders/{order_number}/cancel-printful")

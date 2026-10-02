@@ -19,4 +19,6 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/backups/blackmetalbuddha
+# Allow the initial privileged setup command to run before the directory exists.
+# ExecStart receives a new namespace after ExecStartPre has created it.
+ReadWritePaths=-/var/backups/blackmetalbuddha

@@ -7,17 +7,17 @@
   <meta name="description" content="{{ description or default_description }}">
   <meta name="robots" content="{{ robots or 'index,follow,max-image-preview:large' }}">
   <link rel="canonical" href="{{ canonical }}">
-  <link rel="icon" type="image/webp" href="/static/brand/black-metal-buddha-logo.webp">
+  <link rel="icon" type="{{ logo_type }}" href="{{ logo_path }}">
   <meta name="theme-color" content="#000000">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ site_name }}">
   <meta property="og:title" content="{{ title }}">
   <meta property="og:description" content="{{ description or default_description }}">
   <meta property="og:url" content="{{ canonical }}">
-  <meta property="og:image" content="{{ base_url }}{% if product %}{{ product.image }}{% else %}/static/brand/black-metal-buddha-logo.webp{% endif %}">
+  <meta property="og:image" content="{{ base_url }}{% if product %}{{ product.image }}{% else %}{{ logo_path }}{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="/static/site.css">
-  <script src="/static/cart.js" defer></script>
+  <link rel="stylesheet" href="/static/site.css?v=8438988">
+  <script src="/static/cart.js?v=2" defer></script>
   {% block head_scripts %}{% endblock %}
   {% if structured_data %}<script type="application/ld+json" nonce="{{ request.state.csp_nonce }}">{{ structured_data | safe }}</script>{% endif %}
 </head>
@@ -34,7 +34,7 @@
       </nav>
 
       <a class="masthead-mark" href="/" aria-label="Black Metal Buddha home">
-        <img class="masthead-logo" src="/static/brand/black-metal-buddha-logo.webp" alt="" width="96" height="96">
+        <img class="masthead-logo" src="{{ logo_path }}" alt="" width="96" height="96">
       </a>
 
       <div class="header-tools">
@@ -53,7 +53,7 @@
   <footer class="site-footer">
     <div class="shell footer-top">
       <a class="footer-identity" href="/" aria-label="Black Metal Buddha home">
-        <img class="footer-logo" src="/static/brand/black-metal-buddha-logo.webp" alt="" width="108" height="108">
+        <img class="footer-logo" src="{{ logo_path }}" alt="" width="108" height="108">
       </a>
 
       <div class="footer-callout">

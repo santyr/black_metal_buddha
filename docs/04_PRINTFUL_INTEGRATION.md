@@ -14,6 +14,12 @@ Use a private Printful token for the BMB store. Keep it server-side.
 
 For each BMB SKU store a stable Printful mapping.
 
+The database's `printful_product_id` and `printful_variant_id` contain saved
+sync product/variant IDs. v1 order requests use `sync_variant_id` to inherit the
+saved artwork/placement. v2 shipping requests first resolve the saved variant
+with `GET /store/variants/{id}` and send its blank `catalog_variant_id`.
+Do not interchange these two ID namespaces.
+
 Verify before launch:
 
 - product active

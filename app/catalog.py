@@ -12,6 +12,11 @@ class Product:
     image_alt: str
     sku: str
     series: str = "Core Collection"
+    launch_price_cents: int | None = None
+
+    @property
+    def launch_price_display(self) -> str:
+        return "$" + format(self.launch_price_cents / 100, ".2f") if self.launch_price_cents else ""
 
 
 PRODUCTS = (
@@ -28,6 +33,7 @@ PRODUCTS = (
         image="/static/products/lotus-of-the-void.webp",
         image_alt="Lotus of the Void printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-LOTUS",
+        launch_price_cents=3500,
     ),
     Product(
         slug="dharma-of-decay",
@@ -42,6 +48,7 @@ PRODUCTS = (
         image="/static/products/dharma-of-decay.webp",
         image_alt="Dharma of Decay printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-DHARMA",
+        launch_price_cents=3500,
     ),
     Product(
         slug="meditate-on-death",
@@ -56,6 +63,7 @@ PRODUCTS = (
         image="/static/products/meditate-on-death.webp",
         image_alt="Meditate on Death printed on a black T-shirt against the Black Metal Buddha ash-charcoal background.",
         sku="BMB-MEDITATE",
+        launch_price_cents=3500,
     ),
     Product(
         slug="longchenpa-rest-in-illusion",
@@ -79,6 +87,7 @@ PRODUCTS = (
             "Black Metal Buddha ash-charcoal background."
         ),
         sku="BMB-LONGCHENPA",
+        launch_price_cents=3500,
         series="Lineage Series",
     ),
 )

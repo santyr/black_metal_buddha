@@ -1,0 +1,34 @@
+[Unit]
+Description=Black Metal Buddha private staging storefront
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=bmbstaging
+Group=bmbstaging
+WorkingDirectory=/opt/blackmetalbuddha/staging
+EnvironmentFile=/etc/blackmetalbuddha-staging/staging.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStartPre=/opt/blackmetalbuddha/venv/bin/alembic -c /opt/blackmetalbuddha/staging/alembic.ini upgrade head
+ExecStart=/opt/blackmetalbuddha/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8091
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=027
+
+[Install]
+WantedBy=multi-user.target

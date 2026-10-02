@@ -9,6 +9,8 @@
       <p class="product-kicker">{{ item.series }}</p>
       {% if price_floors and item.slug in price_floors %}
         <p class="product-price">&#36;{{ '%.2f' | format(price_floors[item.slug] / 100) }}</p>
+      {% elif item.launch_price_cents and not phase1_enabled %}
+        <p class="product-price">{{ item.launch_price_display }} + shipping</p>
       {% else %}
         <p class="product-price product-price-preview">Preview</p>
       {% endif %}

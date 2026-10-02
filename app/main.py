@@ -7,12 +7,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .admin import router as admin_router
+from .branding import LOGO_PATH, LOGO_TYPE
 from .api_phase1 import router as phase1_router
 from .catalog import PRODUCT_BY_SLUG, PRODUCTS
 from .catalog_ops import assert_production_catalog
@@ -25,7 +27,6 @@ from .storefront import price_floor_by_product, sellable_catalog, sellable_varia
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://blackmetalbuddha.com").rstrip("/")
 SITE_NAME = "Black Metal Buddha"
-LOGO_PATH = "/static/brand/black-metal-buddha-logo.webp"
 DEFAULT_DESCRIPTION = (
     "Black Metal Buddha creates dark ritual apparel inspired by impermanence, mortality, "
     "non-self, and contemplative Buddhist themes."
@@ -104,6 +105,7 @@ def page_context(request: Request, **kwargs):
         "site_name": SITE_NAME,
         "base_url": BASE_URL,
         "logo_path": LOGO_PATH,
+        "logo_type": LOGO_TYPE,
         "default_description": DEFAULT_DESCRIPTION,
         "products": PRODUCTS,
         "phase1_enabled": phase1_settings.phase1_api_enabled,
@@ -121,6 +123,8 @@ def storefront_price_floors() -> dict[str, int]:
 
 @app.exception_handler(StarletteHTTPException)
 async def http_error_page(request: Request, exc: StarletteHTTPException):
+    if request.url.path.startswith("/api/"):
+        return await http_exception_handler(request, exc)
     if exc.status_code == 404:
         return templates.TemplateResponse(
             request,
@@ -133,8 +137,9 @@ async def http_error_page(request: Request, exc: StarletteHTTPException):
                 robots="noindex,nofollow",
             ),
             status_code=404,
+            headers=exc.headers,
         )
-    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+    return PlainTextResponse(str(exc.detail), status_code=exc.status_code, headers=exc.headers)
 
 
 @app.get("/healthz", response_class=PlainTextResponse, include_in_schema=False)
@@ -322,7 +327,22 @@ def order_status(request: Request, order_number: str):
         if not phase1_settings.phase1_api_enabled and not order.is_canary:
             raise HTTPException(status_code=404, detail="Order status unavailable")
 
-        if order.order_state == "PAID":
+        if order.refund_state == "COMPLETED":
+            heading = "Your payment has been refunded."
+            message = "Your full refund is complete."
+        elif order.fulfillment_state == "RETURNED":
+            heading = "A shipment was returned."
+            message = "This shipment needs attention. Please contact us so we can resolve it."
+        elif order.fulfillment_state == "CANCELED":
+            heading = "Fulfillment was canceled."
+            message = "Please contact us if you need help with this order or its refund."
+        elif order.order_state == "FULFILLMENT_FAILED":
+            heading = "Your order needs attention."
+            message = "Payment was received, but fulfillment encountered a problem. Please contact us."
+        elif order.order_state == "FULFILLMENT_HOLD":
+            heading = "Your order is on hold."
+            message = "Payment was received. Fulfillment is paused while an issue is resolved."
+        elif order.order_state == "PAID":
             heading = "Payment received."
             message = "Your payment is confirmed. Fulfillment is queued."
         elif order.order_state in {"FULFILLMENT_SUBMITTED", "IN_PRODUCTION"}:
@@ -334,9 +354,6 @@ def order_status(request: Request, order_number: str):
         elif order.order_state == "SHIPPED":
             heading = "Your order has shipped."
             message = "All items have been shipped. Tracking details appear below when available."
-        elif order.fulfillment_state == "RETURNED":
-            heading = "A shipment was returned."
-            message = "This shipment needs attention. Please contact us so we can resolve it."
         elif order.order_state == "PAYMENT_FAILED":
             heading = "Payment was not completed."
             message = "No fulfillment will occur for this order."

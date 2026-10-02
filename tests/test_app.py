@@ -4,6 +4,7 @@ import struct
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.branding import LOGO_PATH, LOGO_TYPE
 
 client = TestClient(app)
 
@@ -19,10 +20,10 @@ def test_home_has_seo_products_and_branding():
     assert response.status_code == 200
     assert "<title>Black Metal Buddha" in response.text
     assert 'rel="canonical"' in response.text
-    assert "/static/brand/black-metal-buddha-logo.webp" in response.text
+    assert LOGO_PATH.replace("&", "&amp;") in response.text
     assert '"@type": "Organization"' in response.text
     assert '"@type": "WebSite"' in response.text
-    assert '"logo": "https://blackmetalbuddha.com/static/brand/black-metal-buddha-logo.webp"' in response.text
+    assert f'"logo": "https://blackmetalbuddha.com{LOGO_PATH}"' in response.text
     assert "Lotus of the Void" in response.text
     assert "Dharma of Decay" in response.text
     assert "Meditate on Death" in response.text
@@ -30,18 +31,14 @@ def test_home_has_seo_products_and_branding():
 
 
 def test_logo_asset_is_complete_and_valid_webp_container():
-    response = client.get("/static/brand/black-metal-buddha-logo.webp")
+    response = client.get(LOGO_PATH)
     assert response.status_code == 200
-    assert response.headers["content-type"].startswith("image/webp")
-
+    assert response.headers["content-type"].startswith(LOGO_TYPE)
     data = response.content
     assert len(data) == 13334
-    assert data[:4] == b"RIFF"
-    assert data[8:12] == b"WEBP"
+    assert data[:4] == b"RIFF" and data[8:12] == b"WEBP"
     assert struct.unpack("<I", data[4:8])[0] + 8 == len(data)
-    assert hashlib.sha256(data).hexdigest() == (
-        "6e73625e42533c906a777b18056b98a34e84697983ee181f6f395d4427c4614a"
-    )
+    assert hashlib.sha256(data).hexdigest() == "6e73625e42533c906a777b18056b98a34e84697983ee181f6f395d4427c4614a"
 
 
 def test_product_schema():
@@ -50,6 +47,9 @@ def test_product_schema():
     assert 'application/ld+json' in response.text
     assert '"@type": "Product"' in response.text
     assert "Checkout is intentionally disabled" in response.text
+    assert "$35.00 plus shipping" in response.text
+    assert "Comfort Colors 1717" in response.text
+    assert 'data-add-variant' not in response.text
 
 
 def test_branded_404_is_noindex():
@@ -104,6 +104,8 @@ def test_contact_page_and_sitemap_entry():
 
 def test_sensitive_routes_are_no_store_and_noindex():
     response = client.get("/checkout")
+    # Checkout is hidden with Phase 1 disabled, but sensitive response headers
+    # must still prevent browser/proxy caching and indexing.
     assert response.headers["cache-control"] == "no-store, max-age=0"
     assert response.headers["x-robots-tag"] == "noindex, nofollow"
 
@@ -141,7 +143,7 @@ def test_mockup_restyled_home_structure():
     assert 'class="hero-frame"' in response.text
     assert 'class="collection-band"' in response.text
     assert 'class="manifesto shell"' in response.text
-    assert "/static/brand/black-metal-buddha-logo.webp" in response.text
+    assert LOGO_PATH in response.text
 
 
 def test_mockup_restyled_shop_and_product_structure():
@@ -149,6 +151,7 @@ def test_mockup_restyled_shop_and_product_structure():
     assert shop.status_code == 200
     assert 'class="page-hero shell editorial-hero"' in shop.text
     assert 'class="product-grid product-grid-shop"' in shop.text
+    assert "$35.00 plus shipping" in shop.text
 
     product = client.get("/products/lotus-of-the-void")
     assert product.status_code == 200

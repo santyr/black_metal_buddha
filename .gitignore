@@ -3,3 +3,8 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .env
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.dump.sha256

@@ -106,7 +106,7 @@ Example:
 ```bash
 python -m app.manage production-canary \
   --i-understand-this-is-live \
-  --sku BMB-LOTUS-BLK-M \
+  --sku BMB-LOTUS-CC1717-BLK-M \
   --quantity 1 \
   --shipping STANDARD \
   --name "Owner Name" \
@@ -118,6 +118,10 @@ python -m app.manage production-canary \
 ```
 
 Without `--i-understand-this-is-live`, the command refuses to create the production checkout.
+
+The example SKU is one of the reserved Comfort Colors 1717 variants. It must
+have an approved price and actual Printful mappings and be active and sellable
+before running the canary; reserving the SKU alone does not satisfy these gates.
 
 The command:
 

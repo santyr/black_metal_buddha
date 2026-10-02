@@ -4,15 +4,19 @@ Phase 0 makes Black Metal Buddha publishable as a pre-launch catalog while inten
 
 ## Status
 
-The application is implemented and the final approved Black Metal Buddha logo is integrated.
+The pre-launch storefront is deployed and its public HTTPS smoke check passed
+on 2026-10-01. The corrected approved WebP logo from remote commit
+`83bbe714` passes full decoding. The launch price is $35.00 plus shipping
+for Comfort Colors 1717 in S–XXL.
 
-The remaining Phase 0 work is operational deployment to the VPS, DNS/TLS activation, and public smoke testing.
+DNS/TLS and the web service are active. Full store completion requires
+the transactional launch procedure in `docs/24_PHASE1_LAUNCH_RUNBOOK.md`.
 
 ## Included
 
 - FastAPI + Jinja2 server-rendered storefront
 - home, shop, product, about, FAQ, cart, shipping/returns, privacy
-- approved Black Metal Buddha logo at `/static/brand/black-metal-buddha-logo.webp`
+- shared approved logo at `/static/brand/black-metal-buddha-logo.webp`
 - existing shirt mockups served directly from `black_metal_buddhist_prints/05_original_mockups`
 - localStorage preview cart (no customer data sent to the server)
 - human-readable UI typography with black/bone/red visual system

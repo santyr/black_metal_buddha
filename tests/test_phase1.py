@@ -214,6 +214,11 @@ def test_printful_shipping_rates_and_draft_payload(session):
     requests = []
 
     def handler(request: httpx.Request):
+        if request.url.path == "/store/variants/4011":
+            return httpx.Response(200, json={"code": 200, "result": {
+                "id": 4011, "sync_product_id": 1000, "variant_id": 18500,
+                "synced": True,
+            }})
         requests.append((request.url.path, json.loads(request.content)))
         if request.url.path == "/v2/shipping-rates":
             return httpx.Response(
@@ -229,13 +234,15 @@ def test_printful_shipping_rates_and_draft_payload(session):
             )
         return httpx.Response(
             200,
-            json={"data": {"id": 777, "external_id": order.order_number, "status": "draft"}},
+            json={"code": 200, "result": {"id": 777, "external_id": order.order_number, "status": "draft"}},
         )
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
     pf = PrintfulClient(config(), client=client)
     rates = pf.get_shipping_rates(order)
     assert rates[0]["rate_cents"] == 599
+    shipping_item = requests[0][1]["order_items"][0]
+    assert shipping_item == {"source": "catalog", "catalog_variant_id": 18500, "quantity": 2}
     set_shipping_rate(
         session,
         order,
@@ -246,13 +253,14 @@ def test_printful_shipping_rates_and_draft_payload(session):
 
     data = pf.create_draft_order(order)
     assert data["status"] == "draft"
+    assert requests[-1][0] == "/orders"
     draft_payload = requests[-1][1]
     assert draft_payload["shipping"] == "STANDARD"
     assert draft_payload["external_id"] == order.order_number
-    item = draft_payload["order_items"][0]
-    assert item["source"] == "product"
-    assert item["product_id"] == 1000
-    assert item["variant_id"] == 4011
+    item = draft_payload["items"][0]
+    assert item["sync_variant_id"] == 4011
+    assert "variant_id" not in item
+    assert "source" not in item
     assert item["quantity"] == 2
 
 
