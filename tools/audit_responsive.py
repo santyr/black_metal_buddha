@@ -63,7 +63,7 @@ GEOMETRY = r"""() => {
     const issues = [];
     if (document.documentElement.scrollWidth > innerWidth + 1)
         issues.push('document has horizontal overflow');
-    for (const el of document.querySelectorAll('main *')) {
+    for (const el of document.querySelectorAll('header *, main *, footer *')) {
         if (!el.clientWidth || el.closest('[aria-hidden="true"], .admin-table-wrap')) continue;
         if (['auto', 'scroll'].includes(getComputedStyle(el).overflowX)) continue;
         if (el.scrollWidth > el.clientWidth + 1)
@@ -74,7 +74,7 @@ GEOMETRY = r"""() => {
     }
     // A large heading can split ordinary words while still fitting its box.
     // Check rendered word ranges, rather than assuming no overflow means readable.
-    for (const heading of document.querySelectorAll('.page-hero h1, .product-detail-copy h1')) {
+    for (const heading of document.querySelectorAll('h1, h2, h3, .manifesto-lead .eyebrow, .collection-heading .eyebrow')) {
         const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
         let node;
         while ((node = walker.nextNode())) {
@@ -86,6 +86,23 @@ GEOMETRY = r"""() => {
                     .filter(rect => rect.width > 0).map(rect => Math.round(rect.top)));
                 if (lines.size > 1) issues.push(`heading splits the word "${word[0]}"`);
             }
+        }
+    }
+    // Cards on the same grid row should have a consistent action baseline.
+    for (const grid of document.querySelectorAll('.product-grid')) {
+        const rows = new Map();
+        for (const card of grid.querySelectorAll('.product-card')) {
+            const button = card.querySelector('.product-card-button');
+            const top = Math.round(card.getBoundingClientRect().top);
+            const bottom = button.getBoundingClientRect().bottom;
+            if (rows.has(top) && Math.abs(rows.get(top) - bottom) > 1)
+                issues.push('product card actions are not aligned');
+            rows.set(top, bottom);
+            const label = document.createRange();
+            label.selectNodeContents(button.firstChild);
+            const lines = new Set([...label.getClientRects()].filter(r => r.width > 0)
+                .map(r => Math.round(r.top)));
+            if (lines.size > 1) issues.push('product card action wraps onto multiple lines');
         }
     }
     const hero = document.querySelector('.hero-copy');
