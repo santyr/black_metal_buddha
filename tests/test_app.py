@@ -31,6 +31,15 @@ def test_logo_asset_is_served():
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("image/webp")
     assert len(response.content) > 1000
+    assert response.content[:4] == b"RIFF"
+    assert response.content[8:12] == b"WEBP"
+
+
+def test_logo_source_png_is_served():
+    response = client.get("/static/brand/black-metal-buddha-logo-source.png")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("image/png")
+    assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
 
 
 def test_product_schema():
@@ -93,8 +102,6 @@ def test_contact_page_and_sitemap_entry():
 
 def test_sensitive_routes_are_no_store_and_noindex():
     response = client.get("/checkout")
-    # Checkout is hidden with Phase 1 disabled, but sensitive response headers
-    # must still prevent browser/proxy caching and indexing.
     assert response.headers["cache-control"] == "no-store, max-age=0"
     assert response.headers["x-robots-tag"] == "noindex, nofollow"
 
