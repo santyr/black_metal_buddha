@@ -33,7 +33,7 @@ sudo useradd --system --home-dir /opt/blackmetalbuddha --shell /usr/sbin/nologin
 sudo install -d -o blackmetalbuddha -g blackmetalbuddha /opt/blackmetalbuddha
 
 sudo -u blackmetalbuddha git clone \
-  https://github.com/lightning-goats/black_metal_buddha.git \
+  https://github.com/santyr/black_metal_buddha.git \
   /opt/blackmetalbuddha/current
 
 sudo -u blackmetalbuddha python3 -m venv /opt/blackmetalbuddha/venv
@@ -158,3 +158,13 @@ bash /opt/blackmetalbuddha/current/deploy/phase1-smoke-test.sh \
 ```
 
 See `docs/24_PHASE1_LAUNCH_RUNBOOK.md` for catalog fingerprinting, production canary, backup/restore verification, final activation, and emergency shutdown.
+
+## Private staging
+
+The deployed private staging instance uses a separate source checkout, Unix
+account, and PostgreSQL database and listens only on `127.0.0.1:8091`.
+Its service definition is `deploy/systemd/blackmetalbuddha-staging.service`;
+safe initial settings are in `deploy/staging.env.example`.
+
+See `docs/27_PRIVATE_STAGING.md` for the deployment procedure, SSH forwarding,
+verified isolation, and remaining provider callback setup.

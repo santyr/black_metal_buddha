@@ -34,6 +34,7 @@ is not complete.
 | Public checkout | `/checkout` returns 404; `/api/v1/catalog` returns 503 | Disabled |
 | Background processing | Web app, worker, PostgreSQL, and daily backup timer report active; ops report exits 0 with no issues | Worker ready; reconciliation installed but disabled until a provider is configured |
 | Production database/restore | PostgreSQL 18.6 installed, loopback-only TCP and local peer-authenticated app connection; migrations through `0007_refund_requests`; original SQLite verified empty and backed up | Deployed and verified |
+| Private staging | Separate source at `/opt/blackmetalbuddha/staging`, Unix/PostgreSQL role `bmbstaging`, database `blackmetalbuddha_staging`, and localhost-only service on port 8091; migrations and preview smoke check pass; production tables and credentials inaccessible | Deployed 2026-10-02; provider callbacks and sandbox transactions remain unconfigured |
 | Backup/restore | Custom-format backup plus SHA-256 restored into `blackmetalbuddha_restore_test`; 20 inactive variants, 0 orders, migration head verified | Local backup/restore verified; off-host copy still required |
 | Owner console | Production admin credentials remain empty. Automatic approval review rejected enabling the console without explicit user authorization; approval requested | Disabled pending approval |
 | Live payment, fulfillment, email, tracking | No current production canary evidence | Incomplete |
@@ -62,7 +63,9 @@ timed out while other browser checks were running, then passed when run alone.
    checkout/fulfillment gates remain disabled.
 4. Configure an encrypted off-host backup destination and enable reconciliation
    after provider credentials are installed. Establish a staging/sandbox provider
-   flow. The worker, daily local backup, and disposable restore test are verified.
+   flow using the installed private staging environment in `27_PRIVATE_STAGING.md`.
+   Public staging HTTPS/webhooks and sandbox credentials are still required.
+   The worker, daily local backup, and disposable restore test are verified.
 5. Complete the controlled real transaction,
    confirmation email, Printful production, shipment/tracking, reconciliation,
    and refund checks in `24_PHASE1_LAUNCH_RUNBOOK.md`.

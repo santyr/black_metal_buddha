@@ -68,6 +68,10 @@ restore test are verified. Printful saved-product API contract corrections are
 deployed. Live provider configuration, prices/mappings, an off-host backup
 destination, owner-console approval, and the controlled live canary remain.
 
+Private staging is installed on `127.0.0.1:8091` with a separate account and
+PostgreSQL database. See `docs/27_PRIVATE_STAGING.md` for access and verification.
+Provider callbacks and sandbox transactions still require configuration.
+
 **All real-sales gates remain OFF by default.**
 
 See docs/19 through docs/24 for the Phase 1 implementation and launch runbooks.
