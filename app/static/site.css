@@ -231,7 +231,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-image-link {
   display: block;
   padding: .75rem;
-  background: #050505;
+  background: #2b2b2b;
   text-decoration: none;
 }
 .product-frame {
@@ -338,7 +338,7 @@ h1, h2, h3 { font-weight: 600; }
 .product-image-frame {
   padding: .8rem;
   border: 1px solid var(--line-strong);
-  background: #050505;
+  background: #2b2b2b;
 }
 .product-image-frame img { width: 100%; max-height: 800px; object-fit: contain; }
 .product-detail-copy { position: sticky; top: 2rem; }
