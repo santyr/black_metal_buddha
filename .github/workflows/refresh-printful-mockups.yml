@@ -1,0 +1,94 @@
+name: refresh native Printful shirt mockups
+
+on:
+  workflow_dispatch:
+    inputs:
+      color:
+        description: "Comfort Colors 1717 color"
+        required: true
+        default: "Black"
+      size:
+        description: "Representative mockup size"
+        required: true
+        default: "M"
+      option_group:
+        description: "Printful mockup style group"
+        required: false
+        default: "Flat"
+      option:
+        description: "Printful mockup style option"
+        required: false
+        default: "Front"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Require Printful API secret
+        env:
+          PRINTFUL_TOKEN: ${{ secrets.PRINTFUL_TOKEN }}
+        run: |
+          test -n "$PRINTFUL_TOKEN" || {
+            echo "Missing repository secret PRINTFUL_TOKEN." >&2
+            exit 1
+          }
+
+      - name: Install native mockup dependencies
+        run: pip install "httpx>=0.28,<1" pillow
+
+      - name: Generate native Printful mockups
+        env:
+          PRINTFUL_TOKEN: ${{ secrets.PRINTFUL_TOKEN }}
+          PRINTFUL_STORE_ID: ${{ secrets.PRINTFUL_STORE_ID }}
+          BMB_MOCKUP_ART_REF: ${{ github.sha }}
+          PRINTFUL_MOCKUP_OPTION_GROUP: ${{ inputs.option_group }}
+          PRINTFUL_MOCKUP_OPTION: ${{ inputs.option }}
+        run: |
+          python tools/refresh_printful_mockups.py \
+            --color "${{ inputs.color }}" \
+            --size "${{ inputs.size }}"
+
+      - name: Validate generated storefront assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          slugs = [
+              "lotus-of-the-void",
+              "dharma-of-decay",
+              "meditate-on-death",
+              "longchenpa-rest-in-illusion",
+          ]
+          for slug in slugs:
+              path = Path("app/static/products") / f"{slug}.webp"
+              with Image.open(path) as image:
+                  image.load()
+                  assert image.format == "WEBP", (slug, image.format)
+                  assert image.size == (900, 900), (slug, image.size)
+          print("validated", len(slugs), "native Printful storefront mockups")
+          PY
+
+      - name: Commit provider-native mockups
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/static/products
+          if git diff --cached --quiet; then
+            echo "Native Printful mockups already current."
+          else
+            git commit -m "Refresh native Printful storefront mockups"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

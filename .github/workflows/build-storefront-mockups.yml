@@ -1,14 +1,7 @@
-name: build storefront shirt mockups
+name: build fallback storefront shirt mockups
 
 on:
-  push:
-    branches:
-      - main
-      - storefront/product-shirt-mockups
-    paths:
-      - "tools/build_storefront_mockups.py"
-      - "black_metal_buddhist_prints/03_two_ink_png/**"
-      - ".github/workflows/build-storefront-mockups.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,7 +18,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow
-      - name: Generate product shirt mockups
+      - name: Generate fallback product shirt mockups
         run: python tools/build_storefront_mockups.py
       - name: Validate generated mockups
         run: |
@@ -50,16 +43,16 @@ jobs:
                   image.load()
                   assert image.format == "WEBP", slug
                   assert image.size == (900, 900), (slug, image.size)
-          print("validated", len(slugs), "product mockups")
+          print("validated", len(slugs), "fallback product mockups")
           PY
-      - name: Commit generated mockups
+      - name: Commit fallback mockups
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app/static/products
           if git diff --cached --quiet; then
-            echo "Product mockups already current."
+            echo "Fallback product mockups already current."
           else
-            git commit -m "Generate storefront T-shirt mockups"
+            git commit -m "Generate fallback storefront T-shirt mockups"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
