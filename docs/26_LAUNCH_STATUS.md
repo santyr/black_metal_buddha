@@ -23,7 +23,7 @@ is not complete.
 | --- | --- | --- |
 | Remote product scope | Repository moved to `santyr/black_metal_buddha`; remote `main` is `a33277dc8e4221ec5068904cfa1ce5c1898cf730`; `app/catalog.py` contains Lotus, Dharma, Meditate, and Longchenpa, matching local catalog | Confirmed 2026-10-02 |
 | Public preview and HTTPS | `deploy/smoke-test.sh https://blackmetalbuddha.com` passes; public health returns `ok`; HTTP and HTTPS `www` return 301 to HTTPS apex | Verified 2026-10-01 |
-| Deployed application | Reviewed Printful correction, worker change, backup unit, and SKU CSV match the workspace by SHA-256 at `/opt/blackmetalbuddha/current`; public smoke check passes after restart | Verified 2026-10-02; source includes uncommitted fixes |
+| Deployed application | Reviewed Printful correction, worker change, backup unit, and SKU CSV match the workspace by SHA-256 at `/opt/blackmetalbuddha/current`; public smoke check passes after restart | Verified 2026-10-02; source preserved in draft PR #20 |
 | Browse and preview cart | Local browser audit passes 26 page/viewport checks at 1280px and 360px, image decoding, add/remove, malformed cart data, and blocked storage | Verified 2026-10-02 |
 | Existing software checks | Prior deployed suite: 128 passed; rebased source suite: 129 passed, including upstream PNG signature check, with two dependency deprecation warnings; 7 provider contract failures reproduced before correction, all 8 targeted checks pass afterward | Verified; live providers not covered; signatures do not establish image integrity |
 | Printful API contract | v1 saved-product orders use `items.sync_variant_id`, explicit draft creation, gated confirmation, and external-ID lookup; v2 shipping resolves saved IDs to blank catalog IDs; v1 shipments/costs normalized | Reviewed independently and deployed; real provider validation remains |
@@ -69,8 +69,12 @@ timed out while other browser checks were running, then passed when run alone.
    the runbook, then run the public Phase 1 smoke test and monitoring checks.
 
 Do not mark the full goal complete until the production flow is proven. The
-reviewed correction and SKU records are deployed; source changes have not been
-pushed to the remote repo.
+reviewed correction and SKU records are deployed. The source snapshot, including
+the existing backend and storefront fixes, is preserved in draft PR
+[#20](https://github.com/santyr/black_metal_buddha/pull/20), commit
+`4fda39bd6615e4daa13732e7488283dff0e199ac`. All 54 changed source files were
+read back and checked against the verified review snapshot. The PR targets
+`main` and remains unmerged. Local databases and backup artifacts were excluded.
 
 Rollback snapshot:
 `/opt/blackmetalbuddha/backups/pre-printful-postgres-20261002T001712Z/`.
