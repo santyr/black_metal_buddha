@@ -1,166 +1,131 @@
-# Black Metal Buddha Launch Handoff
+# Black Metal Buddha launch handoff
 
-This document tells you what to do in your accounts and what to provide so I can finish the store. Work through the steps in order. You can hand off each completed step as soon as it is ready.
+Complete these steps in your accounts and tell me when each is ready. Keep
+secret values in the private settings or password manager; send only their
+secure location in chat. Deployment-specific records belong in the private
+handoff.
 
-## Decisions already recorded
+## Decisions recorded
 
-- Physical sample approved; garment is Comfort Colors 1717.
-- Sizes are S, M, L, XL, and XXL, represented as `2XL` in SKUs.
-- All four designs are published in the production Printful store with seven Black sizes each, S–4XL. The website retains the earlier S–XXL launch range pending the owner’s size decision; its 20 reserved SKUs now have verified saved Printful product and variant mappings. See [the SKU worksheet](../catalog/comfort-colors-1717-skus.csv).
-- Launch retail price is **$35.00 USD for every size, plus calculated shipping and applicable tax**. No size surcharge is applied.
-- The repaired approved logo has passed a complete WebP decode and checksum check. You do not need to provide the logo again.
-- Production database, background worker, local backups, restore verification, and private staging are prepared. Public purchasing remains closed while the remaining work is completed.
+- Physical sample approved; Black Comfort Colors 1717 selected.
+- **$35.00 USD per shirt, plus shipping and applicable tax.**
+- Large sample order total reported by the owner: **$22.10 including shipping**.
+  This is not an itemized cost quote for every size or destination.
+- All published Printful products and variants should appear on the website,
+  currently four designs in S–4XL. Future prices and size changes follow Printful.
+- Use the corrected logo and the lighter charcoal scene with faint overlays.
 
-## Price research and decision
+## Step 1 Review the products in Printful
 
-The owner reports that the **Large test T-shirt cost $22.10 USD including shipping**. Record this as the sample order total; the shirt and shipping amounts have not been itemized. Launch retail remains **$35.00 plus separately calculated shipping**.
+1. Open your Black Metal Buddha store in Printful.
+2. Review Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa —
+   Rest in Illusion. Check garment, artwork, placement, mockup, sizes and prices.
+3. Tell me which designs the approved physical sample covers. Identify anything
+   that still needs a physical sample or placement review.
+4. Check the billing method and actual fulfillment costs, including larger sizes.
+5. For future products, follow [the Printful product admin guide](29_PRINTFUL_PRODUCT_ADMIN.md).
+   Save synced variants with positive USD prices and the correct product thumbnail.
 
-Checked on 2026-10-02 in the US dollar view. [Printful's 1717 page](https://www.printful.com/custom/mens/all/unisex-garment-dyed-heavyweight-shirt-comfort-colors-1717) displays **$15.60 with one print included**, with US shipping **starting at $4.95**. These are advertised starting figures; size, color, technique, placement, taxes, and delivery address can change the actual cost. They are not a quote for every Black S–2XL variant.
+**Provide:** Approval coverage and any product corrections. The API can retrieve
+saved product/variant IDs, so you do not need to copy them manually.
 
-The owner selected **$35 per shirt** on 2026-10-02, using Blackcraft as the market reference. [Blackcraft's Duality tee](https://www.blackcraftcult.com/products/duality-t-shirt) and [What I Like tee](https://www.blackcraftcult.com/products/what-i-like-t-shirt) both list **$35**. What I Like also advertises a multi-buy promotion, so regular list prices are not guaranteed realized selling prices. These are graphic tee references, not confirmation that Blackcraft uses our Comfort Colors blank.
+For a reusable Dashboard scene, download [the charcoal background](https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal-v2/charcoal-scene-background.jpg),
+upload it into Printful's mockup editor, and save the scene. A saved product
+thumbnail and a reusable scene preset are separate things.
 
-At the advertised $15.60 product cost, $35 leaves **$19.40, or 55.4% of merchandise revenue**, before payment fees, Printful taxes, overhead, claims, and extra print charges. This is a preliminary merchandise margin, not net profit. A starting example customer total is $35 + $4.95 = **$39.95 before tax**, but the site will use the actual shipping quote. I will check real S–2XL costs once your Printful account is available before enabling sales.
+## Step 2 Prepare isolated staging access
 
-Current Printful catalog API prices for Black 1717 variants, checked with the production token on 2026-10-02:
+1. Choose a designated Printful test store for staging. Draft orders in Printful
+   are not a separate payment sandbox.
+2. Create a store-scoped private API token with the permissions required for
+   saved products, files, order operations and webhook setup.
+3. Save the token and store ID through the private handoff as `PRINTFUL_TOKEN`
+   and `PRINTFUL_STORE_ID`.
+4. Choose a staging hostname and arrange DNS access or the requested DNS record.
 
-| Size | Catalog product price USD |
-| --- | ---: |
-| S, M, L, XL | $15.60 |
-| 2XL | $17.60 |
-| 3XL | $19.60 |
-| 4XL | $21.60 |
+**Provide:** Test-store name, secure access location, staging hostname and DNS
+contact. Production and staging credentials must stay separate.
 
-These are catalog product prices, not delivered-order totals. Shipping, tax, and any order-specific charges must be checked for the actual recipient and saved print setup.
+## Step 3 Finish Square payment setup
 
-## Step 1 Prepare the Printful store and products
+1. Open the Square Developer Console and select the intended application.
+2. Confirm the merchant account can accept payments and that settlement is set up.
+3. Select **Production**. Save its access token and selected merchant location
+   as `SQUARE_ACCESS_TOKEN` and `SQUARE_LOCATION_ID` in the private production settings.
+4. Set `SQUARE_ENVIRONMENT=production` for those production credentials. Leave
+   the checkout activation switches closed until the launch checks pass.
+5. Create the payment/refund webhook subscription using the callback shown in
+   the private handoff. Save its signing key and exact notification URL as
+   `SQUARE_WEBHOOK_SIGNATURE_KEY` and `SQUARE_WEBHOOK_NOTIFICATION_URL`.
+6. Confirm the tax settings you want for launch with the person responsible for them.
+7. Obtain separate Square **Sandbox** credentials and location for staging.
 
-**Production setup completed:** Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion are saved in the Black Metal Buddha store. Each has seven synced Black Comfort Colors 1717 variants at $35.00. Lotus’s generated SKUs were replaced with the reserved BMB SKUs while preserving its saved artwork, variant IDs, and prices. The other three use the approved 3600 × 4800 production PNGs pinned to a verified repository commit. All 20 existing S–XXL website variants are mapped and remain inactive.
+**Provide:** Confirmation of readiness, approved tax settings, and secure settings
+locations. I will validate access and signatures and check checkout totals.
+No live charge is needed for credential validation.
 
-**Remaining:** Confirm the website launch range, review the three new saved products in Printful, and confirm which designs the physical sample approval covers. All four native shirt mockups are created and saved as Printful product thumbnails; the real fulfillment canary remains unverified.
+Reference: [Square access tokens](https://developer.squareup.com/docs/build-basics/access-tokens).
 
-**Review the new mockups:**
+## Step 4 Set up email and support
 
-1. Open Printful → Stores → Black Metal Buddha and review the thumbnails on Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion.
-2. Compare the artwork size and placement with your approved physical sample. Tell me which designs that approval covers.
-3. Confirm whether the website should retain S–XXL or include the saved Printful 3XL and 4XL variants.
-4. For a reusable scene inside Printful’s Dashboard editor, download [the charcoal background](https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal/charcoal-scene-background.jpg), upload it as your background, and save the scene using the available [Custom Mockup Maker controls](https://help.printful.com/hc/en-us/articles/50266361810577-What-is-the-Custom-Mockup-Maker-and-how-to-use-it). The API updates product thumbnails; it does not create a Dashboard Scene preset. Printful may show its newer AI mockup interface instead.
+1. Choose your email provider and obtain SMTP credentials.
+2. Verify the sender/domain and complete the provider's DNS requirements.
+3. Choose a support address and confirm you can receive and reply to mail there.
+4. Save `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`
+   and `SUPPORT_EMAIL` through the private handoff.
 
-The shirt layers come from Printful’s native Flat / Front renderer. The faint lotus, thorn, and eclipse decorations belong to the shared background. Lotus’s mockup uses the saved uploaded artwork’s provider preview; its full-resolution production print file is preserved. The other three use their saved production PNGs. Mockup images do not replace the physical sample check.
+**Provide:** Provider, sender and support addresses, verification confirmation,
+and secure settings location. I will verify delivery of order, tracking and
+refund messages.
 
-**Reference procedure:**
+## Step 5 Approve policies and owner access
 
-1. Sign in to [Printful](https://www.printful.com/dashboard). If you already have a store for this project, use it rather than creating a duplicate.
-2. For a new custom website store, open **Stores** and choose **Connect via API**. Name it Black Metal Buddha. See [Printful's instructions](https://help.printful.com/hc/en-us/articles/50262225690257-How-do-I-create-and-use-a-manual-order-API-store).
-3. Publish one saved product for each design: Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa — Rest in Illusion. Product templates alone are not the saved store products used for fulfillment.
-4. Select Comfort Colors 1717, Black, and S/M/L/XL/2XL. Use the approved artwork and the print technique and placement that match your sample. Review any size that is unavailable.
-5. Assign each variant its exact SKU from the worksheet, such as `BMB-LOTUS-CC1717-BLK-M`. Keep the artwork attached to those saved variants.
-6. Add a billing method and check the account billing details. Confirm your actual product costs, especially 2XL and any additional print placement.
-7. Save a screenshot or note of the sampled design, print method, placement, and artwork file revision. Confirm whether the sample approval covers all four designs or identify what still needs review.
+1. State whether launch ships only to the US or list the supported countries.
+2. Review the website Shipping & Returns, Terms and Privacy pages. Approve them
+   or send corrections and the real business/contact details they require.
+3. Confirm shipping is charged separately using the live Printful quote, or
+   specify your desired free-shipping threshold or flat shipping policy.
+4. If you want the website owner console activated, explicitly say **Enable the
+   owner console**. Credentials alone do not activate it. Product management
+   stays in Printful.
 
-**Provide:** Store name or store ID, confirmation that all variants are saved, the approved artwork location, and sample/placement details. You do not need to copy 20 provider IDs by hand: with API access I can retrieve the saved products and match their SKUs.
+**Provide:** Countries, policy approval/edits, shipping decision, and owner-console
+activation request if wanted. I will apply the approved decisions and verify
+access protection.
 
-**I will:** Verify the blank, sizes, artwork, availability, costs, synced product IDs, and synced variant IDs, then fill the catalog mappings. A blank catalog product ID is not the saved printed variant ID.
+## Step 6 Provide an off-host backup destination
 
-## Step 2 Provide Printful API access
+1. Choose storage outside the website server: a bucket/container or separate
+   backup server you control.
+2. Supply the destination, region/endpoint where relevant, secure access
+   location, and encryption/key-retention requirements through the private handoff.
 
-**Production access completed:** The supplied token was verified for orders, saved-product management, files, and webhooks and stored privately in the production environment file. Eight signed order/shipment event subscriptions are configured at the storefront callback. The public callback rejects invalid signatures and accepts/deduplicates a synthetic signed probe. Actual provider event delivery still needs the real canary. Staging remains isolated and needs a designated test-store configuration.
+**Provide:** Destination and secure access location. I will check transfer,
+retrieval/decryption and restoration before relying on it.
 
-**Reference procedure:**
+## Step 7 Complete a controlled real order
 
-1. Open the [Printful Developer Portal](https://developers.printful.com/login) and sign in.
-2. Create a private token for this store. Prefer store access limited to Black Metal Buddha.
-3. Enable the scopes required for orders, saved product reads, and webhook setup: `orders`, `sync_products`, `file_library`, and `webhooks`. I will verify the token permissions before integration. See [Printful authorization documentation](https://developers.printful.com/docs/#tag/Authorization).
-4. Put the token and store ID in the secure server settings as `PRINTFUL_TOKEN` and `PRINTFUL_STORE_ID`, using the secure handoff instructions below.
+1. Choose one design and size for the controlled launch order.
+2. Provide the recipient name, email, full address and optional phone privately.
+3. Review the exact merchandise, shipping and tax total I show you.
+4. Pay the approved Square checkout link. This is a real purchase; Printful
+   fulfillment is chargeable after payment is confirmed.
+5. Confirm receipt of customer emails, tracking and the physical shirt.
+   Report defects or unexpected costs.
 
-**Provide:** The secure configuration location and the store ID or store name. If a webhook is already configured, also provide the secure location of its signing keys.
+**Provide:** Selected product/size, private recipient details, and confirmation
+of the received order. I will verify payment, fulfillment, costs, email,
+shipment tracking and refund/reconciliation behavior before opening purchasing.
 
-**I will:** Configure and verify signed Printful callbacks at `https://blackmetalbuddha.com/api/v1/webhooks/printful`, store their public/secret keys, and check draft fulfillment before any chargeable confirmation. Use a designated test store for staging; Printful draft testing is not a separate payment sandbox.
-
-## Step 3 Prepare Square payment access
-
-**You do:**
-
-1. Sign in to your Square merchant account. Complete merchant activation and settlement setup, and review your tax configuration with the person responsible for it.
-2. Open the [Square Developer Console](https://developer.squareup.com/apps). Create or select the application for Black Metal Buddha.
-3. Select **Production**, open **Credentials**, and obtain the production access token. Identify the merchant location that should receive the store's payments. See [Square credential instructions](https://developer.squareup.com/docs/build-basics/access-tokens).
-4. Store the token as `SQUARE_ACCESS_TOKEN` and the location ID as `SQUARE_LOCATION_ID` in the production environment file.
-5. In **Webhooks**, open **Subscriptions**, add a subscription for `https://blackmetalbuddha.com/api/v1/webhooks/square`, and select `payment.created`, `payment.updated`, `refund.created`, and `refund.updated`. Save its signing key as `SQUARE_WEBHOOK_SIGNATURE_KEY`; the notification URL must exactly match `SQUARE_WEBHOOK_NOTIFICATION_URL`. See [Square production webhook instructions](https://developer.squareup.com/docs/webhooks/movetoprod).
-6. Select **Sandbox** and obtain separate sandbox access/location credentials for staging. Keep them in the staging environment file.
-
-**Provide:** Application name, selected merchant location, confirmation of account readiness, and the secure locations of production and sandbox settings. Confirm that Square's tax settings are the settings you want for launch.
-
-**I will:** Verify credentials and signatures, check Square-calculated totals, and run the sandbox payment flow. You do not need to write API code or configure our worker.
-
-## Step 4 Set up transactional email and customer support
-
-**You do:**
-
-1. Choose the email provider you already use or want for order emails. Create or obtain SMTP credentials.
-2. Verify the sender address/domain with that provider. Complete any DNS records it requests.
-3. Choose the address customers can contact and confirm that you can receive and reply to mail there.
-4. Supply `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`, and `SUPPORT_EMAIL` in the secure configuration. The sender and support addresses may be the same if your provider allows it.
-
-**Provide:** Provider name, sender address, support address, confirmation that sender verification is complete, and the secure settings location.
-
-**I will:** Configure email and verify actual delivery of confirmation, tracking, action-required, and refund messages.
-
-## Step 5 Confirm store policies and owner access
-
-**You do:**
-
-1. State whether launch ships only to the US or list the countries you want supported.
-2. Review [Shipping and Returns](https://blackmetalbuddha.com/shipping-returns), [Terms](https://blackmetalbuddha.com/terms), and [Privacy](https://blackmetalbuddha.com/privacy). Send any changes, or confirm approval of the published draft policies.
-3. Confirm that shipping should be charged separately using Printful's live quote. No flat shipping charge or free-shipping threshold is currently selected.
-4. If you want the owner console enabled, reply **Enable the owner console**. Automatic approval review previously rejected exposing `/admin` and creating credentials without explicit authorization. The prepared setup generates credentials and stores them privately on the server.
-
-**Provide:** Countries, policy approval or edits, and owner-console approval. Send any genuine business/contact information needed for the policies; avoid placeholder details.
-
-**I will:** Apply the decisions, check supported destinations, set up the approved owner console, and verify access protection. I will generate the session secret and initial owner password; you do not need to invent those values.
-
-## Step 6 Provide the backup destination and staging hostname
-
-**You do:**
-
-1. Identify an encrypted backup destination outside this VPS, such as storage you already control or a separate backup server. Provide the bucket/container or remote path, region/endpoint if applicable, and secure access location. Include how encryption keys will be retained for restoration.
-2. Choose the public staging hostname, for example `staging.blackmetalbuddha.com`, and provide DNS access or arrange the requested DNS record. Private staging already runs on localhost; provider callbacks need a reachable HTTPS endpoint.
-
-**Provide:** Backup destination details and access location, staging hostname, and who can change its DNS.
-
-**I will:** Configure backup transfer, verify retrieval/decryption and a disposable restore, then configure staging HTTPS and signed sandbox callbacks. The existing local backup alone does not satisfy the off-host backup requirement.
-
-## Step 7 Prepare one real test order
-
-**You do:**
-
-1. Choose one configured design and size for the controlled test.
-2. Provide the recipient name, email, full shipping address, and optional phone number through the secure handoff.
-3. Once I show the exact checkout total, pay the Square checkout link. This is a real purchase and Printful will charge for fulfillment after payment is confirmed.
-4. Check the received confirmation email, delivery/tracking messages, and physical shirt. Confirm any defects or unexpected details.
-
-**Provide:** Selected SKU, recipient details, and confirmation of the completed checkout and received messages/product. Approval of chargeable fulfillment will be tied to that concrete test order and total.
-
-**I will:** Verify payment, automatic fulfillment, costs, production, shipment/tracking, reconciliation, and refund behavior. After the canary and catalog approval are recorded, I will enable public checkout and perform the launch smoke checks.
-
-## How to hand off settings securely
-
-Keep production and staging credentials in separate private settings files or password-manager items. Use the private operational handoff for server-specific locations. Update the entries for the relevant step and leave the launch switches at their current values. Tell me which secure file or item is ready; I will validate it and handle activation. Keep secret values out of chat, Git, and this document. Square production and sandbox credentials belong in their separate configurations.
-
-Use this handoff message as you finish each step:
+## Handoff message
 
 ```text
-Printful store:
-Printful saved products ready:
-Artwork and sample details location:
-Production Square app and merchant location:
-Production credentials secure location:
-Staging credentials secure location:
-Email provider, sender, and support address:
-Selling countries:
-Policies approved or edits:
-Owner console approval:
-Encrypted backup destination and access location:
-Staging hostname and DNS contact:
-Test SKU and recipient details secure location:
+Step completed:
+Account/store/application:
+Secure settings location (no secret values):
+Decisions or corrections:
+Anything still missing:
 ```
 
-You do not need to finish every step at once. Production Printful products and access are now configured. Square production/sandbox access and the verified email sender are the best next handoff; the remaining policy, backup, staging, and canary inputs still apply.
+Do not paste tokens, passwords or private recipient information into this public
+document, Git, or chat. Leave launch switches unchanged while providing inputs.
