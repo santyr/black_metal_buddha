@@ -754,7 +754,7 @@ textarea {
 /* Hero */
 .hero.hero-ritual {
   width: 100%;
-  min-height: clamp(560px, 61vw, 690px);
+  min-height: clamp(500px, 48vw, 600px);
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1610,4 +1610,35 @@ textarea {
 .checkout-item strong, [data-checkout-subtotal], .cart-line-price { white-space: nowrap; }
 @media (max-width: 560px) {
   .primary-nav a { padding-inline: .5rem; letter-spacing: .06em; }
+}
+
+/* The logo supplies the homepage heading without a duplicate wordmark. */
+.hero-copy h1.hero-frame {
+  margin: 0 0 1rem;
+  line-height: 1;
+}
+.hero-side {
+  top: 50%;
+  transform: translateY(-50%);
+  padding: .85rem 1rem;
+  font-size: .875rem;
+  line-height: 1.5;
+  letter-spacing: .14em;
+  color: var(--bone);
+  background: rgba(0, 0, 0, .72);
+  border-left: 1px solid var(--line-strong);
+}
+.hero-side-right {
+  border-left: 0;
+  border-right: 1px solid var(--line-strong);
+}
+.hero-mantra {
+  font-size: .75rem;
+  letter-spacing: .16em;
+}
+.hero-mantra span { white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .hero-mantra span:last-child { flex-basis: 100%; }
+  .hero-mantra i:last-of-type { display: none; }
 }
