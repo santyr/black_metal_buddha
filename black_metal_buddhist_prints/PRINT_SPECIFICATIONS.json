@@ -406,6 +406,56 @@
       "back": "blank",
       "placement_guidance": "Center front; begin with top of visible artwork about 2.5–3 inches below collar bottom. Verify allowable area, collar and hem clearance on every garment size. Scale proportionally if needed.",
       "status": "Design direction approved; stated object refinement completed; production exports prepared for provider review and physical sample. No live product or physical sample approved."
+    },
+    {
+      "slug": "chod_offer_everything",
+      "title": "Chöd — Offer Everything",
+      "tagline": "OFFER EVERYTHING",
+      "series": "Core Collection",
+      "brand": "Black Metal Buddha",
+      "art_revision": "2026-10-03-core-chod-r1",
+      "design_approved_date": "2026-10-03",
+      "refinement": "Approved clothed Vajrayogini pose: right leg extended, left knee bent, raised skull cup and lowered curved knife.",
+      "source_image_pixels": [
+        1086,
+        1448
+      ],
+      "source_master": "02_two_ink_vector/chod_offer_everything_two_ink.svg",
+      "source_detail_warning": "Source-derived vector trace. 300 ppi is export resolution, not recovered original detail. Fine lines and small type require physical sample review.",
+      "placed_artwork_pixels": [
+        3300,
+        4271
+      ],
+      "placed_artwork_inches": [
+        11.0,
+        14.237
+      ],
+      "offset_inches": [
+        0.5,
+        0.25
+      ],
+      "raster_png": "01_transparent_png/chod_offer_everything_12x16_300dpi.png",
+      "two_ink_svg": "02_two_ink_vector/chod_offer_everything_two_ink.svg",
+      "two_ink_png": "03_two_ink_png/chod_offer_everything_two_ink_12x16_300dpi.png",
+      "printful_upload_png": "01_transparent_png/chod_offer_everything_PRINTFUL_FRONT_300dpi.png",
+      "preview_png_on_black": "04_previews/chod_offer_everything_PNG_preview_on_black.jpg",
+      "preview_two_ink_on_black": "04_previews/chod_offer_everything_TWO_INK_preview_on_black.jpg",
+      "reference_only": "05_original_mockups/chod_offer_everything_REFERENCE_ONLY.png",
+      "vector_contour_count": {
+        "bone": 5933,
+        "red": 4736
+      },
+      "inks": {
+        "bone": "#E9E1D5",
+        "ritual_red": "#971F1F"
+      },
+      "garment": "Comfort Colors 1717",
+      "garment_color": "Black",
+      "print_method": "DTG",
+      "placement": "front",
+      "back": "blank",
+      "placement_guidance": "Center front; begin with top of visible artwork about 2.5–3 inches below collar bottom. Verify allowable area, collar and hem clearance on every garment size. Scale proportionally if needed.",
+      "status": "Design direction approved; approved pose revision completed; production exports prepared for provider review and physical sample. No live product or physical sample approved."
     }
   ]
 }

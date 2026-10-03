@@ -30,6 +30,10 @@ NEW TWELVE PRIMORDIAL TEACHERS DESIGN — VII: DRANGSONG TRÖPÉ GYALPO
 Approved title revision. See DRANGSONG_TROPE_GYALPO_WRATHFUL_KINGLY_SAGE.txt
 for cropped upload, vector, proofs and placement instructions.
 
+NEW CORE COLLECTION DESIGN — CHÖD / OFFER EVERYTHING
+See CHOD_OFFER_EVERYTHING.txt for the approved Vajrayogini design uploads,
+vector, exact proofs, artistic interpretation and placement instructions.
+
 START WITH THESE FILES
 01_transparent_png/
   Transparent RGBA PNG production canvases, 3600 x 4800 pixels, nominal
