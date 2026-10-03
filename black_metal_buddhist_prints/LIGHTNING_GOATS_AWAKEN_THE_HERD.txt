@@ -1,0 +1,59 @@
+LIGHTNING GOATS × BLACK METAL BUDDHA — AWAKEN THE HERD
+Lightning Goats Series | Revision 1 | October 3, 2026
+
+APPROVAL AND SCOPE
+The user approved the front-print concept on October 3, 2026 and identified
+this as a Lightning Goats / Black Metal Buddha collaboration in the Lightning
+Goats series. Preserve LIGHTNING GOATS and AWAKEN THE HERD on the artwork.
+Collaboration attribution is in the product title and metadata, not extra
+shirt lettering. Back and sleeves are blank; no custom neck-label art needed.
+
+PRINTFUL UPLOAD
+01_transparent_png/lightning_goats_awaken_the_herd_PRINTFUL_FRONT_11in_300dpi.png
+  3300 × 2756 pixels, transparent RGBA, embedded sRGB, 300 ppi.
+  Intended visible print: 11 × 9.187 inches, proportional.
+  Use the front DTG placement on BLACK Comfort Colors 1717.
+  Center horizontally. Target top of visible art about 3 inches below the
+  bottom of the collar, subject to the selected size's allowed print area.
+  Verify every size in Printful's Design Maker; do not stretch or auto-fill.
+
+REPOSITORY PRODUCTION CANVAS
+01_transparent_png/lightning_goats_awaken_the_herd_12x16_300dpi.png
+03_two_ink_png/lightning_goats_awaken_the_herd_two_ink_12x16_300dpi.png
+  Identical exports: 3600 × 4800 pixels, 12 × 16 inches at 300 ppi, sRGB RGBA.
+  Visible artwork bounds: x=150..3449, y=75..2830 pixels.
+  Canvas margins are NOT collar measurements. Prefer cropped file above in
+  Printful to avoid confusing transparent canvas padding with print size.
+
+VECTOR MASTER
+02_two_ink_vector/lightning_goats_awaken_the_herd_two_ink.svg
+  Bone #E9E1D5 and ritual red #971F1F in named ink groups. Outlined lettering;
+  no fonts or embedded raster. Black is garment / transparent negative space.
+  DTG uses the composite PNG; the SVG is an editable two-ink alternate.
+  Do not add a white underbase layer to the upload; provider handles prepress.
+
+PROOFS AND SOURCE HISTORY
+04_previews/lightning_goats_awaken_the_herd_PNG_preview_on_black.jpg
+04_previews/lightning_goats_awaken_the_herd_TWO_INK_preview_on_black.jpg
+  Exact vector-rendered proofs, NOT upload artwork.
+05_original_mockups/lightning_goats_awaken_the_herd_REFERENCE_ONLY.png
+  Approved AI-generated concept; not an official Printful mockup or a
+  pixel-exact production proof. Use the vector-rendered proofs for details.
+06_sources/lightning_goats_awaken_the_herd/
+  User original and AI-restored reference, both 1374 × 1145 pixels.
+  Final two-ink contours were derived from the restored reference. Vector
+  edges scale cleanly but source detail remains limited. 300 ppi metadata
+  does not imply that the original had 300 ppi detail at this print size.
+
+SAMPLE CHECK
+Review small lettering, horn hatching, skull details, dark red reproduction,
+placement, fabric hand and wash durability in a physical sample before a run.
+No sample has been ordered or approved. Printful product/variant IDs and final
+per-size placement remain to be assigned in the connected Printful account.
+The existing website imports products from Printful; adding these art files
+alone does not publish a live product or enable purchasing.
+
+PRINTFUL REFERENCES (checked October 3, 2026)
+https://www.printful.com/creating-dtg-file
+https://help.printful.com/hc/en-us/articles/50264019148177-How-should-I-prepare-my-print-file-for-the-best-results
+Use product-specific file guidelines in Printful as the final authority.

@@ -1,6 +1,6 @@
 {
   "collection": "Black Metal Buddhist",
-  "prepared_date": "2026-09-19",
+  "prepared_date": "2026-10-03",
   "status": "Printer-review and sample-print handoff; not press-approved",
   "intended_garment": "Black",
   "canvas_pixels": [
@@ -148,6 +148,63 @@
       "preview_png_on_black": "04_previews/longchenpa_rest_in_illusion_PNG_preview_on_black.jpg",
       "preview_two_ink_on_black": "04_previews/longchenpa_rest_in_illusion_TWO_INK_preview_on_black.jpg",
       "reference_only": "05_original_mockups/longchenpa_rest_in_illusion_REFERENCE_ONLY.jpg"
+    },
+    {
+      "slug": "lightning_goats_awaken_the_herd",
+      "title": "Awaken the Herd",
+      "display_title": "Lightning Goats × Black Metal Buddha — Awaken the Herd",
+      "series": "Lightning Goats Series",
+      "collaboration": [
+        "Lightning Goats",
+        "Black Metal Buddha"
+      ],
+      "tagline": "AWAKEN THE HERD",
+      "art_revision": "2026-10-03-collaboration-r1",
+      "design_approved_date": "2026-10-03",
+      "source_image_pixels": [
+        1374,
+        1145
+      ],
+      "restored_reference_pixels": [
+        1374,
+        1145
+      ],
+      "source_master": "02_two_ink_vector/lightning_goats_awaken_the_herd_two_ink.svg",
+      "source_detail_warning": "Source-derived vector contours from an AI-restored 1374 × 1145 reference. Vector export makes edges scalable; it does not recover unavailable original detail. Nominal 300 ppi is export resolution. Fine engraved detail requires a physical sample.",
+      "placed_artwork_pixels": [
+        3300,
+        2756
+      ],
+      "placed_artwork_inches": [
+        11,
+        9.187
+      ],
+      "offset_inches": [
+        0.5,
+        0.25
+      ],
+      "raster_png": "01_transparent_png/lightning_goats_awaken_the_herd_12x16_300dpi.png",
+      "two_ink_svg": "02_two_ink_vector/lightning_goats_awaken_the_herd_two_ink.svg",
+      "two_ink_png": "03_two_ink_png/lightning_goats_awaken_the_herd_two_ink_12x16_300dpi.png",
+      "printful_upload_png": "01_transparent_png/lightning_goats_awaken_the_herd_PRINTFUL_FRONT_11in_300dpi.png",
+      "preview_png_on_black": "04_previews/lightning_goats_awaken_the_herd_PNG_preview_on_black.jpg",
+      "preview_two_ink_on_black": "04_previews/lightning_goats_awaken_the_herd_TWO_INK_preview_on_black.jpg",
+      "reference_only": "05_original_mockups/lightning_goats_awaken_the_herd_REFERENCE_ONLY.png",
+      "vector_contour_count": {
+        "bone": 2524,
+        "red": 948
+      },
+      "inks": {
+        "bone": "#E9E1D5",
+        "ritual_red": "#971F1F"
+      },
+      "garment": "Comfort Colors 1717",
+      "garment_color": "Black",
+      "print_method": "DTG",
+      "placement": "front",
+      "back": "blank",
+      "placement_guidance": "Center horizontally; target top of visible artwork about 3 inches below bottom of collar. Verify per-size Printful template and preview. Preserve proportions. Use cropped upload at 11 inches wide; do not auto-enlarge to fill area.",
+      "status": "Design direction approved. Production exports prepared for Printful review and physical sample; not sample-approved. No live product created."
     }
   ]
 }

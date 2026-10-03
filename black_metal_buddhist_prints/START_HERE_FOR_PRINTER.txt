@@ -1,5 +1,5 @@
 BLACK METAL BUDDHIST — PRINTER HANDOFF
-Updated September 19, 2026
+Updated October 3, 2026
 
 STATUS: READY TO SEND FOR PRINTER REVIEW AND PHYSICAL SAMPLES, NOT PRESS-APPROVED
 
@@ -11,6 +11,12 @@ PRINT FILE, VECTOR, PREVIEW, MOCKUP, OR PROOF.
 
 Do not use an older cached copy of either design. Confirm the proof visually
 against the current files before printing.
+
+NEW COLLABORATION — LIGHTNING GOATS SERIES
+Awaken the Herd is a Lightning Goats × Black Metal Buddha collaboration.
+See LIGHTNING_GOATS_AWAKEN_THE_HERD.txt for its cropped Printful upload,
+approved concept, exact proofs, source limitations, and placement instructions.
+The existing ALL_FOUR preview covers the original four designs only.
 
 START WITH THESE FILES
 01_transparent_png/
