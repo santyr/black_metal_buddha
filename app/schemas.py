@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+SHIPPING_COUNTRY_CODES = frozenset({"US", "CA"})
+
 
 class AddressIn(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -46,6 +48,12 @@ class OrderLineIn(BaseModel):
 class CreateOrderIn(BaseModel):
     recipient: AddressIn
     items: list[OrderLineIn] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode="after")
+    def validate_shipping_destination(self):
+        if self.recipient.country_code not in SHIPPING_COUNTRY_CODES:
+            raise ValueError("Shipping is available only to the United States and Canada")
+        return self
 
     @model_validator(mode="after")
     def reject_duplicate_skus(self):

@@ -1,87 +1,61 @@
 # Private staging
 
-The staging environment provides a separate application checkout, Unix service
-account, and PostgreSQL database for provider preparation and release checks.
-It binds to `127.0.0.1:8091`, with no public Nginx route or DNS change.
+Staging uses a separate application source snapshot, service account and
+database. It is available privately; production customer data and settings
+are not copied into it. Deployment details and installation records belong
+in the private launch handoff.
 
-## Deployment plan
+## Shared Printful store
 
-1. Copy the reviewed application source to `/opt/blackmetalbuddha/staging`,
-   excluding Git metadata, credentials, databases, caches, and backups. Keep
-   the existing installed dependencies at `/opt/blackmetalbuddha/venv` read-only.
-2. Create Unix account and PostgreSQL login role `bmbstaging`, without superuser,
-   database creation, or role creation privileges. Create database
-   `blackmetalbuddha_staging` owned by that role; authenticate through the local
-   PostgreSQL socket with peer authentication.
-3. Install `deploy/staging.env.example` as
-   `/etc/blackmetalbuddha-staging/staging.env`, mode `0640`, owned by
-   `root:bmbstaging`, inside a `0750` directory with the same ownership.
-4. Install and enable `blackmetalbuddha-staging.service`. Its startup applies
-   Alembic migrations to the staging database before starting the web service.
-   On SELinux hosts, restore default labels after copying files, before
-   reloading systemd:
+The owner reports that the current Printful plan allows one store. Staging
+uses the existing store for catalog reads and previews. A second Printful
+store is no longer required.
 
-   ```bash
-   sudo restorecon -RF /etc/systemd/system/blackmetalbuddha-staging.service \
-     /etc/blackmetalbuddha-staging /opt/blackmetalbuddha/staging
-   sudo systemctl daemon-reload
-   sudo systemctl enable --now blackmetalbuddha-staging.service
-   ```
+1. Create a separate store-scoped token restricted to saved product/catalog
+   reads in Printful's Developer Portal. Supply it through the private staging
+   settings, using the existing store ID. Do not reuse the production token.
+2. Enable catalog synchronization only after read-only access is verified.
+   Keep `PRINTFUL_MODE=disabled` and `PRINTFUL_CONFIRM_ENABLED=false`.
+   Catalog synchronization works independently of fulfillment mode.
+3. Do not edit or delete shared products, create or confirm orders, or change
+   the shared store's production webhook subscriptions from staging.
 
-5. Check health, storefront smoke checks, disabled checkout/admin/provider gates,
-   migration head, database ownership, and denied access to production tables.
+The API should be used for supported work. Store and private-token creation
+require Printful's dashboard or Developer Portal. A draft Printful order is
+not a separate billing sandbox.
 
-Production environment settings and services are not changed by this procedure.
-No production credentials or customer data are copied. The staging catalog
-starts empty; launch SKU reservations remain in the CSV for later setup.
+## Square and email
 
-## Access
+- Use separate Square Sandbox credentials and location for staging payments.
+  Keep the production merchant credentials out of staging.
+- Use fixture events for staging fulfillment handling. These checks do not
+  establish production Printful callback delivery or fulfillment readiness.
+- Keep staging email disabled until a designated staging delivery setup is
+  supplied. Sending a real email requires approval of the message and recipient.
+- Keep checkout and owner-console activation gates closed until their
+  prerequisites and the requested activation are satisfied.
 
-From the server:
+## Current readiness
 
-```bash
-curl -fsS http://127.0.0.1:8091/healthz
-bash deploy/smoke-test.sh http://127.0.0.1:8091
-sudo systemctl status blackmetalbuddha-staging.service
-sudo journalctl -u blackmetalbuddha-staging.service -n 50
-```
+The private staging service is running, but staging provider credentials have
+not been supplied. Its catalog is not yet connected to the shared Printful
+store. Existing disabled catalog rows do not prove current product readiness.
 
-From another computer, forward the loopback port using the owner's existing
-SSH connection:
+The owner still needs to provide read-only Printful access, Square Sandbox
+access and the staging hostname/DNS decision through the private handoff.
+Public HTTPS and signed Square callbacks must be verified before relying on
+staging payment results.
 
-```bash
-ssh -L 8091:127.0.0.1:8091 OWNER@SERVER
-```
+Refresh staging from the reviewed release before validating a deployment.
+Verify its source, health, database isolation and provider gates against the
+actual running instance.
 
-Then open `http://127.0.0.1:8091`. Use the actual SSH user and server address.
+## Production verification
 
-## Provider setup still required
+Actual Square production payment, Printful order submission and billing,
+provider callbacks, customer email delivery, shipment tracking and refund
+reconciliation must be verified in the approved controlled production order.
+Staging results do not replace that order or authorize a charge.
 
-Square remains in sandbox mode without credentials. Printful, email, checkout,
-and admin remain disabled. Do not use production customer data or copy the
-production environment file. Use separate sandbox Square credentials and a
-designated Printful test store; Printful draft mode does not confirm production.
-
-A public staging hostname, HTTPS endpoint, and signed webhook configuration
-are needed for provider callbacks. The localhost instance does not prove those
-callbacks or a real payment/fulfillment canary. It is the private staging
-environment required before that provider work can proceed.
-
-The staging instance has its own source snapshot. Refresh it from a reviewed
-commit and restart the staging service before using it to validate a release.
-
-## Installed evidence — 2026-10-02
-
-- Staging service is enabled and active; `ExecStartPre` migrations succeeded.
-- `ss` shows a listener only on `127.0.0.1:8091`.
-- `/healthz` returns `200 ok`; the existing storefront smoke script passes.
-- `/checkout` and `/admin` return 404; `/api/v1/catalog` returns 503.
-- Database identity is `bmbstaging|blackmetalbuddha_staging`, migration head
-  is `0007_refund_requests`, and the database contains zero orders.
-- The staging role is denied access to production `product_variants`.
-- The staging Unix account cannot read the production environment file.
-- Production web, worker, PostgreSQL, and backup timer remain active.
-
-The first systemd load failed because copying retained a `user_home_t` label
-on the unit. `restorecon` applied the host's standard labels, after which the
-service started successfully. SELinux remains enforcing.
+Follow [the launch input handoff](28_LAUNCH_INPUT_HANDOFF.md) for account steps,
+owner decisions and the controlled order approval sequence.

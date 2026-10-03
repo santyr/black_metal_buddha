@@ -13,6 +13,11 @@ handoff.
   were verified correct through the API on 2026-10-03.
 - Printful billing confirmed correct by the owner.
 - **$35.00 USD per shirt, plus shipping and applicable tax.**
+- Shipping will be charged separately using live Printful quotes. The launch
+  country list is **the United States and Canada only**.
+- SMTP authentication verified on 2026-10-03 after the owner supplied the
+  application-specific password. Password spaces are preserved. Delivery
+  still needs a check approved by the owner.
 - Large sample order total reported by the owner: **$22.10 including shipping**.
   This is not an itemized cost quote for every size or destination.
 - All published Printful products and variants should appear on the website,
@@ -95,25 +100,28 @@ do not need to be submitted again unless they change.
 
 1. Verify the sender/domain and complete the provider's DNS requirements.
 2. Confirm you can receive and reply to mail at the support address.
-3. Resolve SMTP authentication if the provider rejects the configured credentials.
-4. Approve a concrete delivery check email when it is ready to send.
+3. Keep the SMTP password exactly as supplied, including spaces inside its quotes.
+4. Approve the prepared delivery check email before it is sent.
 
-**Provide:** Domain verification and support mailbox confirmation. I will verify
-authentication and, with approval to send, delivery before relying on order,
-tracking and refund messages.
+**Provide:** Support mailbox confirmation and approval for the delivery check.
+Authentication has passed; actual message delivery remains to be verified
+before relying on order, tracking and refund messages.
 
 ## Step 5 Approve policies and owner access
 
-1. State whether launch ships only to the US or list the supported countries.
+1. The United States and Canada are approved for launch. Printful's country
+   API is a reference list; its store API does not expose an enabled-country
+   setting. The website will enforce this approved limit, and shipping service
+   must be confirmed by the live quote. See [Printful's country restriction guide](https://help.printful.com/hc/en-us/articles/50262201683089-How-do-I-restrict-certain-countries-from-my-store).
 2. Review the website Shipping & Returns, Terms and Privacy pages. Approve them
    or send corrections and the real business/contact details they require.
-3. Confirm shipping is charged separately using the live Printful quote, or
-   specify your desired free-shipping threshold or flat shipping policy.
+3. Shipping charged separately using the live Printful quote is approved.
+   Supply only changes to this decision.
 4. If you want the website owner console activated, explicitly say **Enable the
    owner console**. Credentials alone do not activate it. Product management
    stays in Printful.
 
-**Provide:** Countries, policy approval/edits, shipping decision, and owner-console
+**Provide:** Policy approval/edits, changes to the approved countries, and owner-console
 activation request if wanted. I will apply the approved decisions and verify
 access protection.
 

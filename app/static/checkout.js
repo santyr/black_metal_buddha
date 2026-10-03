@@ -17,6 +17,16 @@
   let orderNumber = null;
   let selectedShipping = null;
 
+  function updateAddressLabels() {
+    const canada = form.elements.country_code.value === 'CA';
+    form.querySelector('label[for="checkout-state"]').textContent = canada ? 'Province' : 'State';
+    form.querySelector('label[for="checkout-postal"]').textContent = canada ? 'Postal code' : 'ZIP code';
+    form.elements.state.placeholder = canada ? 'ON' : 'CO';
+  }
+
+  form.elements.country_code.addEventListener('change', updateAddressLabels);
+  updateAddressLabels();
+
   function setStatus(message, isError = false) {
     statusEl.textContent = message || '';
     statusEl.classList.toggle('is-error', Boolean(isError));
