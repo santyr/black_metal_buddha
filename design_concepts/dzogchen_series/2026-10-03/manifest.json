@@ -39,9 +39,10 @@
         1448
       ],
       "sha256": "fce467f357303929a5166cbeb4dca4355fdb80ca73d43a8425c22c8c54bd513f",
-      "status": "revision_pending_review",
-      "production_ready": false,
-      "physical_sample_approved": false
+      "status": "approved_production_artwork_prepared",
+      "production_ready": true,
+      "physical_sample_approved": false,
+      "design_approved_date": "2026-10-03"
     },
     {
       "file": "manjushrimitra_beyond_concepts_v2.png",

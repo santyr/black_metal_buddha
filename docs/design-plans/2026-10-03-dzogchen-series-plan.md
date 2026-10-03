@@ -3,7 +3,7 @@
 Date: 2026-10-03  
 Brand: Black Metal Buddha  
 Authorization: user requested this plan be created and pushed, followed by work on the next three designs.  
-Status: Mañjuśrīmitra and Yeshe Tsogyal approved; object refinements and production artwork prepared. Drangsong Tröpé Gyalpo title revision pending review.
+Status: Mañjuśrīmitra and Yeshe Tsogyal approved; object refinements and production artwork prepared. Drangsong Tröpé Gyalpo title revision approved; production artwork prepared.
 
 ## Purpose and collection structure
 
@@ -56,7 +56,7 @@ before production and retain alternative transliterations in metadata.
 | IV | Shyönnu Rolpa Nampar Tsewa | Research backlog |
 | V | Dorje Chang / Vajradhara | Research backlog |
 | VI | Shyönnu Pawo Tobden | Research backlog |
-| VII | Drangsong Tröpé Gyalpo — Wrathful Kingly Sage | Next concept 3 |
+| VII | Drangsong Tröpé Gyalpo — Wrathful Kingly Sage | Approved; artwork prepared |
 | VIII | Ser Ö Dampa | Research backlog |
 | IX | Tsewé Rolpé Lodrö | Research backlog |
 | X | Ösung Drepo / Kāśyapa the Elder | Research backlog |
@@ -178,7 +178,7 @@ and checksums. Record each as `concept_pending_approval`.
 - [x] Record approval of Mañjuśrīmitra and Yeshe Tsogyal.
 - [x] Complete their manuscript and curved-knife refinements and prepare production packages.
 - [x] Revise Drangsong with teacher-name title and lower English epithet.
-- [ ] Obtain review of revised Drangsong before production preparation.
+- [x] Obtain approval of revised Drangsong and prepare its production artwork.
 - [ ] Verify provider placement and physical samples before product launch.
 
 ## Sources and limits
@@ -203,6 +203,6 @@ artwork and translated passages are not reproduced in this plan.
 - Longchen Nyingtik context:
   https://www.longchennyingtik.org/
 
-Open decisions: review of revised Drangsong concept; any source-specific
+Open decisions: physical sample review for all three approved designs; any source-specific
 iconography corrections; subsequent release order; per-size provider placement;
 retail prices, sample ordering and live publication.
