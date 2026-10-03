@@ -171,9 +171,9 @@ and checksums. Record each as `concept_pending_approval`.
 ## Immediate delivery checklist
 
 - [x] Specify both collections, roster, first three briefs and production gates.
-- [ ] Push this plan to the repository.
-- [ ] Generate and inspect the three initial concepts.
-- [ ] Archive concept sources, prompts and review status in the repository.
+- [x] Push this plan to the repository.
+- [x] Generate and inspect the three initial concepts.
+- [x] Archive concept sources, prompts and review status in the repository.
 - [ ] Present all three for individual approval.
 - [ ] Prepare/push production packages only after approval.
 

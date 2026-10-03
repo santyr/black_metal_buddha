@@ -1,0 +1,36 @@
+{
+  "created_date": "2026-10-03",
+  "generation": "Built-in image generation; approved Garab Dorje used as style reference only.",
+  "concepts": [
+    {
+      "file": "drangsong_trope_gyalpo_wrathful_kingly_sage_v1.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "408227cc7436b435e552bc18c08fef9a0a950e72bb7f23c86f96edac6e5847fb",
+      "status": "concept_pending_approval",
+      "production_ready": false
+    },
+    {
+      "file": "manjushrimitra_beyond_concepts_v1.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "f3d0f4a6ec01d5518ba8adc11b86858bf92b72502effcbc9352837780bfa8963",
+      "status": "concept_pending_approval",
+      "production_ready": false
+    },
+    {
+      "file": "yeshe_tsogyal_wisdom_unbound_v1.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "651eb17b53eaabd688e9666cbc85e1cebd82a1537f3518ac0833640e52e106ac",
+      "status": "concept_pending_approval",
+      "production_ready": false
+    }
+  ]
+}
