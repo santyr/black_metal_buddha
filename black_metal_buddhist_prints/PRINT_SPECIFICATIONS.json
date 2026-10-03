@@ -255,6 +255,106 @@
       "back": "blank",
       "placement_guidance": "Center front. Intended visible width 11 inches and height 15.393 inches. Start with the top of visible artwork about 2.5–3 inches below the bottom of the collar; verify permitted area and hem clearance for every size. Scale down proportionally if required.",
       "status": "Design direction approved; production exports prepared for Printful review and physical sample. No physical sample approved and no live product created."
+    },
+    {
+      "slug": "manjushrimitra_beyond_concepts",
+      "title": "Mañjuśrīmitra — Beyond Concepts",
+      "tagline": "BEYOND CONCEPTS",
+      "series": "Lineage Series",
+      "brand": "Black Metal Buddha",
+      "art_revision": "2026-10-03-lineage-r1",
+      "design_approved_date": "2026-10-03",
+      "refinement": "Palm-leaf manuscript replaces the concept’s modern bound book.",
+      "source_image_pixels": [
+        1086,
+        1448
+      ],
+      "source_master": "02_two_ink_vector/manjushrimitra_beyond_concepts_two_ink.svg",
+      "source_detail_warning": "Source-derived vector trace. 300 ppi is export resolution, not recovered original detail. Fine lines and small type require physical sample review.",
+      "placed_artwork_pixels": [
+        3300,
+        4510
+      ],
+      "placed_artwork_inches": [
+        11.0,
+        15.033
+      ],
+      "offset_inches": [
+        0.5,
+        0.25
+      ],
+      "raster_png": "01_transparent_png/manjushrimitra_beyond_concepts_12x16_300dpi.png",
+      "two_ink_svg": "02_two_ink_vector/manjushrimitra_beyond_concepts_two_ink.svg",
+      "two_ink_png": "03_two_ink_png/manjushrimitra_beyond_concepts_two_ink_12x16_300dpi.png",
+      "printful_upload_png": "01_transparent_png/manjushrimitra_beyond_concepts_PRINTFUL_FRONT_300dpi.png",
+      "preview_png_on_black": "04_previews/manjushrimitra_beyond_concepts_PNG_preview_on_black.jpg",
+      "preview_two_ink_on_black": "04_previews/manjushrimitra_beyond_concepts_TWO_INK_preview_on_black.jpg",
+      "reference_only": "05_original_mockups/manjushrimitra_beyond_concepts_REFERENCE_ONLY.png",
+      "vector_contour_count": {
+        "bone": 4906,
+        "red": 1037
+      },
+      "inks": {
+        "bone": "#E9E1D5",
+        "ritual_red": "#971F1F"
+      },
+      "garment": "Comfort Colors 1717",
+      "garment_color": "Black",
+      "print_method": "DTG",
+      "placement": "front",
+      "back": "blank",
+      "placement_guidance": "Center front; begin with top of visible artwork about 2.5–3 inches below collar bottom. Verify allowable area, collar and hem clearance on every garment size. Scale proportionally if needed.",
+      "status": "Design direction approved; stated object refinement completed; production exports prepared for provider review and physical sample. No live product or physical sample approved."
+    },
+    {
+      "slug": "yeshe_tsogyal_wisdom_unbound",
+      "title": "Yeshe Tsogyal — Wisdom Unbound",
+      "tagline": "WISDOM UNBOUND",
+      "series": "Lineage Series",
+      "brand": "Black Metal Buddha",
+      "art_revision": "2026-10-03-lineage-r1",
+      "design_approved_date": "2026-10-03",
+      "refinement": "Compact Tibetan-style curved ritual knife replaces the concept’s tall sickle.",
+      "source_image_pixels": [
+        1086,
+        1448
+      ],
+      "source_master": "02_two_ink_vector/yeshe_tsogyal_wisdom_unbound_two_ink.svg",
+      "source_detail_warning": "Source-derived vector trace. 300 ppi is export resolution, not recovered original detail. Fine lines and small type require physical sample review.",
+      "placed_artwork_pixels": [
+        3300,
+        4506
+      ],
+      "placed_artwork_inches": [
+        11.0,
+        15.02
+      ],
+      "offset_inches": [
+        0.5,
+        0.25
+      ],
+      "raster_png": "01_transparent_png/yeshe_tsogyal_wisdom_unbound_12x16_300dpi.png",
+      "two_ink_svg": "02_two_ink_vector/yeshe_tsogyal_wisdom_unbound_two_ink.svg",
+      "two_ink_png": "03_two_ink_png/yeshe_tsogyal_wisdom_unbound_two_ink_12x16_300dpi.png",
+      "printful_upload_png": "01_transparent_png/yeshe_tsogyal_wisdom_unbound_PRINTFUL_FRONT_300dpi.png",
+      "preview_png_on_black": "04_previews/yeshe_tsogyal_wisdom_unbound_PNG_preview_on_black.jpg",
+      "preview_two_ink_on_black": "04_previews/yeshe_tsogyal_wisdom_unbound_TWO_INK_preview_on_black.jpg",
+      "reference_only": "05_original_mockups/yeshe_tsogyal_wisdom_unbound_REFERENCE_ONLY.png",
+      "vector_contour_count": {
+        "bone": 4819,
+        "red": 1162
+      },
+      "inks": {
+        "bone": "#E9E1D5",
+        "ritual_red": "#971F1F"
+      },
+      "garment": "Comfort Colors 1717",
+      "garment_color": "Black",
+      "print_method": "DTG",
+      "placement": "front",
+      "back": "blank",
+      "placement_guidance": "Center front; begin with top of visible artwork about 2.5–3 inches below collar bottom. Verify allowable area, collar and hem clearance on every garment size. Scale proportionally if needed.",
+      "status": "Design direction approved; stated object refinement completed; production exports prepared for provider review and physical sample. No live product or physical sample approved."
     }
   ]
 }

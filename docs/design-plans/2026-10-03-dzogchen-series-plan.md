@@ -3,7 +3,7 @@
 Date: 2026-10-03  
 Brand: Black Metal Buddha  
 Authorization: user requested this plan be created and pushed, followed by work on the next three designs.  
-Status: collection structure accepted for planning; new individual concepts require design approval before production preparation.
+Status: Mañjuśrīmitra and Yeshe Tsogyal approved; object refinements and production artwork prepared. Drangsong Tröpé Gyalpo title revision pending review.
 
 ## Purpose and collection structure
 
@@ -29,8 +29,8 @@ Printful product has been created, physical samples approved, or sales enabled.
 |---|---|---|
 | Longchenpa — Rest in Illusion | Existing production package | Established Lineage Series visual reference |
 | Garab Dorje — Strike the Vital Point | Approved; production prepared, commit 19cb619 | Youthful teacher; approved artistic wrathful interpretation |
-| Mañjuśrīmitra | Next concept 1 | Continue from Garab Dorje; scholar-yogin, manuscripts, open space |
-| Yeshe Tsogyal | Next concept 2 | Distinct female teacher; cave, wisdom-lake and dakini imagery |
+| Mañjuśrīmitra | Approved; artwork prepared | Continue from Garab Dorje; scholar-yogin, manuscripts, open space |
+| Yeshe Tsogyal | Approved; artwork prepared | Distinct female teacher; cave, wisdom-lake and dakini imagery |
 | Śrī Siṃha / Shri Singha | Next wave | Severe seated portrait; wind, smoke, strong silhouette |
 | Vimalamitra | Next wave | Mountain solitude and dissolving light |
 | Jñānasūtra | Later | Spare charnel-ground composition and transmission theme |
@@ -119,12 +119,12 @@ hands, implement shapes and overall identity at concept review.
 ### 3. VII — Drangsong Tröpé Gyalpo
 
 Working slug: `drangsong_trope_gyalpo_wrathful_kingly_sage`  
-Proposed shirt text: `WRATHFUL KINGLY SAGE` / `DRANGSONG TROPE GYALPO` /
+Revised shirt text: `DRANGSONG TROPE GYALPO` / `WRATHFUL KINGLY SAGE` /
 `VII` / `TWELVE PRIMORDIAL TEACHERS`
 
 An imposing wrathful sage, forceful human-like face, compact powerful posture,
-flame halo and dark rocky environment. Keep the English title dominant so the
-long transliterated name remains readable as a secondary line.
+flame halo and dark rocky environment. Per the user’s revision, make the teacher’s name the dominant top title and
+place the English epithet below the figure. Retain VII and the series footer.
 
 Longchenpa's history identifies him teaching among rākṣasas. It does not supply
 all anatomical details. Initial concept is explicitly interpretive. Himalayan
@@ -174,8 +174,12 @@ and checksums. Record each as `concept_pending_approval`.
 - [x] Push this plan to the repository.
 - [x] Generate and inspect the three initial concepts.
 - [x] Archive concept sources, prompts and review status in the repository.
-- [ ] Present all three for individual approval.
-- [ ] Prepare/push production packages only after approval.
+- [x] Present all three for individual approval.
+- [x] Record approval of Mañjuśrīmitra and Yeshe Tsogyal.
+- [x] Complete their manuscript and curved-knife refinements and prepare production packages.
+- [x] Revise Drangsong with teacher-name title and lower English epithet.
+- [ ] Obtain review of revised Drangsong before production preparation.
+- [ ] Verify provider placement and physical samples before product launch.
 
 ## Sources and limits
 
@@ -199,6 +203,6 @@ artwork and translated passages are not reproduced in this plan.
 - Longchen Nyingtik context:
   https://www.longchennyingtik.org/
 
-Open decisions: approval of each new concept/caption; any source-specific
+Open decisions: review of revised Drangsong concept; any source-specific
 iconography corrections; subsequent release order; per-size provider placement;
 retail prices, sample ordering and live publication.

@@ -9,7 +9,7 @@
         1448
       ],
       "sha256": "408227cc7436b435e552bc18c08fef9a0a950e72bb7f23c86f96edac6e5847fb",
-      "status": "concept_pending_approval",
+      "status": "superseded_title_layout",
       "production_ready": false
     },
     {
@@ -19,7 +19,7 @@
         1448
       ],
       "sha256": "f3d0f4a6ec01d5518ba8adc11b86858bf92b72502effcbc9352837780bfa8963",
-      "status": "concept_pending_approval",
+      "status": "approved_direction_refined_in_v2",
       "production_ready": false
     },
     {
@@ -29,8 +29,41 @@
         1448
       ],
       "sha256": "651eb17b53eaabd688e9666cbc85e1cebd82a1537f3518ac0833640e52e106ac",
-      "status": "concept_pending_approval",
+      "status": "approved_direction_refined_in_v2",
       "production_ready": false
+    },
+    {
+      "file": "drangsong_trope_gyalpo_wrathful_kingly_sage_v2.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "fce467f357303929a5166cbeb4dca4355fdb80ca73d43a8425c22c8c54bd513f",
+      "status": "revision_pending_review",
+      "production_ready": false,
+      "physical_sample_approved": false
+    },
+    {
+      "file": "manjushrimitra_beyond_concepts_v2.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "e2f793a1a597091eecbe45987a014728a2ca4c64866b3401e33d4c64f7a229c2",
+      "status": "approved_direction_object_refinement_completed",
+      "production_ready": true,
+      "physical_sample_approved": false
+    },
+    {
+      "file": "yeshe_tsogyal_wisdom_unbound_v2.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "4d0889847aaede89ff09723c77bc65dfce7c169c0e8097ccc6cce12c84e00339",
+      "status": "approved_direction_object_refinement_completed",
+      "production_ready": true,
+      "physical_sample_approved": false
     }
   ]
 }

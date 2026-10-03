@@ -1,0 +1,25 @@
+{
+  "approved_date": "2026-10-03",
+  "refinement": "Palm-leaf manuscript replaces the concept\u2019s modern bound book.",
+  "source_pixels": [
+    1086,
+    1448
+  ],
+  "trace": "3x cubic sampling; bone R>110/G>90/B>75/R-G<65; red R>65/R>1.7G/R>1.6B; contours area>=3, epsilon .6; source-derived paths, not recovered detail.",
+  "canvas": [
+    3600,
+    4800
+  ],
+  "bbox": [
+    150,
+    75,
+    3450,
+    4585
+  ],
+  "ppi": 300,
+  "profile": "sRGB",
+  "contours": {
+    "bone": 4906,
+    "red": 1037
+  }
+}

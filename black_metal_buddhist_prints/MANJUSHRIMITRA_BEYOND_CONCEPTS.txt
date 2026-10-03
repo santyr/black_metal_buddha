@@ -1,0 +1,51 @@
+MAÑJUŚRĪMITRA — BEYOND CONCEPTS
+Black Metal Buddha | Lineage Series | October 3, 2026
+
+APPROVAL AND PREPARATION
+The user approved this design direction on October 3, 2026.
+Palm-leaf manuscript replaces the concept’s modern bound book.
+Original approved concept: design_concepts/dzogchen_series/2026-10-03/manjushrimitra_beyond_concepts_v1.png
+Refined source: 06_sources/manjushrimitra_beyond_concepts/refined_source.png
+These are contemporary artistic interpretations, not ritual diagrams.
+Caption is original design copy, not an attributed quotation.
+
+PRINTFUL UPLOAD
+01_transparent_png/manjushrimitra_beyond_concepts_PRINTFUL_FRONT_300dpi.png
+  3300 × 4510 pixels, transparent RGBA, embedded sRGB, 300 ppi.
+  Intended visible size: 11.0 × 15.033 inches.
+  BLACK Comfort Colors 1717, front DTG; back and sleeves blank.
+  Center horizontally; begin around 2.5–3 inches below bottom of collar.
+  Verify allowed print area, collar/hem clearance and scaling for EACH size.
+  Preserve proportions, never auto-stretch or crop the title or footer.
+
+STANDARD CANVAS AND VECTOR
+01_transparent_png/manjushrimitra_beyond_concepts_12x16_300dpi.png
+03_two_ink_png/manjushrimitra_beyond_concepts_two_ink_12x16_300dpi.png
+  Identical 3600 × 4800 RGBA PNGs, 12 × 16 inches at nominal 300 ppi.
+  Artwork bounds in pixels: (150, 75, 3450, 4585) (right/bottom exclusive).
+  Canvas padding is not collar spacing. Prefer cropped upload above.
+02_two_ink_vector/manjushrimitra_beyond_concepts_two_ink.svg
+  Outlined path lettering, bone #E9E1D5 and ritual red #971F1F, no external
+  fonts or embedded raster. Black is transparent garment negative space.
+  Use composite PNG for DTG; provider handles underbase and prepress.
+
+PROOFS
+04_previews/manjushrimitra_beyond_concepts_PNG_preview_on_black.jpg
+04_previews/manjushrimitra_beyond_concepts_TWO_INK_preview_on_black.jpg
+  Exact vector renders on black; reference only, not print uploads.
+05_original_mockups/manjushrimitra_beyond_concepts_REFERENCE_ONLY.png
+  Refined generated artwork, not an official Printful shirt mockup.
+
+LIMITATIONS AND RELEASE
+Source size: 1086 × 1448. Vector tracing improves edge scaling,
+but does not recover unavailable original detail. 300 ppi is export metadata.
+Review small lettering, fine hatching, face, hands, ritual objects, red/bone
+reproduction, garment hand and wash durability in a physical sample.
+No physical sample or live product is approved. Set actual provider IDs,
+unique SKUs and approved price in Printful, then generate official mockups.
+The website imports saved products through existing sync; artwork alone does
+not publish a product or enable checkout.
+
+REFERENCES
+See docs/design-plans/2026-10-03-dzogchen-series-plan.md for iconographic sources.
+Printful file guidance: https://www.printful.com/creating-dtg-file

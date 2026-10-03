@@ -1,23 +1,30 @@
 # First three Dzogchen collection concepts
 
-Status: **concept_pending_approval**. Generated October 3, 2026 using the
-built-in image tool. These are standalone design studies, not Printful uploads.
+Updated October 3, 2026. Mañjuśrīmitra and Yeshe Tsogyal were approved by the
+user. Their v2 sources complete the disclosed manuscript and ritual-knife
+refinements. Drangsong Tröpé Gyalpo v2 implements the requested title swap and
+remains pending review.
 
 [Collection plan](../../../docs/design-plans/2026-10-03-dzogchen-series-plan.md)
 contains the release sequence, research sources and production workflow.
 
-| Concept | Series | Review notes |
+| Concept | Series | Current state |
 |---|---|---|
-| Mañjuśrīmitra — Beyond Concepts | Lineage Series | Composition and text ready for review. Generated manuscript resembles a bound codex; change to a palm-leaf/pothi manuscript before a source-grounded production edition. |
-| Yeshe Tsogyal — Wisdom Unbound | Lineage Series | Composition and text ready for review. Knife currently resembles a sickle; refine to a correctly proportioned Tibetan curved ritual knife before production. |
-| VII — Drangsong Tröpé Gyalpo / Wrathful Kingly Sage | Twelve Primordial Teachers | Interpretive concept. Anatomy, posture and costume are artistic choices; visual verification against a chosen traditional representation remains open. |
+| Mañjuśrīmitra — Beyond Concepts | Lineage Series | Approved direction; v2 replaces the bound codex with a horizontal palm-leaf manuscript. Production artwork prepared. |
+| Yeshe Tsogyal — Wisdom Unbound | Lineage Series | Approved direction; v2 replaces the tall sickle with a compact, centrally handled curved ritual knife. Production artwork prepared. |
+| VII — Drangsong Tröpé Gyalpo / Wrathful Kingly Sage | Twelve Primordial Teachers | v2 puts DRANGSONG TROPE GYALPO in the large top title and WRATHFUL KINGLY SAGE in the lower caption. VII and series footer retained. Revision pending review. |
 
-Proposed captions are original design copy, not quotations. Preserve each
-teacher's identity and the numbered collection's VII designation during revision.
-All three retain their original generated pixels here. Prompts are in
-`prompts.json`; the manifest records dimensions and SHA-256 values.
+Captions are original design copy, not quotations. All imagery is a contemporary
+artistic treatment; Drangsong's anatomy and costume are not claimed as canonical.
 
-No new production SVG, Printful PNG, product, price, provider ID or checkout
-activation is included. Review the three concepts individually; approval of the
-collection plan is not approval of these images. Record any approval and agreed
-refinements before building the final print packages.
+Both v1 and v2 generated sources are retained. `prompts.json` records the initial
+briefs; `revision_prompts.json` records the edits. `manifest.json` records hashes,
+dimensions and approval states. Approval of the two Lineage designs does not
+approve the revised Drangsong concept.
+
+Approved Lineage exports, outlined two-ink SVGs, transparent cropped Printful
+uploads, proofs and printer notes are under
+[black_metal_buddhist_prints](../../../black_metal_buddhist_prints/).
+Production-ready here means artwork exports are prepared, not a tested physical
+product. No Printful product, price, provider ID, checkout activation or physical
+sample approval is included. Drangsong remains outside production specifications.
