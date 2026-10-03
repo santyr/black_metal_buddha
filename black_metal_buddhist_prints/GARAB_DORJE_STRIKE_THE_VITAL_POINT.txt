@@ -1,0 +1,60 @@
+GARAB DORJE — STRIKE THE VITAL POINT
+Black Metal Buddha | Lineage Series | Revision 1 | October 3, 2026
+
+APPROVAL
+The user approved this concept on October 3, 2026. Preserve GARAB DORJE,
+STRIKE THE VITAL POINT and LINEAGE SERIES, the youthful fierce teacher,
+teaching gesture, lotus seat and flame halo. Front print; back and sleeves
+are blank. This is a Lineage Series design, not a Lightning Goats collaboration.
+
+PRINTFUL UPLOAD
+01_transparent_png/garab_dorje_strike_the_vital_point_PRINTFUL_FRONT_300dpi.png
+  3300 × 4618 pixels; transparent RGBA; embedded sRGB; 300 ppi.
+  Intended visible print: 11 × 15.393 inches, proportional.
+  Black Comfort Colors 1717; front DTG placement.
+  Center horizontally. Start with top of visible artwork about 2.5–3 inches
+  below bottom of collar. Check each size's allowed print area, collar and hem
+  clearance in Printful's Design Maker. Reduce proportionally if necessary.
+  Do not stretch, auto-fill, or crop the name, figure or bottom text.
+
+PRODUCTION CANVAS AND VECTOR
+01_transparent_png/garab_dorje_strike_the_vital_point_12x16_300dpi.png
+03_two_ink_png/garab_dorje_strike_the_vital_point_two_ink_12x16_300dpi.png
+  Identical 3600 × 4800 PNG exports: 12 × 16 inches at 300 ppi, RGBA / sRGB.
+  Visible art bounds: x=150..3449, y=75..4692 pixels.
+  Canvas margins are not collar measurements. Prefer cropped upload above.
+02_two_ink_vector/garab_dorje_strike_the_vital_point_two_ink.svg
+  Source-derived scalable path artwork, outlined lettering, no embedded raster
+  or external fonts. Named bone (#E9E1D5) and ritual-red (#971F1F) ink groups.
+  Black is the garment / transparent negative space. Use composite PNG for
+  DTG; provider determines underbase and process-specific prepress.
+
+EXACT PROOFS AND APPROVED REFERENCE
+04_previews/garab_dorje_strike_the_vital_point_PNG_preview_on_black.jpg
+04_previews/garab_dorje_strike_the_vital_point_TWO_INK_preview_on_black.jpg
+  Exact production renders on black; reference-only, not print uploads.
+05_original_mockups/garab_dorje_strike_the_vital_point_REFERENCE_ONLY.png
+06_sources/garab_dorje_strike_the_vital_point/approved_concept.png
+  Approved generated flat artwork, not an official Printful garment mockup.
+  Source resolution: 1086 × 1448. Tracing improves scalable edge rendering,
+  but cannot recover unavailable original detail. 300 ppi is export metadata.
+
+ICONOGRAPHY AND ATTRIBUTION
+This is a contemporary artistic wrathful interpretation of Garab Dorje,
+not a claim of canonical wrathful iconography. Traditional descriptions
+consulted portray him as white and peaceful, including a teaching gesture.
+The caption is thematic design copy, not presented as a verbatim quotation.
+References consulted October 3, 2026:
+https://www.lotsawahouse.org/tibetan-masters/mipham/garab-dorje-guru-yoga
+https://www.lotsawahouse.org/tibetan-masters/jamyang-khyentse-chokyi-lodro/garab-dorje-guru-sadhana
+No translated passage or source-site image is reproduced in this package.
+
+PHYSICAL SAMPLE AND PRODUCT SETUP
+Check the face, hands, hair hatching, small LINEAGE SERIES text, red rendering,
+placement, fabric hand and post-wash detail in a physical sample.
+No sample is yet approved. Verify the current product-specific Printful file
+requirements and per-size placement. Create the saved Printful product,
+assign actual variant IDs and unique SKUs, set price, and generate official
+mockups there. The website imports saved products through its existing sync;
+this artwork commit does not publish a live product or enable checkout.
+Printful file guidance: https://www.printful.com/creating-dtg-file

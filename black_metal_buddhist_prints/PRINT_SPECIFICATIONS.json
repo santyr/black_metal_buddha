@@ -13,7 +13,7 @@
   ],
   "nominal_export_ppi": 300,
   "color_profile": "sRGB",
-  "source_detail_warning": "Lotus of the Void and Dharma of Decay were replaced September 19, 2026 with approved cross-free two-ink vector masters; their production rasters are deterministic SVG renders. Meditate on Death retains its existing raster/vector preparation. Longchenpa — Rest in Illusion is rendered from its approved two-ink SVG master.",
+  "source_detail_warning": "Lotus of the Void and Dharma of Decay were replaced September 19, 2026 with approved cross-free two-ink vector masters; their production rasters are deterministic SVG renders. Meditate on Death retains its existing raster/vector preparation. Longchenpa — Rest in Illusion is rendered from its approved two-ink SVG master. Garab Dorje — Strike the Vital Point is traced from the approved 1086 × 1448 raster concept; vector edges are scalable but tracing does not recover unavailable original detail.",
   "designs": [
     {
       "slug": "lotus_of_the_void",
@@ -205,6 +205,56 @@
       "back": "blank",
       "placement_guidance": "Center horizontally; target top of visible artwork about 3 inches below bottom of collar. Verify per-size Printful template and preview. Preserve proportions. Use cropped upload at 11 inches wide; do not auto-enlarge to fill area.",
       "status": "Design direction approved. Production exports prepared for Printful review and physical sample; not sample-approved. No live product created."
+    },
+    {
+      "slug": "garab_dorje_strike_the_vital_point",
+      "title": "Garab Dorje — Strike the Vital Point",
+      "tagline": "STRIKE THE VITAL POINT",
+      "series": "Lineage Series",
+      "brand": "Black Metal Buddha",
+      "art_revision": "2026-10-03-lineage-r1",
+      "design_approved_date": "2026-10-03",
+      "iconography_note": "Contemporary artistic wrathful interpretation approved by the user; not a claim of canonical wrathful Garab Dorje iconography. Traditional source descriptions depict a white, peaceful teacher.",
+      "source_image_pixels": [
+        1086,
+        1448
+      ],
+      "source_master": "02_two_ink_vector/garab_dorje_strike_the_vital_point_two_ink.svg",
+      "source_detail_warning": "Source-derived contours retain the approved composition and wording. 300 ppi describes export resolution, not recovered original detail; assess fine lines and small text in a physical sample.",
+      "placed_artwork_pixels": [
+        3300,
+        4618
+      ],
+      "placed_artwork_inches": [
+        11.0,
+        15.393
+      ],
+      "offset_inches": [
+        0.5,
+        0.25
+      ],
+      "raster_png": "01_transparent_png/garab_dorje_strike_the_vital_point_12x16_300dpi.png",
+      "two_ink_svg": "02_two_ink_vector/garab_dorje_strike_the_vital_point_two_ink.svg",
+      "two_ink_png": "03_two_ink_png/garab_dorje_strike_the_vital_point_two_ink_12x16_300dpi.png",
+      "printful_upload_png": "01_transparent_png/garab_dorje_strike_the_vital_point_PRINTFUL_FRONT_300dpi.png",
+      "preview_png_on_black": "04_previews/garab_dorje_strike_the_vital_point_PNG_preview_on_black.jpg",
+      "preview_two_ink_on_black": "04_previews/garab_dorje_strike_the_vital_point_TWO_INK_preview_on_black.jpg",
+      "reference_only": "05_original_mockups/garab_dorje_strike_the_vital_point_REFERENCE_ONLY.png",
+      "vector_contour_count": {
+        "bone": 6135,
+        "red": 1107
+      },
+      "inks": {
+        "bone": "#E9E1D5",
+        "ritual_red": "#971F1F"
+      },
+      "garment": "Comfort Colors 1717",
+      "garment_color": "Black",
+      "print_method": "DTG",
+      "placement": "front",
+      "back": "blank",
+      "placement_guidance": "Center front. Intended visible width 11 inches and height 15.393 inches. Start with the top of visible artwork about 2.5–3 inches below the bottom of the collar; verify permitted area and hem clearance for every size. Scale down proportionally if required.",
+      "status": "Design direction approved; production exports prepared for Printful review and physical sample. No physical sample approved and no live product created."
     }
   ]
 }

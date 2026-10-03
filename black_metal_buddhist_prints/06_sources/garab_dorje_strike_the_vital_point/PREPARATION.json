@@ -1,0 +1,26 @@
+{
+  "source": "approved_concept.png",
+  "method": "Source-derived two-color contour trace; no generative redraw after approval.",
+  "contour_counts": {
+    "bone": 6135,
+    "red": 1107
+  },
+  "preprocessing": "3x cubic interpolation for subpixel contour extraction; this does not increase source information.",
+  "bone_mask": "R>110, G>90, B>75, R-G<65",
+  "red_mask": "R>65, R>1.7G, R>1.6B",
+  "contour_min_area_at_3x": 3,
+  "contour_approximation_epsilon_at_3x": 0.6,
+  "canvas_pixels": [
+    3600,
+    4800
+  ],
+  "nominal_export_ppi": 300,
+  "color_profile": "sRGB",
+  "bounds_pixels": [
+    150,
+    75,
+    3450,
+    4693
+  ],
+  "export": "SVG paths rendered by CairoSVG; PNG re-encoded with Pillow through an in-memory buffer and fully decoded for validation."
+}
