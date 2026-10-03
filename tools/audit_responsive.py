@@ -107,6 +107,22 @@ GEOMETRY = r"""() => {
     }
     const hero = document.querySelector('.hero-copy');
     if (hero) {
+        const heading = hero.querySelector('h1');
+        if (heading.textContent.trim() || heading.querySelector('img')?.alt !== 'Black Metal Buddha')
+            issues.push('hero should use the accessible logo as its sole heading');
+        for (const side of document.querySelectorAll('.hero-side')) {
+            if (!side.clientWidth) continue;
+            if (parseFloat(getComputedStyle(side).fontSize) < 14)
+                issues.push('hero side text is too small');
+            const s = side.getBoundingClientRect();
+            if (s.left < 0 || s.right > innerWidth)
+                issues.push('hero side text extends beyond the viewport');
+            for (const child of hero.children) {
+                const c = child.getBoundingClientRect();
+                if (s.left < c.right && s.right > c.left && s.top < c.bottom && s.bottom > c.top)
+                    issues.push('hero side text overlaps central content');
+            }
+        }
         const b = hero.getBoundingClientRect();
         if (Math.abs(b.left + b.width / 2 - innerWidth / 2) > 1)
             issues.push('hero is not centered in the viewport');
