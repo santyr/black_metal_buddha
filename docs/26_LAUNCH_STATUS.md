@@ -1,11 +1,11 @@
-# Launch status — 2026-10-02
+# Launch status — 2026-10-03
 
 The public preview is available. Purchasing opens after the payment,
 fulfillment, customer email and controlled order checks are complete.
 
 ## Approved product decisions
 
-- All four physical samples approved; Black Comfort Colors 1717 selected.
+- All five published designs have approved physical samples; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved;
   Lotus of the Void's physical sample is approved and all seven logical SKUs
   were verified correct through the API on 2026-10-03. No recreation was needed.
@@ -13,12 +13,14 @@ fulfillment, customer email and controlled order checks are complete.
 - Retail price: **$35.00 per shirt, plus shipping and applicable tax**.
 - The complete published Printful catalog supplies the website's products,
   names, prices, sizes, colors, SKUs, availability and mockup thumbnails.
-- The current four designs each include seven sizes, S–4XL.
+- Awaken the Herd — Lightning Goats × Black Metal Buddha is published;
+  the owner confirmed its physical sample approval on 2026-10-03.
+- The current five designs each include seven sizes, S–4XL: 35 variants.
 - The corrected approved logo is in use.
 
 ## Product previews
 
-The four shirt previews use Printful's native Flat / Front renders on the
+The five shirt previews use Printful's native Flat / Front renders on the
 shared charcoal background. The background is slightly lighter for contrast
 and includes faint lotus, thorn and muted-red eclipse overlays.
 
@@ -33,17 +35,16 @@ names change, and historical orders retain their original details.
 
 ## Browser verification
 
-The Chromium job for the source merged into the current release passed in
-[GitHub Actions](https://github.com/santyr/black_metal_buddha/actions/runs/37067261103).
-It checked 324 page/viewport layouts at 18 widths from 320 to 1920 pixels,
-including breakpoint boundaries, heading wrapping, hero centering, tablet
-content stacking and populated cart/checkout/admin fixtures. Separate storefront
-and mocked checkout audits passed too.
+The unit and Chromium responsive jobs for the collaboration release passed in
+[GitHub Actions](https://github.com/santyr/black_metal_buddha/actions/runs/37152600515).
+The long collaboration title exposed mobile admin product-selector overflow;
+bounded grid and control widths corrected it without changing the audit.
 
 These browser checks use preview data and local fixtures. They do not prove
 live payment, fulfillment, email delivery or provider callbacks. The deployed
-public catalog was checked separately for its four native mockups, 28 variants,
-$35 prices and S–4XL sizes.
+public catalog was checked separately for five products, 35 variants, $35 prices
+and S–4XL sizes. The new collaboration was read back on the homepage, shop,
+product page and sitemap, with its imported charcoal Printful thumbnail.
 
 ## Remaining owner steps
 

@@ -22,13 +22,18 @@ identify all artwork, exact proofs, source references and placement requirements
 
 The production SVG is source-derived, not a recovery of missing fine detail.
 The AI concept mockup is reference-only; the flat proofs show the actual output.
-A physical sample remains required. Printful's DTG print-area mapping was
+The owner confirmed physical sample approval on October 3, 2026.
+Printful's DTG print-area mapping was
 checked for all seven black variants; each uses the same 12 × 16-inch front
 area. The native mockup uses proportional 11-inch artwork with a 1-inch top
-offset inside that area. The physical sample must confirm collar distance,
+offset inside that area. Physical sample review covers collar distance,
 placement, fine lettering and color reproduction.
 
 ## Product creation
+
+Published Printful product: `477756683`, with seven synced variants at $35.00.
+The website has imported the product and its charcoal thumbnail. The API
+integration below encodes placement in the production canvas.
 
 Create the product in Printful using the cropped `PRINTFUL_FRONT` PNG listed in
 the printer instructions. Preserve its aspect ratio and set visible width to

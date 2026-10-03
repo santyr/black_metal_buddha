@@ -7,7 +7,7 @@ handoff.
 
 ## Decisions recorded
 
-- All four physical samples approved; Black Comfort Colors 1717 selected.
+- All five published physical samples approved; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
   Lotus of the Void's physical sample is approved and all seven logical SKUs
   were verified correct through the API on 2026-10-03.
@@ -21,15 +21,16 @@ handoff.
 - Large sample order total reported by the owner: **$22.10 including shipping**.
   This is not an itemized cost quote for every size or destination.
 - All published Printful products and variants should appear on the website,
-  currently four designs in S–4XL. Future prices and size changes follow Printful.
+  currently five designs and 35 variants in S–4XL. Future prices and size changes follow Printful.
 - Use the corrected logo and the lighter charcoal scene with faint overlays.
 - Awaken the Herd is the new Lightning Goats × Black Metal Buddha collaboration,
-  at $35.00 in S–4XL. Its design direction is approved; its physical sample
-  remains pending. See [the collaboration guide](30_LIGHTNING_GOATS_SERIES.md).
+  published at $35.00 in S–4XL. Its design direction and physical sample are
+  approved; the owner confirmed sample approval on 2026-10-03.
+  See [the collaboration guide](30_LIGHTNING_GOATS_SERIES.md).
 
 ## Step 1 Product approvals recorded
 
-All four physical samples and Printful billing are approved. These approvals
+All five published physical samples and Printful billing are approved. These approvals
 do not need to be supplied again. Lotus already has the correct
 `BMB-LOTUS-CC1717-BLK-{SIZE}` SKUs for S–4XL. The API readback confirmed its
 existing product and variant IDs, artwork, mockup and $35 prices were preserved;
