@@ -111,6 +111,25 @@ PRODUCTS = (
 
 PRODUCT_BY_SLUG = {product.slug: product for product in PRODUCTS}
 
+# Provider-managed collaboration; this story is used only after Printful import.
+PRODUCT_BY_SLUG["awaken-the-herd-lightning-goats-black-metal-buddha"] = Product(
+    slug="awaken-the-herd-lightning-goats-black-metal-buddha",
+    name="Awaken the Herd — Lightning Goats × Black Metal Buddha",
+    subtitle="Awaken the Herd.",
+    summary="Lightning Goats × Black Metal Buddha collaboration in bone and ritual red.",
+    description=(
+        "Awaken the Herd is a Lightning Goats × Black Metal Buddha collaboration. "
+        "The front graphic reads LIGHTNING GOATS / AWAKEN THE HERD in bone and "
+        "ritual red on black Comfort Colors 1717. Back and sleeves are blank."
+    ),
+    image="/static/products/lightning-goats-awaken-the-herd.webp",
+    image_alt="Awaken the Herd on a black Comfort Colors 1717 T-shirt against the charcoal background.",
+    sku="BMB-LGAWAKEN",
+    series="Lightning Goats Series",
+    sizes=("S", "M", "L", "XL", "2XL", "3XL", "4XL"),
+)
+
+
 
 def get_products(session=None) -> tuple[Product, ...]:
     from sqlalchemy import select

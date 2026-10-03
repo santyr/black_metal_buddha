@@ -1,0 +1,41 @@
+{
+  "design": "Awaken the Herd",
+  "series": "Lightning Goats Series",
+  "collaboration": [
+    "Lightning Goats",
+    "Black Metal Buddha"
+  ],
+  "approved_art_commit": "65f95a520ef83fc0eb5760966aa7bfd2ea22e003",
+  "cropped_art_sha256": "9e00fd9083cad638bcf624642d245b58bc9eb6e7f206d2d6b171211859ac51af",
+  "production_file": "awaken-the-herd-printful-front-12x16.png",
+  "production_sha256": "0a5f94e04d3129f98ea725efd1466e799091c77dff530c7f1ab9579c38e3d282",
+  "production_canvas_pixels": [
+    3600,
+    4800
+  ],
+  "production_dpi": 300,
+  "visible_art_pixels": [
+    3300,
+    2756
+  ],
+  "visible_art_inches": [
+    11,
+    9.186666666666667
+  ],
+  "print_area_offset_inches": [
+    0.5,
+    1
+  ],
+  "cropped_art_pixels_preserved": true,
+  "provider_style": "Printful Flat / Front",
+  "native_render_sha256": "6fb7567d7853e1a6bee73d54d75f9f48f0c6473150fbbe5b8f7db415b28855b8",
+  "native_opaque_pixels_preserved": true,
+  "background_sha256": "be59b00292ca8b9d74898ea7bfbac5f1a4182a624147b97a7a2bdb06a3e76890",
+  "thumbnail": "awaken-the-herd.jpg",
+  "thumbnail_sha256": "629e09fd0b9b8425363ed59c761a71928ea69d44e5b32f9d1ebc48b93a940ed5",
+  "thumbnail_pixels": [
+    2000,
+    2000
+  ],
+  "physical_sample_approved": false
+}

@@ -2,6 +2,8 @@
 
 The website imports all products and variants published in Printful. The current
 four designs use Black Comfort Colors 1717 in S–4XL: **28 unique variant SKUs**.
+Awaken the Herd adds seven collaboration SKUs in the same garment, color and
+size range, bringing the worksheet to **35 unique variant SKUs**.
 
 ## Convention
 
@@ -13,7 +15,7 @@ Comfort Colors 1717 in Medium.
 | Field | Codes |
 | --- | --- |
 | Brand | `BMB` — Black Metal Buddha |
-| Design | `LOTUS`, `DHARMA`, `MEDITATE`, `LONGCHENPA` |
+| Design | `LOTUS`, `DHARMA`, `MEDITATE`, `LONGCHENPA`, `LGAWAKEN` |
 | Garment | `CC1717` — Comfort Colors 1717 |
 | Color | `BLK` — Black |
 | Size | `S`, `M`, `L`, `XL`, `2XL`, `3XL`, `4XL` |
@@ -26,6 +28,7 @@ Comfort Colors 1717 in Medium.
 | Dharma of Decay | `BMB-DHARMA` | `BMB-DHARMA-CC1717-BLK-M` |
 | Meditate on Death | `BMB-MEDITATE` | `BMB-MEDITATE-CC1717-BLK-M` |
 | Longchenpa — Rest in Illusion | `BMB-LONGCHENPA` | `BMB-LONGCHENPA-CC1717-BLK-M` |
+| Awaken the Herd — Lightning Goats × Black Metal Buddha | `BMB-LGAWAKEN` | `BMB-LGAWAKEN-CC1717-BLK-M` |
 
 Design identifiers describe artwork families. Variant SKUs describe a specific
 garment, color and size. Printful saved product/variant IDs remain the provider
@@ -33,7 +36,7 @@ identifiers used for fulfillment; a SKU does not replace them.
 
 ## Worksheet and product administration
 
-[The SKU worksheet](../catalog/comfort-colors-1717-skus.csv) lists all 28 current
+[The SKU worksheet](../catalog/comfort-colors-1717-skus.csv) lists all 35 reserved
 SKU names and the selected $35.00 USD retail price. It is a reference worksheet,
 with provider IDs blank and activation flags closed. It does not control the
 live website's catalog or open purchasing.

@@ -23,6 +23,9 @@ handoff.
 - All published Printful products and variants should appear on the website,
   currently four designs in S–4XL. Future prices and size changes follow Printful.
 - Use the corrected logo and the lighter charcoal scene with faint overlays.
+- Awaken the Herd is the new Lightning Goats × Black Metal Buddha collaboration,
+  at $35.00 in S–4XL. Its design direction is approved; its physical sample
+  remains pending. See [the collaboration guide](30_LIGHTNING_GOATS_SERIES.md).
 
 ## Step 1 Product approvals recorded
 
