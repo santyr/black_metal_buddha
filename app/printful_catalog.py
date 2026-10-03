@@ -188,7 +188,9 @@ def cache_mockup(url: str | None, previous: PrintfulProduct | None, config: Sett
     if (previous and previous.source_image_url == url and previous.image
             and re.fullmatch(r"/product-images/[a-f0-9]{64}\.webp", previous.image)):
         path = directory / previous.image.rsplit("/", 1)[1]
-        if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == path.stem:
+        detail_path = path.with_name(path.stem + ".detail.webp")
+        if (path.is_file() and detail_path.is_file()
+                and hashlib.sha256(path.read_bytes()).hexdigest() == path.stem):
             cached = True
             if previous.image_etag:
                 headers["If-None-Match"] = previous.image_etag
@@ -237,19 +239,33 @@ def cache_mockup(url: str | None, previous: PrintfulProduct | None, config: Sett
             buffer = BytesIO()
             image.save(buffer, format="WEBP", quality=92, method=6)
             data = buffer.getvalue()
+            # Keep provider detail for product-page zoom; never enlarge a small source.
+            detail_size = min(2000, max(source.size))
+            detail = ImageOps.pad(source.convert(mode), (detail_size, detail_size),
+                                  method=Image.Resampling.LANCZOS,
+                                  color=(43, 43, 43, 0) if mode == "RGBA" else (43, 43, 43))
+            detail_buffer = BytesIO()
+            detail.save(detail_buffer, format="WEBP", quality=95, method=6)
+            detail_data = detail_buffer.getvalue()
     except CatalogSyncError:
         raise
     except (OSError, ValueError, Image.DecompressionBombError):
         raise CatalogSyncError("Mockup could not be decoded") from None
     digest = hashlib.sha256(data).hexdigest()
     target = directory / (digest + ".webp")
+    detail_target = directory / (digest + ".detail.webp")
     temporary = directory / ("." + uuid4().hex + ".tmp")
+    detail_temporary = directory / ("." + uuid4().hex + ".tmp")
     try:
+        detail_temporary.write_bytes(detail_data)
+        detail_temporary.chmod(0o644)
+        detail_temporary.replace(detail_target)
         temporary.write_bytes(data)
         temporary.chmod(0o644)
         temporary.replace(target)
     finally:
         temporary.unlink(missing_ok=True)
+        detail_temporary.unlink(missing_ok=True)
     return "/product-images/" + target.name, etag, modified
 
 

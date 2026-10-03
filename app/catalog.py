@@ -18,6 +18,13 @@ class Product:
     sizes: tuple[str, ...] = ("S", "M", "L", "XL", "2XL")
 
     @property
+    def zoom_image(self) -> str:
+        import re
+        if self.image and re.fullmatch(r"/product-images/[a-f0-9]{64}\.webp", self.image):
+            return self.image.removesuffix(".webp") + ".detail.webp"
+        return self.image
+
+    @property
     def size_display(self) -> str:
         return ", ".join(self.sizes)
 

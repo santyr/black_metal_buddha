@@ -1,10 +1,20 @@
 {% extends "base.html" %}
+{% block head_scripts %}
+<script src="/static/product-zoom.js?v=20261003" defer></script>
+{% endblock %}
 {% block content %}
 <section class="product-detail shell">
   <div class="product-detail-image">
     <div class="product-image-frame">
-      <img src="{{ product.image }}" alt="{{ product.image_alt }}" width="1200" height="1200">
+      <button class="product-zoom" type="button" data-product-zoom
+              data-zoom-src="{{ product.zoom_image }}" disabled
+              aria-label="Inspect {{ product.name }} image" aria-pressed="false"
+              aria-describedby="product-zoom-help">
+        <img src="{{ product.image }}" alt="{{ product.image_alt }}" width="1200" height="1200" data-zoom-preview>
+        <img class="product-zoom-detail" alt="" aria-hidden="true" width="2000" height="2000" data-zoom-detail hidden>
+      </button>
     </div>
+    <p class="product-zoom-help" id="product-zoom-help" data-zoom-help hidden>Hover or tap to zoom. Drag or use arrow keys to explore. Tap again or press Escape to reset.</p>
     <p class="image-caption">{{ product.series | upper }} · BLACK METAL BUDDHA</p>
   </div>
   <div class="product-detail-copy">
