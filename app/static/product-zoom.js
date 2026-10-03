@@ -27,7 +27,9 @@
     function loadDetail() {
       if (requested) return;
       requested = true;
-      detail.src = target.dataset.zoomSrc || preview.currentSrc || preview.src;
+      const incoming = new Image();
+      incoming.addEventListener('load', () => { detail.src = incoming.src; });
+      incoming.src = target.dataset.zoomSrc || preview.currentSrc || preview.src;
     }
 
     function reset() {
@@ -113,6 +115,10 @@
     });
     target.addEventListener('blur', reset);
     window.addEventListener('resize', render);
+    if (detail.complete && detail.naturalWidth) {
+      ready = true;
+      detail.hidden = false;
+    }
     target.disabled = false;
     if (help) help.hidden = false;
   });

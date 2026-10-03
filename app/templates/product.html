@@ -11,7 +11,7 @@
               aria-label="Inspect {{ product.name }} image" aria-pressed="false"
               aria-describedby="product-zoom-help">
         <img src="{{ product.image }}" alt="{{ product.image_alt }}" width="1200" height="1200" data-zoom-preview>
-        <img class="product-zoom-detail" alt="" aria-hidden="true" width="2000" height="2000" data-zoom-detail hidden>
+        <img class="product-zoom-detail" src="{{ product.image }}" alt="" aria-hidden="true" width="2000" height="2000" data-zoom-detail hidden>
       </button>
     </div>
     <p class="product-zoom-help" id="product-zoom-help" data-zoom-help hidden>Hover or tap to zoom. Drag or use arrow keys to explore. Tap again or press Escape to reset.</p>
