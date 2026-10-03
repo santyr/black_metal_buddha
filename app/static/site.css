@@ -1642,3 +1642,11 @@ textarea {
   .hero-mantra span:last-child { flex-basis: 100%; }
   .hero-mantra i:last-of-type { display: none; }
 }
+
+/* Blend the approved black-backed logo into the artwork beneath it. Keep the
+   central wrapper out of a stacking context so the logo can see that backdrop. */
+.hero-copy { z-index: auto; }
+.hero-copy > * { position: relative; z-index: 3; }
+.hero-copy .hero-frame,
+.masthead-logo,
+.footer-logo { mix-blend-mode: screen; }
