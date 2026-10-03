@@ -1625,12 +1625,9 @@ textarea {
   line-height: 1.5;
   letter-spacing: .14em;
   color: var(--bone);
-  background: rgba(0, 0, 0, .72);
-  border-left: 1px solid var(--line-strong);
-}
-.hero-side-right {
-  border-left: 0;
-  border-right: 1px solid var(--line-strong);
+  /* Preserve the artwork without a rectangular panel behind the slogans. */
+  background: transparent;
+  text-shadow: 0 1px 2px #000, 0 0 6px #000;
 }
 .hero-mantra {
   font-size: .75rem;
