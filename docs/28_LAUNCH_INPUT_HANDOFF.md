@@ -7,7 +7,11 @@ handoff.
 
 ## Decisions recorded
 
-- Physical sample approved; Black Comfort Colors 1717 selected.
+- All four physical samples approved; Black Comfort Colors 1717 selected.
+- Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
+  Lotus of the Void's physical sample is approved and all seven logical SKUs
+  were verified correct through the API on 2026-10-03.
+- Printful billing confirmed correct by the owner.
 - **$35.00 USD per shirt, plus shipping and applicable tax.**
 - Large sample order total reported by the owner: **$22.10 including shipping**.
   This is not an itemized cost quote for every size or destination.
@@ -15,36 +19,50 @@ handoff.
   currently four designs in S–4XL. Future prices and size changes follow Printful.
 - Use the corrected logo and the lighter charcoal scene with faint overlays.
 
-## Step 1 Review the products in Printful
+## Step 1 Product approvals recorded
 
-1. Open your Black Metal Buddha store in Printful.
-2. Review Lotus of the Void, Dharma of Decay, Meditate on Death, and Longchenpa —
-   Rest in Illusion. Check garment, artwork, placement, mockup, sizes and prices.
-3. Tell me which designs the approved physical sample covers. Identify anything
-   that still needs a physical sample or placement review.
-4. Check the billing method and actual fulfillment costs, including larger sizes.
-5. For future products, follow [the Printful product admin guide](29_PRINTFUL_PRODUCT_ADMIN.md).
+All four physical samples and Printful billing are approved. These approvals
+do not need to be supplied again. Lotus already has the correct
+`BMB-LOTUS-CC1717-BLK-{SIZE}` SKUs for S–4XL. The API readback confirmed its
+existing product and variant IDs, artwork, mockup and $35 prices were preserved;
+no recreation was necessary.
+
+For future products, follow [the Printful product admin guide](29_PRINTFUL_PRODUCT_ADMIN.md).
    Save synced variants with positive USD prices and the correct product thumbnail.
 
-**Provide:** Approval coverage and any product corrections. The API can retrieve
-saved product/variant IDs, so you do not need to copy them manually.
+**Provide:** Only new product corrections. The API can retrieve saved
+product/variant IDs, so you do not need to copy them manually.
 
 For a reusable Dashboard scene, download [the charcoal background](https://blackmetalbuddha.com/static/product-scenes/20261002-charcoal-v2/charcoal-scene-background.jpg),
 upload it into Printful's mockup editor, and save the scene. A saved product
-thumbnail and a reusable scene preset are separate things.
+thumbnail and a reusable scene preset are separate things. Printful's documented
+API can update product preview images but does not expose saved scene editing.
+See [Printful's scene instructions](https://help.printful.com/hc/en-us/articles/50266361810577-What-is-the-Custom-Mockup-Maker-and-how-to-use-it).
 
-## Step 2 Prepare isolated staging access
+## Step 2 Prepare staging with the existing Printful store
 
-1. Choose a designated Printful test store for staging. Draft orders in Printful
-   are not a separate payment sandbox.
-2. Create a store-scoped private API token with the permissions required for
-   saved products, files, order operations and webhook setup.
-3. Save the token and store ID through the private handoff as `PRINTFUL_TOKEN`
-   and `PRINTFUL_STORE_ID`.
+The owner reports that the current plan allows one Printful store. A second
+store is no longer a launch requirement. Staging will use the existing store
+for catalog reads and previews, with fulfillment disabled.
+
+1. Create a separate store-scoped private token for the existing store with
+   **read-only catalog/product permissions**. Save it privately as the staging
+   `PRINTFUL_TOKEN`; use the existing `PRINTFUL_STORE_ID`. Token creation uses
+   Printful's Developer Portal; supported work afterward uses the API.
+2. Keep staging `PRINTFUL_MODE=disabled` and `PRINTFUL_CONFIRM_ENABLED=false`.
+   Do not give staging permission to edit products, place/confirm orders or
+   replace production webhook subscriptions.
+3. Keep the staging database, service account, settings and Square Sandbox
+   credentials separate. Do not copy the production environment file or customer data.
 4. Choose a staging hostname and arrange DNS access or the requested DNS record.
 
-**Provide:** Test-store name, secure access location, staging hostname and DNS
-contact. Production and staging credentials must stay separate.
+**Provide:** Secure location of the read-only token, staging hostname and DNS
+contact. There is no need to create another Printful store.
+
+Once read-only access is supplied, I will populate the staging catalog through
+the API. Staging payments use Square Sandbox; actual Printful order submission,
+production callbacks and fulfillment are checked in the approved controlled
+production order in Step 7. Printful draft orders are not a payment sandbox.
 
 ## Step 3 Finish payment readiness and staging
 
@@ -71,15 +89,18 @@ Reference: [Square access tokens](https://developer.squareup.com/docs/build-basi
 
 ## Step 4 Set up email and support
 
-1. Choose your email provider and obtain SMTP credentials.
-2. Verify the sender/domain and complete the provider's DNS requirements.
-3. Choose a support address and confirm you can receive and reply to mail there.
-4. Save `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`
-   and `SUPPORT_EMAIL` through the private handoff.
+The production SMTP credentials, sender and support addresses have been supplied.
+The sender and support addresses use the Black Metal Buddha domain. Credentials
+do not need to be submitted again unless they change.
 
-**Provide:** Provider, sender and support addresses, verification confirmation,
-and secure settings location. I will verify delivery of order, tracking and
-refund messages.
+1. Verify the sender/domain and complete the provider's DNS requirements.
+2. Confirm you can receive and reply to mail at the support address.
+3. Resolve SMTP authentication if the provider rejects the configured credentials.
+4. Approve a concrete delivery check email when it is ready to send.
+
+**Provide:** Domain verification and support mailbox confirmation. I will verify
+authentication and, with approval to send, delivery before relying on order,
+tracking and refund messages.
 
 ## Step 5 Approve policies and owner access
 

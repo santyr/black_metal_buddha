@@ -5,7 +5,11 @@ fulfillment, customer email and controlled order checks are complete.
 
 ## Approved product decisions
 
-- Physical sample approved; Black Comfort Colors 1717 selected.
+- All four physical samples approved; Black Comfort Colors 1717 selected.
+- Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved;
+  Lotus of the Void's physical sample is approved and all seven logical SKUs
+  were verified correct through the API on 2026-10-03. No recreation was needed.
+- Printful billing confirmed correct by the owner.
 - Retail price: **$35.00 per shirt, plus shipping and applicable tax**.
 - The complete published Printful catalog supplies the website's products,
   names, prices, sizes, colors, SKUs, availability and mockup thumbnails.
@@ -43,8 +47,8 @@ $35 prices and S–4XL sizes.
 
 ## Remaining owner steps
 
-Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): review the products and
-sample coverage; complete payment, email and support setup; approve policies
+Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): complete payment,
+email delivery and support readiness; approve policies
 and selling countries; provide staging and backup inputs; and complete one
 controlled real order. Keep credentials and deployment details in the private
 handoff, outside public documentation.
