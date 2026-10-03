@@ -16,8 +16,8 @@ handoff.
 - Shipping will be charged separately using live Printful quotes. The launch
   country list is **the United States and Canada only**.
 - SMTP authentication verified on 2026-10-03 after the owner supplied the
-  application-specific password. Password spaces are preserved. Delivery
-  still needs a check approved by the owner.
+  application-specific password. Password spaces are preserved. The owner
+  confirmed the latest website verification email arrived on 2026-10-03.
 - Large sample order total reported by the owner: **$22.10 including shipping**.
   This is not an itemized cost quote for every size or destination.
 - All published Printful products and variants should appear on the website,
@@ -99,13 +99,16 @@ The sender and support addresses use the Black Metal Buddha domain. Credentials
 do not need to be submitted again unless they change.
 
 1. Verify the sender/domain and complete the provider's DNS requirements.
-2. Confirm you can receive and reply to mail at the support address.
+2. Receiving the website verification email at the support address is confirmed.
+   Confirm you can also reply to support requests if you have not done so.
 3. Keep the SMTP password exactly as supplied, including spaces inside its quotes.
-4. Approve the prepared delivery check email before it is sent.
+4. The approved delivery check is complete. Another verification email does
+   not need to be approved or sent for this completed check.
 
-**Provide:** Support mailbox confirmation and approval for the delivery check.
-Authentication has passed; actual message delivery remains to be verified
-before relying on order, tracking and refund messages.
+**Provide:** Only remaining support-reply setup or new email corrections.
+Authentication and delivery of the website verification email are confirmed.
+Order, tracking and refund notifications still need to be checked through the
+controlled order in Step 7.
 
 ## Step 5 Approve policies and owner access
 

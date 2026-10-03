@@ -47,8 +47,12 @@ $35 prices and S–4XL sizes.
 
 ## Remaining owner steps
 
+The owner confirmed receipt of the website verification email on 2026-10-03.
+SMTP authentication and this message's delivery are verified. Order, tracking
+and refund notification workflows remain part of the controlled order check.
+
 Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): complete payment,
-email delivery and support readiness; approve policies
-and selling countries; provide staging and backup inputs; and complete one
+notification workflows and support readiness; approve policies and tax settings;
+provide staging and backup inputs; and complete one
 controlled real order. Keep credentials and deployment details in the private
 handoff, outside public documentation.
