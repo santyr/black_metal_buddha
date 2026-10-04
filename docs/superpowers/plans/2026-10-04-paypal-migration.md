@@ -28,6 +28,15 @@ taxes do not replace the seller's own tax obligations. Task 2 therefore still
 needs the approved treatment of supplier tax versus retail tax; do not copy an
 estimate into customer sales tax without that decision.
 
+**Owner tax inputs (2026-10-04):** Business based in Colorado, USA; owner reports
+Colorado as the only jurisdiction for BMB's own tax obligations. No resale
+certificates are held or planned. Do not request a certificate or change Printful
+tax exemptions. The supplier's charges may apply to other destinations in its
+[state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax).
+Exact Colorado retail-tax calculation/service, shipping taxability and applicable
+delivery-fee treatment remain pending; the location statement supplies the scope,
+not a numeric tax rate or an approved zero-tax fallback.
+
 ## Global constraints
 
 - USD checkout; approved shipping destinations remain United States and Canada.

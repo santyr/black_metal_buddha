@@ -19,6 +19,13 @@ returns supplier costs including tax; its standalone tax-rate endpoint is retire
 The supplier tax and our customer-facing tax treatment must be distinguished,
 as explained in [Printful's tax guide](https://www.printful.com/ca/taxes-guide).
 
+The owner confirmed that BMB is based in Colorado, USA, and reports Colorado as
+the only jurisdiction for its own tax obligations. No resale certificates are
+held or planned; leave Printful's exemption settings unchanged. Exact Colorado
+checkout-tax calculation, including shipping/delivery-fee treatment, is still
+pending. Printful may charge BMB supplier tax for destinations outside Colorado
+as listed in its [state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax).
+
 ## Approved product decisions
 
 - All five published designs have approved physical samples; Black Comfort Colors 1717 selected.

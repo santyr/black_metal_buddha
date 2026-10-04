@@ -8,6 +8,10 @@ handoff.
 ## Decisions recorded
 
 - On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The application migration is pending; this handoff describes the target setup.
+- The business is based in **Colorado, USA**. The owner reports Colorado as
+  the only jurisdiction for BMB's own tax obligations. No resale certificates
+  are held or planned. Do not request certificates or apply a Printful resale
+  exemption. The exact Colorado checkout-tax calculation remains to be supplied.
 
 - All five published physical samples approved; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
@@ -85,12 +89,23 @@ do not request replacement Square credentials for the new launch.
 2. Create separate sandbox and live REST apps, with separate buyer/merchant test
    accounts for sandbox. Store client IDs/secrets privately.
 3. After the PayPal listener is deployed, register its exact HTTPS webhook URL
-   on each environment's app and record each webhook ID. The planned settings are
+   on each environment's app and record each webhook ID. The implemented settings are
    `PAYPAL_ENVIRONMENT` (`sandbox` or `production`), `PAYPAL_CLIENT_ID`,
    `PAYPAL_CLIENT_SECRET`, `PAYPAL_MERCHANT_ID`, `PAYPAL_WEBHOOK_ID` and
-   `PAYPAL_WEBHOOK_NOTIFICATION_URL`. These settings still need implementation.
-4. Approve the replacement server-side tax approach for USD sales to US/Canada;
-   PayPal Orders does not replace Square tax synchronization automatically.
+   `PAYPAL_WEBHOOK_NOTIFICATION_URL`. The client/settings are implemented;
+   checkout processing and the listener are still pending.
+4. Supply the Colorado checkout-tax calculation setup. Business location and the
+   owner's Colorado-only tax scope are recorded; resale certificates are not
+   required for this implementation. Provide the chosen calculation service or
+   approved address-specific rules, including merchandise/shipping tax treatment
+   and any applicable delivery fee. Colorado's
+   [GIS API](https://tax.colorado.gov/GIS-API) is an available source; its API key
+   and method documentation are obtained through the owner's SUTS account. If
+   using it, save the key privately and provide the API documentation/location,
+   never the key in chat. No calculator is configured yet.
+   Printful's [state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax)
+   describes where Printful charges BMB, including destinations outside Colorado.
+   Include that tax in supplier costs. It does not define BMB's retail-tax rules.
 5. Printful PayPal setup is already reported complete. Verify its automatic-payment
    funding preference and backup source during the controlled order; do not assume
    held customer receipts are spendable or ask to repeat completed account setup.
