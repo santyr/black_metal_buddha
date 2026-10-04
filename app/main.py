@@ -15,7 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .admin import router as admin_router
 from .branding import LOGO_PATH, LOGO_TYPE
-from .api_phase1 import router as phase1_router
+from .api_phase1 import router as phase1_router, paypal_router
 from .catalog import catalog_overview, get_products
 from .catalog_ops import assert_production_catalog
 from .db import SessionLocal, init_db
@@ -75,6 +75,7 @@ app.mount(
 
 templates = Jinja2Templates(directory=ROOT / "app" / "templates")
 app.include_router(phase1_router)
+app.include_router(paypal_router)
 app.include_router(admin_router)
 
 
@@ -368,7 +369,7 @@ def order_status(request: Request, order_number: str):
             message = "No fulfillment will occur for this order."
         else:
             heading = "Payment pending."
-            message = "If you just completed Square checkout, this page will update after payment confirmation."
+            message = "If you just completed payment, this page will update after confirmation."
 
         return templates.TemplateResponse(
             request,

@@ -93,19 +93,19 @@ do not request replacement Square credentials for the new launch.
    `PAYPAL_ENVIRONMENT` (`sandbox` or `production`), `PAYPAL_CLIENT_ID`,
    `PAYPAL_CLIENT_SECRET`, `PAYPAL_MERCHANT_ID`, `PAYPAL_WEBHOOK_ID` and
    `PAYPAL_WEBHOOK_NOTIFICATION_URL`. The client/settings are implemented;
-   checkout processing and the listener are still pending.
-4. Supply the Colorado checkout-tax calculation setup. Business location and the
-   owner's Colorado-only tax scope are recorded; resale certificates are not
-   required for this implementation. Provide the chosen calculation service or
-   approved address-specific rules, including merchandise/shipping tax treatment
-   and any applicable delivery fee. Colorado's
-   [GIS API](https://tax.colorado.gov/GIS-API) is an available source; its API key
-   and method documentation are obtained through the owner's SUTS account. If
-   using it, save the key privately and provide the API documentation/location,
-   never the key in chat. No calculator is configured yet.
-   Printful's [state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax)
-   describes where Printful charges BMB, including destinations outside Colorado.
-   Include that tax in supplier costs. It does not define BMB's retail-tax rules.
+   checkout/capture and the verified listener are implemented on the migration branch; app-specific sandbox verification is pending.
+4. The checkout tax approach is approved: **$35 per shirt + live shipping +
+   Printful's quoted tax separately**. BMB is in Fremont County, Colorado, USA;
+   no resale certificates are held or planned. The owner reports accountant
+   guidance on filing treatment; that is recorded as supplied professional
+   guidance, not an independent legal conclusion. No Colorado GIS key or new
+   retail-tax service is requested for this approved approach.
+   Configure `CHECKOUT_TAX_MODE=printful_quote` and
+   `CHECKOUT_TAX_POLICY_APPROVED=true` in the intended environment only when
+   the quote path is ready. Checkout adds the actual `costs.tax + costs.vat`
+   from Printful's estimate. A complete explicit zero is valid; missing,
+   malformed, pending or unavailable quotes block payment. Supplier fees remain
+   supplier costs. Current catalog prices come from the trusted Printful import.
 5. Printful PayPal setup is already reported complete. Verify its automatic-payment
    funding preference and backup source during the controlled order; do not assume
    held customer receipts are spendable or ask to repeat completed account setup.
@@ -113,7 +113,7 @@ do not request replacement Square credentials for the new launch.
    launch checks pass. Optional Pay with Crypto requires separate eligibility,
    approval and testing and is not needed for the initial launch.
 
-**Provide:** Merchant/card readiness, approved tax approach and secure locations
+**Provide:** Merchant/card readiness and secure locations
 of sandbox/live app settings. Do not post secrets. See [PayPal integration](03_PAYPAL_INTEGRATION.md)
 and [implementation plan](superpowers/plans/2026-10-04-paypal-migration.md).
 

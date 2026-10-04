@@ -77,6 +77,8 @@ class OrderOut(BaseModel):
     refunded_cents: int = 0
     refund_state: str = "NONE"
     square_checkout_url: str | None = None
+    checkout_url: str | None = None
+    order_token: str | None = None
 
 
 class ShippingRateOut(BaseModel):

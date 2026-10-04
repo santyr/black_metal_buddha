@@ -198,6 +198,29 @@ def process_email_job(
         _retry_or_fail(session, job, exc)
 
 
+def process_paypal_capture_job(session: Session, job: Job, *, config: Settings = settings,
+                               client=None) -> None:
+    from .payments.paypal_capture import capture_paypal_order
+    order = session.get(Order, job.order_id)
+    if order is None:
+        job.state = "FAILED"
+        job.last_error = "Order not found"
+        session.commit()
+        return
+    try:
+        status = capture_paypal_order(session, order, config=config, client=client)
+        if status in {"COMPLETED", "DECLINED", "FAILED", "VOIDED", "REFUNDED", "PARTIALLY_REFUNDED"}:
+            job.state = "COMPLETED"
+            job.last_error = None
+        else:
+            job.state = "PENDING"
+            job.next_attempt_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+            job.last_error = "Waiting for authoritative PayPal capture completion"
+        session.commit()
+    except Exception as exc:
+        _retry_or_fail(session, job, exc)
+
+
 def process_pending_jobs(
     session: Session,
     *,
@@ -232,6 +255,8 @@ def process_pending_jobs(
         try:
             if job.job_type == "SUBMIT_PRINTFUL_ORDER":
                 process_submit_printful_job(session, job, config=config)
+            elif job.job_type == "CAPTURE_PAYPAL_ORDER":
+                process_paypal_capture_job(session, job, config=config)
             elif job.job_type.startswith("SEND_"):
                 process_email_job(session, job, config=config)
             else:

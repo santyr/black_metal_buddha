@@ -5,26 +5,32 @@ fulfillment, customer email and controlled order checks are complete.
 
 ## Payment migration required
 
-The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The existing code is still Square-based. PayPal migration, replacement tax handling, sandbox capture/refund/webhook validation and a new controlled live order are launch blockers. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
+The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The migration branch implements PayPal checkout/capture and approved Printful tax quotes. Refund routing, launch gates, app-specific sandbox checks and a controlled live order remain launch work. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
 
-Implementation has begun with PayPal configuration, an Orders/Payments client,
-official webhook verification support, exact money conversion and durable
-operation identifiers in an additive migration. This foundation does not switch
-checkout providers or enable transactions. Checkout/capture processing, webhook
-routes, refund routing and release gates remain to be implemented.
+PayPal checkout now freezes the server-owned price, address and live Printful
+quote before creating an order. Durable request keys survive lost responses.
+A verified completed capture establishes payment and queues fulfillment once;
+approval or pending capture does not. Verified webhooks queue capture even if
+no browser returns, and the reconciliation timer can recover provider success.
+The browser reviews quoted tax and the total before redirect. All checks so
+far use mocks/local databases; no live provider transaction has been created.
 
-The owner confirmed that no legacy Square payment records exist. Printful's
-[order estimation API](https://developers.printful.com/docs/#operation/estimateOrderCosts)
-returns supplier costs including tax; its standalone tax-rate endpoint is retired.
-The supplier tax and our customer-facing tax treatment must be distinguished,
-as explained in [Printful's tax guide](https://www.printful.com/ca/taxes-guide).
+The owner confirmed no legacy Square payment records exist. BMB is in Fremont
+County, Colorado, USA, with no resale certificates held or planned. The owner
+reports accountant guidance on Printful tax and filing treatment; this is
+recorded as supplied guidance, not an independent legal finding.
 
-The owner confirmed that BMB is based in Colorado, USA, and reports Colorado as
-the only jurisdiction for its own tax obligations. No resale certificates are
-held or planned; leave Printful's exemption settings unchanged. Exact Colorado
-checkout-tax calculation, including shipping/delivery-fee treatment, is still
-pending. Printful may charge BMB supplier tax for destinations outside Colorado
-as listed in its [state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax).
+The approved customer pricing is **$35 per shirt + live shipping + Printful's
+quoted tax separately**. The implementation reads actual `costs.tax + costs.vat`
+from the [order estimation API](https://developers.printful.com/docs/#operation/estimateOrderCosts),
+including an explicit valid zero, and refuses incomplete/unavailable quotes.
+Supplier costs and fees are retained separately. No fixed Fremont County rate
+is applied across delivery addresses. No separate GIS key or tax service is
+requested under this approved policy.
+
+PayPal sandbox/live app credentials and webhook IDs have not been supplied in
+the inspected production configuration. Public checkout remains closed and the
+migration branch has not been deployed.
 
 ## Approved product decisions
 
@@ -76,7 +82,7 @@ SMTP authentication and this message's delivery are verified. Order, tracking
 and refund notification workflows remain part of the controlled order check.
 
 Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): complete payment,
-notification workflows and support readiness; approve policies and tax settings;
+notification workflows and support readiness; approve policies;
 provide staging and backup inputs; and complete one
 controlled real order. Keep credentials and deployment details in the private
 handoff, outside public documentation.

@@ -26,6 +26,7 @@ from .orders import (
     validate_pending_catalog,
 )
 from .payments.square import SquareClient
+from .payments.paypal import PayPalClient
 from .reconcile import reconcile_orders, reconcile_printful_order, reconcile_square_order
 from .refunds import request_refund
 from .schemas import CreateOrderIn
@@ -79,23 +80,29 @@ def list_orders(_: argparse.Namespace) -> None:
 
 def reconcile(_: argparse.Namespace) -> None:
     square = None
+    paypal = None
     printful = None
 
     if settings.square_access_token and settings.square_location_id:
         square = SquareClient()
+    if settings.paypal_client_id and settings.paypal_client_secret and settings.paypal_merchant_id:
+        paypal = PayPalClient()
     if settings.printful_mode != "disabled" and settings.printful_token:
         printful = PrintfulClient()
 
-    if square is None and printful is None:
+    if square is None and paypal is None and printful is None:
         raise SystemExit("No configured provider is available for reconciliation.")
 
     with SessionLocal() as session:
         counts = reconcile_orders(
             session,
             square_client=square,
+            paypal_client=paypal,
             printful_client=printful,
         )
     print(counts)
+    if paypal is not None:
+        paypal.close()
 
 
 def checkout_input(args: argparse.Namespace) -> CreateOrderIn:

@@ -102,19 +102,18 @@ Planned routes: `POST /api/phase1/orders/{order_number}/paypal-checkout` and
 `POST /api/phase1/orders/{order_number}/paypal-capture`. Responses expose a
 provider-neutral `checkout_url`; capture uses the stored provider order ID.
 
-- [ ] Obtain the owner-approved tax approach before implementing `app/tax.py`.
+- [x] Obtain the owner-approved tax approach before implementing `app/tax.py`.
   Pin US/Canada taxable and legitimately zero-tax fixtures with approved expected
   values; missing configuration must refuse production checkout.
-- [ ] Write tests for trusted totals, wrong currency, unsupported destination,
+- [x] Write tests for trusted totals, wrong currency, unsupported destination,
   stale catalog, duplicate checkout requests, foreign order access, and changed
   shipping/address after attempt creation. Run the new tests and confirm failures.
-- [ ] Replace `sync_square_pricing` for new payments with server-owned tax/totals;
+- [x] Replace `sync_square_pricing` for new payments with server-owned tax/totals;
   include the exact breakdown and fixed shipping snapshot in the PayPal order.
   Lock the active payment attempt so races cannot create two billable checkouts.
-- [ ] Replace Square frontend calls/copy with PayPal approval/capture flow, preserve
-  order-token ownership, CSRF/rate limits and safe error handling. Verify card
-  eligibility; use PayPal-hosted collection without BMB handling raw card fields.
-- [ ] Run `pytest -q tests/test_paypal_checkout.py tests/test_backend_inputs.py`
+- [x] Replace Square frontend calls/copy with PayPal approval/capture flow, preserve
+  order-token ownership, CSRF/rate limits and safe error handling. Record card eligibility as a pending account-specific release check; use PayPal-hosted collection without BMB handling raw card fields.
+- [x] Run `pytest -q tests/test_paypal_checkout.py tests/test_backend_inputs.py`
   and the mocked checkout browser audit; require PASS, then commit.
 
 ## Task 3: Authoritative capture, verified webhooks and reconciliation
@@ -128,18 +127,18 @@ validates identity/payee/order/reference/gross amount/USD and atomically records
 payment plus one fulfillment job; returns whether it newly transitioned to paid.
 The webhook, synchronous capture and reconciliation paths share this function.
 
-- [ ] Write failing tests for approval-only and pending capture (no fulfillment),
+- [x] Write failing tests for approval-only and pending capture (no fulfillment),
   wrong payee/order/currency/amount, invalid signature, verification outage,
   duplicate event/capture, and captured payment whose browser never returns.
-- [ ] Implement `/api/phase1/webhooks/paypal` verification using the configured
+- [x] Implement `/api/phase1/webhooks/paypal` verification using the configured
   app webhook ID and PayPal verification endpoint. Accept only verified events;
   persist durable event processing with provider/event uniqueness.
-- [ ] Handle approved-order notifications with a durable idempotent capture job.
+- [x] Handle approved-order notifications with a durable idempotent capture job.
   Validate authoritative capture details and preserve the existing local completed
   payment/paid-order conventions consumed by fulfillment.
-- [ ] Reconcile lost responses, approved-but-uncaptured orders, pending captures and
+- [x] Reconcile lost responses, approved-but-uncaptured orders, pending captures and
   missing jobs; retrieve authoritative provider state before repeating side effects.
-- [ ] Test concurrent callback/reconciliation and timeout-after-success paths yield
+- [x] Test concurrent callback/reconciliation and timeout-after-success paths yield
   one payment and one Printful job. Run both new test files plus
   `tests/test_backend_durability.py`; require PASS, then commit.
 

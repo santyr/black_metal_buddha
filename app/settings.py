@@ -57,6 +57,9 @@ class Settings:
     paypal_merchant_id: str | None = None
     paypal_webhook_id: str | None = None
     paypal_webhook_notification_url: str | None = None
+    checkout_tax_mode: str = "disabled"
+    checkout_tax_policy_approved: bool = False
+    paypal_production_canary_approved: bool = False
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -105,6 +108,9 @@ class Settings:
             paypal_merchant_id=os.getenv("PAYPAL_MERCHANT_ID"),
             paypal_webhook_id=os.getenv("PAYPAL_WEBHOOK_ID"),
             paypal_webhook_notification_url=os.getenv("PAYPAL_WEBHOOK_NOTIFICATION_URL"),
+            checkout_tax_mode=os.getenv("CHECKOUT_TAX_MODE", "disabled").lower(),
+            checkout_tax_policy_approved=_bool("CHECKOUT_TAX_POLICY_APPROVED", False),
+            paypal_production_canary_approved=_bool("PAYPAL_PRODUCTION_CANARY_APPROVED", False),
         )
 
     @property

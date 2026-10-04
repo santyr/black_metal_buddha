@@ -107,6 +107,7 @@ def test_checkout_api_uses_catalog_prices_and_reuses_checkout(monkeypatch):
             assert response.status_code == 200, response.text
             data = response.json()
             assert data['subtotal_cents'] == 6400
+            client.headers['X-BMB-Order-Token'] = data['order_token']
             path = '/api/v1/orders/' + data['order_number']
             assert client.post(path + '/square-checkout').status_code == 409
             assert client.get(path + '/shipping-rates').json()[0]['rate_cents'] == 500
