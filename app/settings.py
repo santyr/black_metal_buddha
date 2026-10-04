@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -51,6 +51,12 @@ class Settings:
     support_email: str | None = None
     printful_catalog_sync_enabled: bool = False
     printful_catalog_image_dir: str = str(Path(__file__).resolve().parents[1] / ".runtime" / "product-images")
+    paypal_environment: str = "sandbox"
+    paypal_client_id: str | None = None
+    paypal_client_secret: str | None = field(default=None, repr=False)
+    paypal_merchant_id: str | None = None
+    paypal_webhook_id: str | None = None
+    paypal_webhook_notification_url: str | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -93,7 +99,21 @@ class Settings:
             printful_catalog_sync_enabled=_bool("PRINTFUL_CATALOG_SYNC_ENABLED", False),
             printful_catalog_image_dir=os.getenv("PRINTFUL_CATALOG_IMAGE_DIR") or
                 str(Path(__file__).resolve().parents[1] / ".runtime" / "product-images"),
+            paypal_environment=os.getenv("PAYPAL_ENVIRONMENT", "sandbox").lower(),
+            paypal_client_id=os.getenv("PAYPAL_CLIENT_ID"),
+            paypal_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
+            paypal_merchant_id=os.getenv("PAYPAL_MERCHANT_ID"),
+            paypal_webhook_id=os.getenv("PAYPAL_WEBHOOK_ID"),
+            paypal_webhook_notification_url=os.getenv("PAYPAL_WEBHOOK_NOTIFICATION_URL"),
         )
+
+    @property
+    def paypal_api_base(self) -> str:
+        hosts = {"sandbox": "https://api-m.sandbox.paypal.com",
+                 "production": "https://api-m.paypal.com"}
+        if self.paypal_environment not in hosts:
+            raise ValueError("PAYPAL_ENVIRONMENT must be sandbox or production")
+        return hosts[self.paypal_environment]
 
     @property
     def square_api_base(self) -> str:
@@ -106,6 +126,7 @@ class Settings:
         return bool(self.admin_username and self.admin_password and self.app_secret_key)
 
     def validate_safety(self) -> None:
+        self.paypal_api_base  # Reject typos instead of silently selecting a payment environment.
         if self.printful_catalog_sync_enabled and (not self.printful_token or not self.printful_store_id):
             raise ValueError("Printful catalog sync requires a token and store ID")
         if self.printful_mode not in {"disabled", "draft", "production"}:

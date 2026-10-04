@@ -10,7 +10,23 @@
 
 **Spec:** [PayPal integration](../../03_PAYPAL_INTEGRATION.md), approved 2026-10-04.
 
-**Status:** Planning only. No PayPal runtime support is delivered by this documentation change.
+**Status:** Implementation started. Task 1 adds the PayPal client/configuration and
+an additive database migration. Checkout, capture processing, webhook routes,
+refund dispatch and production readiness remain pending; the public checkout
+stays closed.
+
+**Owner clarification (2026-10-04):** There are no legacy Square payment records.
+No historical live-payment migration is required. Preserve the existing schema
+and compatibility fixtures while implementing new PayPal sales.
+
+**Tax API finding (2026-10-04):** Printful's
+[`POST /orders/estimate-costs`](https://developers.printful.com/docs/#operation/estimateOrderCosts)
+includes the tax charged to BMB on fulfillment. The standalone `/tax/rates`
+endpoint has been retired. Printful's
+[tax guide](https://www.printful.com/ca/taxes-guide) explains that its supplier
+taxes do not replace the seller's own tax obligations. Task 2 therefore still
+needs the approved treatment of supplier tax versus retail tax; do not copy an
+estimate into customer sales tax without that decision.
 
 ## Global constraints
 
@@ -44,18 +60,25 @@
 `get_refund(refund_id: str) -> dict`, and
 `verify_webhook(headers: dict, event: dict) -> bool` (raise a retryable error on outage).
 
-- [ ] Write failing tests for sandbox/live host isolation, absent credentials,
+- [x] Write failing tests for sandbox/live host isolation, absent credentials,
   token refresh, request timeout/retry preserving the same request ID, and exact
   cents-to-decimal conversion. Run `pytest -q tests/test_paypal.py` and confirm failures.
-- [ ] Add `PAYPAL_ENVIRONMENT=sandbox|production`, client ID/secret, merchant ID,
+- [x] Add `PAYPAL_ENVIRONMENT=sandbox|production`, client ID/secret, merchant ID,
   webhook ID/notification URL; keep credentials server-side. Implement fixed trusted
   PayPal API hosts, bounded timeouts and OAuth token management using httpx.
-- [ ] Test then add a nullable provider discriminator, unique PayPal order/capture
+- [x] Test then add a nullable provider discriminator, unique PayPal order/capture
   and refund identifiers, and persistent operation request IDs. Backfill actual
   legacy Square-linked rows as Square; leave unpaid unbound rows unassigned until
   provider selection. Never rename Square IDs into PayPal fields.
-- [ ] Verify upgrade against a populated Square fixture preserves its IDs and
+- [x] Verify upgrade against a populated Square fixture preserves its IDs and
   refund history. Run both new test files; require PASS and commit this task.
+
+Task 1 verification: full local suite **195 passed** (2026-10-04); 63 PayPal
+client checks cover fixed hosts, OAuth refresh, exact amounts, durable-key retries,
+missing-key rejection and verification failures/outages. The populated migration
+fixture preserves provider references and rejects a downgrade that would discard
+PayPal history. Fresh review findings were covered by failing regression tests
+and fixes before the full suite passed. No live provider transactions were made.
 
 ## Task 2: Server-priced checkout and tax replacement
 

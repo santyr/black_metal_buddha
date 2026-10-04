@@ -7,6 +7,18 @@ fulfillment, customer email and controlled order checks are complete.
 
 The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The existing code is still Square-based. PayPal migration, replacement tax handling, sandbox capture/refund/webhook validation and a new controlled live order are launch blockers. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
 
+Implementation has begun with PayPal configuration, an Orders/Payments client,
+official webhook verification support, exact money conversion and durable
+operation identifiers in an additive migration. This foundation does not switch
+checkout providers or enable transactions. Checkout/capture processing, webhook
+routes, refund routing and release gates remain to be implemented.
+
+The owner confirmed that no legacy Square payment records exist. Printful's
+[order estimation API](https://developers.printful.com/docs/#operation/estimateOrderCosts)
+returns supplier costs including tax; its standalone tax-rate endpoint is retired.
+The supplier tax and our customer-facing tax treatment must be distinguished,
+as explained in [Printful's tax guide](https://www.printful.com/ca/taxes-guide).
+
 ## Approved product decisions
 
 - All five published designs have approved physical samples; Black Comfort Colors 1717 selected.
