@@ -235,7 +235,8 @@ class PayPalClient:
         if currency != "USD" or amount_cents == 0:
             raise ValueError("Refunds require a positive USD amount")
         return self._request("POST", f"/v2/payments/captures/{_resource_id(capture_id)}/refund",
-                             payload={"amount": {"currency_code": currency, "value": value}},
+                             payload={"amount": {"currency_code": currency, "value": value},
+                                      "custom_id": _request_id(request_id)},
                              request_id=request_id)
 
     def get_refund(self, refund_id: str) -> dict[str, Any]:

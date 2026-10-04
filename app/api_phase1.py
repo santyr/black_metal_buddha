@@ -360,12 +360,36 @@ async def paypal_webhook(request: Request, session: Session = Depends(db_session
         raise HTTPException(status_code=401, detail="Invalid PayPal signature")
     resource = _object(event.get('resource'), 'resource')
     order_id = None
-    capture_events = {'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DECLINED'}
+    capture_events = {'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DECLINED',
+                      'PAYMENT.CAPTURE.REVERSED'}
+    refund_events = {'PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.REFUND.PENDING', 'PAYMENT.REFUND.FAILED'}
+    refund_data = None
     if kind == 'CHECKOUT.ORDER.APPROVED':
         order_id = resource.get('id')
     elif kind in capture_events:
         related = _object(_object(resource.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
         order_id = related.get('order_id')
+    elif kind in refund_events:
+        refund_id = resource.get('id')
+        if not isinstance(refund_id, str) or not 1 <= len(refund_id) <= 128:
+            raise HTTPException(status_code=400, detail="Invalid PayPal refund identity")
+        lookup = PayPalClient(settings)
+        try:
+            refund_data = lookup.get_refund(refund_id)
+            if refund_data.get('id') != refund_id:
+                raise HTTPException(status_code=409, detail="PayPal refund identity mismatch")
+            prefix = settings.paypal_api_base + '/v2/payments/captures/'
+            up = next((link.get('href') for link in refund_data.get('links', [])
+                       if isinstance(link, dict) and link.get('rel') == 'up'), None)
+            if not isinstance(up, str) or not up.startswith(prefix):
+                raise HTTPException(status_code=409, detail="PayPal refund capture relationship missing")
+            capture = lookup.get_capture(up[len(prefix):])
+            related = _object(_object(capture.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
+            order_id = related.get('order_id')
+        except (PayPalAPIError, PayPalConfigurationError):
+            raise HTTPException(status_code=503, detail="PayPal refund lookup is temporarily unavailable") from None
+        finally:
+            lookup.close()
     if order_id is not None and (not isinstance(order_id, str) or not 1 <= len(order_id) <= 128):
         raise HTTPException(status_code=400, detail="Invalid PayPal order identity")
     order = session.scalar(select(Order).where(Order.paypal_order_id == order_id)) if order_id else None
@@ -400,7 +424,38 @@ async def paypal_webhook(request: Request, session: Session = Depends(db_session
             job.next_attempt_at = datetime.now(timezone.utc)
             job.last_error = None
             job.attempt_count = 0
-        result = 'CAPTURE_QUEUED'
+        result = 'REVERSAL_QUEUED' if kind == 'PAYMENT.CAPTURE.REVERSED' else 'CAPTURE_QUEUED'
+        if refund_data is not None:
+            from .payments.paypal import decimal_to_cents
+            amount = _object(refund_data.get('amount'), 'refund amount')
+            try:
+                cents = decimal_to_cents(amount.get('value'))
+            except ValueError:
+                raise HTTPException(status_code=409, detail="Invalid PayPal refund amount") from None
+            if amount.get('currency_code') != order.currency or not 0 < cents <= order.total_cents:
+                raise HTTPException(status_code=409, detail="PayPal refund amount/currency mismatch")
+            refund = session.scalar(select(Refund).where(Refund.paypal_refund_id == refund_data['id']))
+            if refund is None and isinstance(refund_data.get('custom_id'), str):
+                refund = session.scalar(select(Refund).where(Refund.paypal_request_id == refund_data['custom_id']))
+            if refund is None:
+                unresolved = session.scalar(select(Refund.id).where(Refund.order_id == order.id,
+                    Refund.status == 'REQUESTED', Refund.paypal_refund_id.is_(None)))
+                if unresolved is not None:
+                    raise HTTPException(status_code=503, detail="Refund request is still being resolved")
+                refund = Refund(order_id=order.id, payment_provider='paypal', paypal_refund_id=refund_data['id'],
+                                amount_cents=cents, currency=order.currency, status='PENDING', reason='PayPal dashboard refund')
+                session.add(refund)
+            elif (refund.order_id != order.id or refund.payment_provider != 'paypal'
+                  or refund.amount_cents != cents or refund.currency != order.currency):
+                raise HTTPException(status_code=409, detail="PayPal refund reservation mismatch")
+            refund.paypal_refund_id = refund_data['id']
+            if refund.status == 'REQUESTED':
+                refund.status = 'PENDING'
+            if refund.status not in {'COMPLETED', 'FAILED', 'REJECTED'}:
+                order.refund_state = 'PENDING'
+            session.flush()
+            enqueue_job(session, order, f'RECONCILE_PAYPAL_REFUND:{refund.id}')
+            result = 'REFUND_QUEUED'
     # Event + its durable job are committed together; duplicate races roll back both.
     duplicate = _store_event(session, PaymentEvent(provider='paypal', provider_event_id=event_id,
         provider_payment_id=resource.get('id') if isinstance(resource.get('id'), str) and len(resource['id']) <= 128 else None,

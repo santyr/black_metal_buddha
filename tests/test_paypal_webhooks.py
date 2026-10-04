@@ -101,3 +101,47 @@ def test_event_and_job_are_atomic_on_insertion_failure(webhook_app,monkeypatch):
     with factory() as session:
         assert session.scalars(select(PaymentEvent)).all()==[]
         assert session.scalars(select(Job)).all()==[]
+
+
+def test_completed_capture_without_related_ids_is_resolved_authoritatively(webhook_app):
+    factory,identity,provider=webhook_app;provider.remote['status']='APPROVED'
+    payload=event('PAYMENT.CAPTURE.COMPLETED');del payload['resource']['supplementary_data']
+    with TestClient(app) as browser:
+        assert browser.post('/api/phase1/webhooks/paypal',json=payload).status_code==200
+    with factory() as session: assert session.scalar(select(Job)).job_type=='CAPTURE_PAYPAL_ORDER'
+
+
+def test_verified_reversal_never_recreates_fulfillment_job(webhook_app):
+    from test_paypal_refunds import paid
+    from app.payments.paypal_capture import capture_paypal_order
+    factory,identity,_=webhook_app;provider=paid(factory,identity)
+    provider.verify_webhook=lambda *_:True;provider.close=lambda:None
+    import app.api_phase1 as api
+    original=api.PayPalClient;api.PayPalClient=lambda *_:provider
+    try:
+        with TestClient(app) as browser:
+            assert browser.post('/api/phase1/webhooks/paypal',json=event('PAYMENT.CAPTURE.REVERSED')).status_code==200
+        with factory() as session:
+            assert capture_paypal_order(session,session.get(Order,identity),config=provider.config,client=provider)=='REVERSED'
+            assert session.get(Order,identity).payment_state=='REVERSED'
+    finally: api.PayPalClient=original
+
+
+def test_dashboard_refund_callback_queues_exact_refund_reconciliation(webhook_app):
+    from test_paypal_refunds import paid
+    from app.models import Refund
+    from app.jobs import process_paypal_refund_job
+    factory,identity,_=webhook_app;provider=paid(factory,identity)
+    provider.refund_capture('CAPTURE',amount_cents=4108,currency='USD',request_id='dashboard')
+    provider.verify_webhook=lambda *_:True;provider.close=lambda:None
+    original=api.PayPalClient;api.PayPalClient=lambda *_:provider
+    payload=event('PAYMENT.CAPTURE.REFUNDED');payload['resource']['id']='REFUND1'
+    try:
+        with TestClient(app) as browser:
+            assert browser.post('/api/phase1/webhooks/paypal',json=payload).status_code==200
+        with factory() as session:
+            job=session.scalar(select(Job).where(Job.job_type.like('RECONCILE_PAYPAL_REFUND:%')))
+            assert job is not None
+            process_paypal_refund_job(session,job,config=provider.config,client=provider)
+            assert job.state=='COMPLETED' and session.get(Order,identity).refunded_cents==4108
+    finally: api.PayPalClient=original

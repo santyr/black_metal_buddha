@@ -209,7 +209,7 @@ def process_paypal_capture_job(session: Session, job: Job, *, config: Settings =
         return
     try:
         status = capture_paypal_order(session, order, config=config, client=client)
-        if status in {"COMPLETED", "DECLINED", "FAILED", "VOIDED", "REFUNDED", "PARTIALLY_REFUNDED"}:
+        if status in {"COMPLETED", "DECLINED", "FAILED", "VOIDED", "REFUNDED", "PARTIALLY_REFUNDED", "REVERSED"}:
             job.state = "COMPLETED"
             job.last_error = None
         else:
@@ -219,6 +219,29 @@ def process_paypal_capture_job(session: Session, job: Job, *, config: Settings =
         session.commit()
     except Exception as exc:
         _retry_or_fail(session, job, exc)
+
+
+def process_paypal_refund_job(session: Session, job: Job, *, config: Settings = settings,
+                              client=None) -> None:
+    from .payments.paypal import PayPalClient
+    from .payments.paypal_refunds import reconcile_paypal_refund
+    from .models import Refund
+    provider = client or PayPalClient(config)
+    try:
+        refund = session.get(Refund, int(job.job_type.split(':', 1)[1]))
+        order = session.get(Order, job.order_id)
+        if refund is None or order is None or refund.order_id != order.id:
+            raise ValueError('Refund job identity mismatch')
+        result = reconcile_paypal_refund(session, order, refund.paypal_refund_id, client=provider)
+        job.state = 'PENDING' if result.status == 'PENDING' else 'COMPLETED'
+        job.next_attempt_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        job.last_error = None
+        session.commit()
+    except Exception as exc:
+        _retry_or_fail(session, job, exc)
+    finally:
+        if client is None:
+            provider.close()
 
 
 def process_pending_jobs(
@@ -257,6 +280,8 @@ def process_pending_jobs(
                 process_submit_printful_job(session, job, config=config)
             elif job.job_type == "CAPTURE_PAYPAL_ORDER":
                 process_paypal_capture_job(session, job, config=config)
+            elif job.job_type.startswith("RECONCILE_PAYPAL_REFUND:"):
+                process_paypal_refund_job(session, job, config=config)
             elif job.job_type.startswith("SEND_"):
                 process_email_job(session, job, config=config)
             else:

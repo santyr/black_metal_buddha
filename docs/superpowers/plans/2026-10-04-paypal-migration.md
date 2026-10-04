@@ -152,15 +152,15 @@ Create `tests/test_paypal_refunds.py`; extend `tests/test_refund_migration.py`.
 provider. PayPal refunds reference `paypal_capture_id`; Square records continue
 using their existing IDs and client, without becoming selectable for new orders.
 
-- [ ] Write failing tests for partial/full refunds, over-refunds, concurrent refunds,
+- [x] Write failing tests for partial/full refunds, over-refunds, concurrent refunds,
   remote success with lost response, pending/failed refund, dashboard-initiated
   refund, capture reversal and old completion events arriving after refund.
-- [ ] Add idempotent PayPal capture-refund requests and provider status recovery.
+- [x] Add idempotent PayPal capture-refund requests and provider status recovery.
   Preserve payment history, separate Printful cancellation, and flag already-produced
   orders for owner attention on reversal; never trigger fulfillment a second time.
-- [ ] Verify historical Square refund fixtures still dispatch to Square, and mixed
+- [x] Verify historical Square refund fixtures still dispatch to Square, and mixed
   provider identifiers cannot refund the wrong transaction.
-- [ ] Run `pytest -q tests/test_paypal_refunds.py tests/test_refund_migration.py`
+- [x] Run `pytest -q tests/test_paypal_refunds.py tests/test_refund_migration.py`
   and reconciliation tests; require PASS, then commit.
 
 ## Task 5: Readiness gates, funding failures and safe cutover

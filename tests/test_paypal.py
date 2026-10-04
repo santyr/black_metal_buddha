@@ -197,7 +197,7 @@ def test_refund_and_resource_endpoints():
         if request.url.path == '/v1/oauth2/token': return token()
         paths.append(request.url.path)
         if request.method == 'POST':
-            assert json.loads(request.content) == {'amount':{'currency_code':'USD','value':'0.01'}}
+            assert json.loads(request.content) == {'amount':{'currency_code':'USD','value':'0.01'}, 'custom_id':'refund-key'}
             assert request.headers['paypal-request-id'] == 'refund-key'
         return httpx.Response(200, json={'id':'RESOURCE'})
     api = client(handler)

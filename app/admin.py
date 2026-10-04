@@ -28,6 +28,8 @@ from .models import (
 )
 from .ops import build_attention_report
 from .payments.square import SquareClient
+from .payments.paypal import PayPalClient
+from .payments.paypal_capture import capture_paypal_order
 from .reconcile import reconcile_printful_order, reconcile_square_order
 from .refunds import RefundError, request_refund
 from .settings import settings
@@ -182,9 +184,11 @@ def order_detail(
     ).all()
     payment_events = session.scalars(
         select(PaymentEvent)
-        .where(PaymentEvent.provider_payment_id == order.square_payment_id)
+        .where(PaymentEvent.provider_payment_id.in_([value for value in
+            [order.square_payment_id, order.paypal_order_id, order.paypal_capture_id]
+            + [refund.paypal_refund_id for refund in refunds] if value]))
         .order_by(PaymentEvent.processed_at.desc())
-    ).all() if order.square_payment_id else []
+    ).all() if order.square_payment_id or order.paypal_order_id else []
     fulfillment_events = session.scalars(
         select(FulfillmentEvent)
         .where(FulfillmentEvent.provider_order_id == order.printful_order_id)
@@ -231,7 +235,10 @@ async def reconcile_order_action(
 
     results: dict[str, str] = {}
     try:
-        if order.square_order_id and settings.square_access_token:
+        if order.payment_provider == "paypal" and order.paypal_order_id:
+            with PayPalClient(settings) as provider:
+                results["paypal"] = capture_paypal_order(session, order, client=provider, config=settings)
+        elif order.square_order_id and settings.square_access_token:
             results["square"] = reconcile_square_order(session, order, client=SquareClient())
         if order.payment_state == "COMPLETED" and settings.printful_token and settings.printful_mode != "disabled":
             results["printful"] = reconcile_printful_order(session, order, client=PrintfulClient())
@@ -315,7 +322,7 @@ async def refund_action(
             order,
             amount_cents=amount_cents,
             reason=reason,
-            client=SquareClient(),
+            client=PayPalClient(settings) if order.payment_provider == "paypal" else SquareClient(),
         )
         record_audit(
             session,
@@ -324,7 +331,7 @@ async def refund_action(
             object_type="order",
             object_id=order.order_number,
             details={
-                "refund_id": refund.square_refund_id,
+                "refund_id": refund.paypal_refund_id or refund.square_refund_id,
                 "amount_cents": refund.amount_cents,
                 "status": refund.status,
             },
@@ -334,7 +341,7 @@ async def refund_action(
         session.rollback()
         unresolved = session.scalar(select(Refund.id).where(
             Refund.order_id == order.id, Refund.status == "REQUESTED",
-            Refund.square_refund_id.is_(None)))
+            Refund.square_refund_id.is_(None), Refund.paypal_refund_id.is_(None)))
         record_audit(
             session,
             actor=actor,

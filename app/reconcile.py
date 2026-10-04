@@ -12,6 +12,7 @@ from .payments.square import SquareClient
 from .payments.paypal import PayPalClient
 from .payments.paypal_capture import capture_paypal_order
 from .payments.paypal_checkout import prepare_paypal_checkout
+from .payments.paypal_refunds import reconcile_paypal_refund
 from .refunds import TERMINAL_REFUND_STATES, apply_refund_status, submit_refund_request
 from .shipments import upsert_printful_shipment
 
@@ -197,6 +198,25 @@ def reconcile_orders(
                         order,
                         status=str(data.get("status") or refund.status),
                     )
+                    counts["refunds_checked"] += 1
+                except Exception:
+                    session.rollback()
+                    counts["refund_errors"] += 1
+
+        if paypal_client is not None and order.payment_provider == "paypal":
+            if order.paypal_order_id:
+                try:
+                    remote = paypal_client.get_order(order.paypal_order_id)
+                    for data in remote.get('purchase_units', [{}])[0].get('payments', {}).get('refunds', []):
+                        reconcile_paypal_refund(session, order, data['id'], client=paypal_client)
+                        counts["refunds_checked"] += 1
+                except Exception:
+                    session.rollback()
+                    counts["refund_errors"] += 1
+            for refund in session.scalars(select(Refund).where(Refund.order_id == order.id,
+                Refund.status.not_in(TERMINAL_REFUND_STATES))).all():
+                try:
+                    submit_refund_request(session, refund, order, client=paypal_client)
                     counts["refunds_checked"] += 1
                 except Exception:
                     session.rollback()

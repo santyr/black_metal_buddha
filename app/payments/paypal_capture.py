@@ -2,9 +2,10 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..models import Order
+from ..models import Order, PaymentEvent
 from ..orders import OrderError, enqueue_job
 from ..settings import Settings, settings
 from .paypal import PayPalClient, decimal_to_cents
@@ -123,6 +124,13 @@ def capture_paypal_order(session: Session, order: Order, *, config: Settings = s
         if not isinstance(capture, dict):
             raise OrderError("PayPal capture response is invalid")
         envelope = dict(capture, _paypal_order=remote)
+        reversal = session.scalar(select(PaymentEvent.id).where(PaymentEvent.provider == 'paypal',
+            PaymentEvent.event_type == 'PAYMENT.CAPTURE.REVERSED',
+            PaymentEvent.provider_payment_id == identity, PaymentEvent.processing_result == 'REVERSAL_QUEUED'))
+        if reversal is not None:
+            from .paypal_refunds import apply_paypal_reversal
+            apply_paypal_reversal(session, order, client=provider)
+            return 'REVERSED'
         apply_paypal_capture(session, order, envelope, config=config)
         return capture['status']
     except Exception:

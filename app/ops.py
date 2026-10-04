@@ -23,7 +23,7 @@ def build_attention_report(
     ).all()
     problem_orders = session.scalars(
         select(Order).where(
-            Order.order_state.in_(["FULFILLMENT_FAILED", "FULFILLMENT_HOLD"])
+            Order.order_state.in_(["FULFILLMENT_FAILED", "FULFILLMENT_HOLD", "PAYMENT_REVERSED"])
         )
     ).all()
     failed_refunds = session.scalars(
@@ -78,7 +78,7 @@ def build_attention_report(
         add(
             "failed_refund",
             order_numbers.get(refund.order_id, refund.order_id),
-            refund.square_refund_id or f"Request {refund.idempotency_key}",
+            refund.paypal_refund_id or refund.square_refund_id or f"Request {refund.paypal_request_id or refund.idempotency_key}",
         )
     for shipment in returned_shipments:
         add(
