@@ -1,66 +1,28 @@
-# ADR-001 — Lightning Deferred Until Square Provides Automated Fiat Settlement
+# ADR-001 — Lightning Deferred Until Automated USD Settlement Is Available
 
-**Status:** Accepted  
-**Date:** 2026-09-17
-
-## Requirement
-
-Black Metal Buddha eventually wants to offer Lightning payments, potentially with a 10% discount.
-
-However, the required production flow is:
-
-```text
-customer Lightning payment
-        ↓
-Square
-        ↓
-automatic fiat/USD settlement
-        ↓
-normal BMB paid-order flow
-        ↓
-Printful
-```
-
-There must be **no manual BTC-to-USD conversion** and no human step required before Printful fulfillment.
-
-## Current limitation
-
-Square supports Bitcoin/Lightning in first-party Square products, but its public custom-ecommerce APIs do not currently expose the complete programmatic Lightning checkout flow required by BMB.
+**Status:** Accepted; amended 2026-10-04 to replace the Square-specific dependency.
+**Original date:** 2026-09-17
 
 ## Decision
 
-Do not implement Lightning through:
-
-- LNbits
-- Strike
-- Core Lightning
-- BTCPay
-- another crypto processor
-- undocumented Square endpoints
-- external crypto payments merely recorded in Square
-
-These approaches do not satisfy the project's required Square-mediated automated Lightning-to-fiat flow.
+PayPal is the planned payment provider. Lightning remains outside the launch
+scope. Do not add LNbits, Strike, Core Lightning, BTCPay or another processor as
+part of the PayPal migration. Reopening this ADR requires a separate decision.
 
 ## Revisit criteria
 
-Reopen Lightning implementation only when Square officially provides APIs that can:
+An approved provider must offer a documented online Lightning checkout API,
+reliable order correlation and server-verifiable payment status, and automatic
+USD settlement without manual BTC conversion before Printful fulfillment.
 
-1. create/initiate an online Lightning payment
-2. tie it to the BMB/Square order
-3. report payment status via trustworthy API/webhook events
-4. automatically settle proceeds to USD/fiat
-5. integrate without manual conversion before Printful fulfillment
+PayPal's documented Pay with Crypto supports Bitcoin-funded payments with USD
+settlement, but this does not establish native Lightning invoice or LNURL support.
+Do not label that checkout as Lightning or assume arbitrary Lightning wallets work.
 
-## Future UX
+Optional Pay with Crypto is a later, separately gated enhancement after merchant
+eligibility and actual wallet, settlement and refund behavior are validated.
+It is not a launch requirement. See [PayPal integration](03_PAYPAL_INTEGRATION.md).
 
-When all criteria are met:
-
-```text
-Card / wallet:      $40.00
-Lightning:          $36.00
-                    Save 10%
-```
-
-The discount must be calculated server-side.
-
-Until then, no Lightning payment option should be shown on the BMB storefront.
+A possible future Lightning discount remains unapproved for implementation and
+must be calculated server-side if later adopted. No Lightning option is shown
+until the criteria above and a new acceptance test pass.
