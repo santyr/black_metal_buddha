@@ -1,14 +1,21 @@
 # Testing and Release
 
-## Square tests
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
 
-Use Square Sandbox.
+
+## PayPal tests
+
+Use PayPal Sandbox.
 
 Test:
 
-- payment-link creation
+- order creation
 - idempotent retry
-- successful payment
+- successful completed capture (approval alone is not paid)
+- pending/denied capture and reversal
+- wrong merchant or order binding
+- capture succeeds remotely but response is lost
+- tax and shipping breakdown mismatch
 - declined/abandoned checkout
 - duplicate webhook
 - invalid webhook signature
@@ -21,7 +28,7 @@ Test:
 
 ## Printful tests
 
-Test safely before production:
+Staging uses mocks for writes and read-only access to the existing Printful store. Draft creation is not a payment sandbox. Exercise the following with mocks; actual writes/confirmation require the controlled live order:
 
 - create draft
 - confirm
@@ -33,15 +40,15 @@ Test safely before production:
 
 ## Critical invariant
 
-A customer returning from Square must never be enough to mark an order paid.
+A customer returning from PayPal must never be enough to mark an order paid.
 
-Only authoritative Square state can do that.
+Only a verified completed capture bound to the expected merchant, order, USD currency and gross amount can do that.
 
 ## Production canary
 
 1. place one real order
-2. verify Square order/payment IDs
-3. verify Square payment `COMPLETED`
+2. verify PayPal order/capture IDs
+3. verify PayPal capture `COMPLETED`
 4. verify BMB order `PAID`
 5. verify exactly one Printful order
 6. verify production
@@ -51,7 +58,7 @@ Only authoritative Square state can do that.
 ## Launch gate
 
 - [ ] physical samples approved
-- [ ] Square production canary
+- [ ] PayPal production canary
 - [ ] Printful production canary
 - [ ] refund flow
 - [ ] duplicate protections
