@@ -4,12 +4,14 @@ This checklist is the gate for publishing the pre-launch catalog at `blackmetalb
 
 ## Repository
 
-- [x] Square-first architecture planning merged
+- [x] Original Square architecture planning merged (superseded by the 2026-10-04 PayPal plan)
 - [x] Phase 0 storefront merged
 - [x] Approved Black Metal Buddha logo committed and integrated
 - [x] Automated test workflow present
 - [ ] Publish-readiness PR merged
 - [ ] Exact production commit recorded
+
+- [ ] PayPal migration and new payment/fulfillment canary completed before transactional launch
 
 ## Product presentation
 
