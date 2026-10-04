@@ -248,7 +248,7 @@ export BMB_ALLOW_RESTORE_TEST=true
 bash deploy/verify-backup.sh /var/backups/blackmetalbuddha/blackmetalbuddha-....dump
 ```
 
-The command refuses without the explicit live-cost acknowledgment. Review the exact merchandise/shipping/tax total before paying; payment and Printful confirmation incur real charges.
+BMB_ALLOW_RESTORE_TEST=true permits overwriting the disposable restore database. Verify that its URL names a separate test database; never point this command at production or staging.
 
 ---
 

@@ -159,7 +159,7 @@ def request_paypal_refund(session, order, *, amount_cents, reason, client):
     return submit_paypal_refund(session, refund, order, client=client)
 
 
-def apply_paypal_reversal(session, order, *, client):
+def apply_paypal_reversal(session, order, *, client, commit=True):
     """Only call for a verified stored reversal event; validate provider identity."""
     _, capture = _binding(order, client, allow_unrecorded=True)
     verified = session.scalar(select(PaymentEvent.id).where(PaymentEvent.provider == 'paypal',
@@ -177,4 +177,5 @@ def apply_paypal_reversal(session, order, *, client):
         Job.job_type == 'SUBMIT_PRINTFUL_ORDER', Job.state == 'PENDING')).all():
         job.state = 'CANCELED'
         job.last_error = 'PayPal reversed the capture; owner review required'
-    session.commit()
+    if commit:
+        session.commit()

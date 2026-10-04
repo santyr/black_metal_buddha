@@ -50,6 +50,24 @@ def process_submit_printful_job(
         session.commit()
         return
 
+    # Serialize fulfillment with payment callbacks and refresh cached worker state.
+    # Keep this order lock through supplier confirmation: a committed reversal wins
+    # before any submission; an already-running confirmation requires owner action.
+    from .payments.paypal_checkout import lock_order
+    lock_order(session, order)
+    if order.payment_state == "REVERSED":
+        job.state = "CANCELED"
+        job.last_error = "PayPal reversed the capture; owner review required"
+        session.commit()
+        return
+
+    if order.order_state == "PAYMENT_REVIEW":
+        job.state = "PENDING"
+        job.last_error = "Recovered refunded capture; owner review required before fulfillment"
+        job.next_attempt_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        session.commit()
+        return
+
     if order.payment_state != "COMPLETED":
         job.state = "FAILED"
         job.last_error = "Order is not paid"

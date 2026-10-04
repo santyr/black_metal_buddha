@@ -88,7 +88,10 @@ do not request replacement Square credentials for the new launch.
 1. Verify the PayPal Business merchant account and eligibility to accept the intended
    PayPal/card checkout methods. Confirm the merchant account identity.
 2. Create separate sandbox and live REST apps, with separate buyer/merchant test
-   accounts for sandbox. Store client IDs/secrets privately.
+   accounts for sandbox. Store sandbox settings privately in
+   `/etc/blackmetalbuddha-staging/staging.env` and live settings separately in
+   `/etc/blackmetalbuddha/blackmetalbuddha.env`. Neither inspected file currently
+   contains the required PayPal app settings.
 3. After the PayPal listener is deployed, register its exact HTTPS webhook URL
    on each environment's app and record each webhook ID. The implemented settings are
    `PAYPAL_ENVIRONMENT` (`sandbox` or `production`), `PAYPAL_CLIENT_ID`,
@@ -207,3 +210,9 @@ rejected by automatic approval review because it could expose sensitive data.
 Before deployment, approve a protected backup/restore destination and restricted
 temporary database, or supply evidence from your approved backup procedure.
 Live charges/refunds/cancellation and public activation remain separate gates.
+
+Read-only quote evidence (2026-10-04): one $35 size-L shirt to a synthetic Canon
+City, CO 81212 address returned $4.95 shipping, $2.10 tax and $0 VAT, for a
+customer example total of $42.05. Printful supplier total was $22.65. This
+checks the live quote protocol only; actual customer quotes vary. No provider
+order/payment/confirmation was created.

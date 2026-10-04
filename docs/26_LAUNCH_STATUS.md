@@ -12,8 +12,15 @@ quote before creating an order. Durable request keys survive lost responses.
 A verified completed capture establishes payment and queues fulfillment once;
 approval or pending capture does not. Verified webhooks queue capture even if
 no browser returns, and the reconciliation timer can recover provider success.
-The browser reviews quoted tax and the total before redirect. All checks so
-far use mocks/local databases; no live provider transaction has been created.
+The browser reviews quoted tax and the total before redirect. Payment checks
+use mocked providers and local databases. A read-only live Printful shipping/cost
+probe succeeded; it created no order, payment or fulfillment.
+
+Verified reversals now block unsent fulfillment atomically with event acceptance.
+A refunded capture recovered after a lost response records the captured payment
+and reconciles authoritative refunds. A newly recovered partial refund remains
+in PAYMENT_REVIEW, appears in owner attention and blocks shipment; the owner
+can refund the remaining balance. A stale completion cannot release that hold.
 
 The owner confirmed no legacy Square payment records exist. BMB is in Fremont
 County, Colorado, USA, with no resale certificates held or planned. The owner
@@ -29,7 +36,9 @@ is applied across delivery addresses. No separate GIS key or tax service is
 requested under this approved policy.
 
 PayPal sandbox/live app credentials and webhook IDs have not been supplied in
-the inspected production configuration. Public checkout remains closed and the
+the inspected staging or production configuration. Sandbox credentials belong
+in `/etc/blackmetalbuddha-staging/staging.env`; live credentials belong in
+`/etc/blackmetalbuddha/blackmetalbuddha.env`. Public checkout remains closed and the
 migration branch has not been deployed.
 
 ## Approved product decisions

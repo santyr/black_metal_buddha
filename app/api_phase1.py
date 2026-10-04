@@ -61,11 +61,14 @@ def _webhook_event(body: bytes) -> dict:
     return event
 
 
-def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent) -> bool:
+def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent, *, before_commit=None) -> bool:
     model = type(event)
     provider, event_id = event.provider, event.provider_event_id
     session.add(event)
     try:
+        if before_commit is not None:
+            session.flush()
+            before_commit()
         session.commit()
         return False
     except IntegrityError:
@@ -73,6 +76,9 @@ def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent) -> bo
         if session.scalar(select(model).where(model.provider == provider,
                                                model.provider_event_id == event_id)) is not None:
             return True
+        raise
+    except Exception:
+        session.rollback()
         raise
 
 
@@ -433,9 +439,23 @@ def _process_paypal_webhook(body: bytes, headers: dict, session: Session):
             enqueue_job(session, order, f'RECONCILE_PAYPAL_REFUND:{refund.id}')
             result = 'REFUND_QUEUED'
     # Event + its durable job are committed together; duplicate races roll back both.
+    def hold_reversal():
+        from .payments.paypal_refunds import apply_paypal_reversal
+        from .refunds import RefundError
+        lookup = PayPalClient(settings)
+        try:
+            apply_paypal_reversal(session, order, client=lookup, commit=False)
+        except (PayPalAPIError, PayPalConfigurationError):
+            raise HTTPException(status_code=503, detail="PayPal reversal lookup is temporarily unavailable") from None
+        except (RefundError, OrderError):
+            raise HTTPException(status_code=409, detail="PayPal reversal binding mismatch") from None
+        finally:
+            lookup.close()
+
     duplicate = _store_event(session, PaymentEvent(provider='paypal', provider_event_id=event_id,
         provider_payment_id=resource.get('id') if isinstance(resource.get('id'), str) and len(resource['id']) <= 128 else None,
-        event_type=kind, payload_hash=hashlib.sha256(body).hexdigest(), processing_result=result))
+        event_type=kind, payload_hash=hashlib.sha256(body).hexdigest(), processing_result=result),
+        before_commit=hold_reversal if result == 'REVERSAL_QUEUED' else None)
     return {'ok':True, 'result':result, 'duplicate':duplicate}
 
 

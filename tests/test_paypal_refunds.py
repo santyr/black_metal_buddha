@@ -166,3 +166,45 @@ def test_timer_imports_dashboard_refund_without_callback(checkout_database):
         result=reconcile_orders(session,paypal_client=provider)
         assert result['refund_errors']==0
         assert session.get(Order,identity).refunded_cents==4108
+
+
+@pytest.mark.parametrize('amount,status', [(500, 'PARTIALLY_REFUNDED'), (4108, 'REFUNDED')])
+def test_lost_capture_followed_by_dashboard_refund_recovers_payment(checkout_database, amount, status):
+    from app.ops import build_attention_report
+    from app.jobs import process_submit_printful_job
+    from dataclasses import replace
+    factory, identity = checkout_database
+    provider = paid(factory, identity)
+    # Model a successful remote capture whose local receipt/jobs never committed.
+    with factory() as session:
+        order = session.get(Order, identity)
+        order.payment_state = 'PENDING'
+        order.order_state = 'PENDING_PAYMENT'
+        order.paypal_capture_id = None
+        order.paid_at = None
+        for job in session.scalars(select(Job)).all(): session.delete(job)
+        session.commit()
+    provider.refund_capture('CAPTURE', amount_cents=amount, currency='USD', request_id='dashboard')
+    provider.capture['status'] = status
+    with factory() as session:
+        order = session.get(Order, identity)
+        assert capture_paypal_order(session, order, config=provider.config, client=provider) == status
+        assert order.payment_state == 'COMPLETED' and order.paid_at is not None
+        assert order.refunded_cents == amount and order.paypal_capture_id == 'CAPTURE'
+        assert session.scalars(select(Job).where(Job.job_type == 'SUBMIT_PRINTFUL_ORDER')).all() == []
+        if status == 'PARTIALLY_REFUNDED':
+            assert order.order_state == 'PAYMENT_REVIEW'
+            assert any(issue['detail'] == 'PAYMENT_REVIEW' for issue in build_attention_report(session)['issues'])
+            # Even an old completed status must not silently release this hold.
+            provider.capture['status'] = 'COMPLETED'
+            capture_paypal_order(session, order, config=provider.config, client=provider)
+            job = Job(order_id=order.id, job_type='SUBMIT_PRINTFUL_ORDER')
+            session.add(job); session.commit()
+            class NoSupplierWrites:
+                def get_order_by_external_id(self, *_): pytest.fail('Review hold reached Printful')
+            process_submit_printful_job(session, job, config=replace(provider.config, printful_mode='live'), client=NoSupplierWrites())
+            assert job.state == 'PENDING'
+            refund = request_refund(session, order, amount_cents=None, reason='remaining', client=provider)
+            assert refund.amount_cents == 3608
+        assert order.order_state == 'REFUNDED'
+        assert len(provider.capture_keys) == 1

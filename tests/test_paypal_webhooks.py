@@ -157,3 +157,45 @@ def test_provider_verification_does_not_block_the_event_loop(webhook_app):
     provider.verify_webhook=verify
     with TestClient(app) as browser:
         assert browser.post('/api/phase1/webhooks/paypal',json=event()).status_code==200
+
+
+def test_reversal_blocks_older_submission_before_capture_worker(webhook_app, monkeypatch):
+    from test_paypal_refunds import paid
+    from app.jobs import process_submit_printful_job
+    factory, identity, _ = webhook_app
+    provider = paid(factory, identity)
+    provider.verify_webhook = lambda *_: True
+    provider.close = lambda: None
+    monkeypatch.setattr(api, 'PayPalClient', lambda *_: provider)
+    class NoSupplierWrites:
+        def get_order_by_external_id(self, *_):
+            pytest.fail('Reversed payment reached Printful')
+    # A worker can have cached the completed order before the callback arrives.
+    with factory() as worker:
+        cached = worker.get(Order, identity)
+        submission = worker.scalar(select(Job).where(Job.job_type == 'SUBMIT_PRINTFUL_ORDER'))
+        worker.commit()
+        with TestClient(app) as browser:
+            assert browser.post('/api/phase1/webhooks/paypal', json=event('PAYMENT.CAPTURE.REVERSED')).status_code == 200
+        with factory() as session:
+            assert session.get(Order, identity).payment_state == 'REVERSED'
+            assert session.get(Job, submission.id).state == 'CANCELED'
+        process_submit_printful_job(worker, submission, config=replace(provider.config, printful_mode='live'), client=NoSupplierWrites())
+        assert cached.payment_state == 'REVERSED'
+        assert submission.state == 'CANCELED'
+
+
+def test_reversal_hold_and_event_roll_back_together(webhook_app, monkeypatch):
+    from test_paypal_refunds import paid
+    factory, identity, _ = webhook_app
+    provider = paid(factory, identity)
+    provider.verify_webhook = lambda *_: True
+    provider.close = lambda: None
+    monkeypatch.setattr(api, 'PayPalClient', lambda *_: provider)
+    provider.capture['amount']['value'] = '0.01'
+    with TestClient(app, raise_server_exceptions=False) as browser:
+        assert browser.post('/api/phase1/webhooks/paypal', json=event('PAYMENT.CAPTURE.REVERSED')).status_code == 409
+    with factory() as session:
+        assert session.get(Order, identity).payment_state == 'COMPLETED'
+        assert session.scalars(select(PaymentEvent)).all() == []
+        assert session.scalar(select(Job).where(Job.job_type == 'SUBMIT_PRINTFUL_ORDER')).state == 'PENDING'

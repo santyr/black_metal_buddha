@@ -23,7 +23,7 @@ def build_attention_report(
     ).all()
     problem_orders = session.scalars(
         select(Order).where(
-            Order.order_state.in_(["FULFILLMENT_FAILED", "FULFILLMENT_HOLD", "PAYMENT_REVERSED"])
+            Order.order_state.in_(["FULFILLMENT_FAILED", "FULFILLMENT_HOLD", "PAYMENT_REVERSED", "PAYMENT_REVIEW"])
         )
     ).all()
     failed_refunds = session.scalars(

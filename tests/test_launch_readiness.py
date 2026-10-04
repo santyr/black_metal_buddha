@@ -205,3 +205,11 @@ def test_paypal_launch_gate_refuses_missing_live_prerequisite(changes):
 
 def test_paypal_launch_gate_needs_no_square_credentials():
     paypal_ready(square_access_token=None,square_location_id=None,square_webhook_signature_key=None).validate_safety()
+
+
+def test_restore_runbook_explains_destructive_test_database_acknowledgment():
+    from pathlib import Path
+    runbook = Path('docs/24_PHASE1_LAUNCH_RUNBOOK.md').read_text()
+    restore_section = runbook.split('export BMB_RESTORE_TEST_DATABASE_URL=', 1)[1].split('\n---', 1)[0]
+    assert 'BMB_ALLOW_RESTORE_TEST=true permits overwriting the disposable restore database' in restore_section
+    assert 'live-cost acknowledgment' not in restore_section

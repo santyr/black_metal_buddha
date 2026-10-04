@@ -65,21 +65,23 @@ def apply_paypal_capture(session: Session, order: Order, capture: dict, *,
                     setattr(order, column, decimal_to_cents(money.get('value')))
                 except ValueError:
                     pass  # Unknown receipt data never becomes an invented fee/net.
-        newly_paid = status == 'COMPLETED' and order.payment_state != 'COMPLETED'
-        if status == 'COMPLETED':
+        captured = status in {'COMPLETED', 'REFUNDED', 'PARTIALLY_REFUNDED'}
+        newly_paid = captured and order.payment_state != 'COMPLETED'
+        if captured:
             if newly_paid:
-                if order.payment_state not in {'PENDING', 'FAILED'} or order.refunded_cents:
+                if order.payment_state not in {'PENDING', 'FAILED'}:
                     raise OrderError("Payment state requires review")
                 order.payment_state = 'COMPLETED'
-                order.order_state = 'PAID'
+                order.order_state = 'PAID' if status == 'COMPLETED' else 'PAYMENT_REVIEW'
                 order.paid_at = datetime.now(timezone.utc)
-            if order.refunded_cents < order.total_cents and order.refund_state != 'COMPLETED':
+            if (status == 'COMPLETED' and order.order_state != 'PAYMENT_REVIEW'
+                    and order.refunded_cents < order.total_cents and order.refund_state != 'COMPLETED'):
                 enqueue_job(session, order, 'SUBMIT_PRINTFUL_ORDER')
                 enqueue_job(session, order, 'SEND_ORDER_CONFIRMATION')
         elif status in {'DECLINED', 'FAILED'} and order.payment_state != 'COMPLETED':
             order.payment_state = 'FAILED'
             order.order_state = 'PAYMENT_FAILED'
-        # PENDING and refunded provider records never newly fulfill or regress PAID.
+        # Refunded captures establish receipt history but never newly fulfill.
         session.commit()
         return newly_paid
     except (KeyError, TypeError, ValueError, IndexError) as exc:
@@ -96,6 +98,10 @@ def capture_paypal_order(session: Session, order: Order, *, config: Settings = s
                          client: PayPalClient | None = None) -> str:
     provider = client or PayPalClient(config)
     try:
+        lock_order(session, order)
+        if order.payment_state == 'REVERSED':
+            session.commit()
+            return 'REVERSED'
         validate_snapshot(order, config)
         if not order.paypal_order_id or order.payment_provider != 'paypal':
             raise OrderError("No PayPal order is attached")
@@ -143,6 +149,15 @@ def capture_paypal_order(session: Session, order: Order, *, config: Settings = s
             apply_paypal_reversal(session, order, client=provider)
             return 'REVERSED'
         apply_paypal_capture(session, order, envelope, config=config)
+        if capture['status'] in {'REFUNDED', 'PARTIALLY_REFUNDED'}:
+            from .paypal_refunds import reconcile_paypal_refund
+            refunds = remote['purchase_units'][0].get('payments', {}).get('refunds', [])
+            if not isinstance(refunds, list) or not refunds:
+                raise OrderError("Refunded capture requires authoritative refund reconciliation")
+            for refund in refunds:
+                if not isinstance(refund, dict) or not isinstance(refund.get('id'), str):
+                    raise OrderError("PayPal refund identity requires review")
+                reconcile_paypal_refund(session, order, refund['id'], client=provider)
         return capture['status']
     except Exception:
         session.rollback()
