@@ -37,12 +37,13 @@ with sync_playwright() as p:
     }]}))
     calls = []
     def api_route(route):
-        path = route.request.url.split('/api/v1', 1)[1]
+        path = '/' + route.request.url.split('/api/', 1)[1].split('/', 1)[1]
         calls.append(path)
+        if path != '/orders': assert route.request.headers.get('x-bmb-order-token') == 'audit-owner-token'
         if path == '/orders':
             payload = route.request.post_data_json
             assert payload['items'] == [{'sku': 'AUDIT-M', 'printful_variant_id': 'AUDIT-VARIANT', 'quantity': 2}]
-            data = {'order_number': 'BMB-AUDIT', 'subtotal_cents': 6400, 'currency': 'USD'}
+            data = {'order_number': 'BMB-AUDIT', 'order_token': 'audit-owner-token', 'subtotal_cents': 6400, 'currency': 'USD'}
         elif path.endswith('/shipping-rates'):
             if calls.count(path) == 1:
                 route.fulfill(status=502, json={'detail': 'Shipping provider temporarily unavailable'})
@@ -50,13 +51,14 @@ with sync_playwright() as p:
             data = [{'shipping': 'STANDARD', 'rate_cents': 500, 'currency': 'USD', 'name': 'Standard'}]
         elif path.endswith('/shipping'):
             data = {'shipping_cents': 500}
-        elif path.endswith('/square-checkout'):
-            data = {'square_checkout_url': 'https://square.example/audit'}
+        elif path.endswith('/paypal-checkout'):
+            data = {'checkout_url': 'https://www.sandbox.paypal.com/checkoutnow?token=AUDIT', 'tax_cents': 108, 'total_cents': 7008, 'currency': 'USD'}
         else:
             raise AssertionError(path)
         route.fulfill(json=data)
     context.route('**/api/v1/**', api_route)
-    context.route('https://square.example/**', lambda route: route.fulfill(body='Mock payment page'))
+    context.route('**/api/phase1/**', api_route)
+    context.route('https://www.sandbox.paypal.com/**', lambda route: route.fulfill(body='Mock payment page'))
     page = context.new_page()
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
@@ -72,8 +74,12 @@ with sync_playwright() as p:
     page.locator('[data-shipping-step]').wait_for(state='visible')
     assert page.locator('[data-checkout-subtotal]').inner_text() == '$64.00'
     assert page.locator('[data-checkout-shipping]').inner_text() == '$5.00'
-    page.locator('[data-square-button]').click()
-    page.wait_for_url('https://square.example/audit')
+    page.locator('[data-paypal-button]').click()
+    page.get_by_text('Pay $70.08 with PayPal', exact=True).wait_for()
+    assert page.locator('[data-checkout-tax]').inner_text() == '$1.08'
+    assert page.locator('[data-checkout-total]').inner_text() == '$70.08'
+    page.locator('[data-paypal-button]').click()
+    page.wait_for_url('https://www.sandbox.paypal.com/checkoutnow?token=AUDIT')
     assert not errors, errors
     browser.close()
 print('PASS: checkout validation, error display/retry, authoritative totals, shipping, and redirect with blocked session storage.')

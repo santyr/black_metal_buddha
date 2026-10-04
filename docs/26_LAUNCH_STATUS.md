@@ -5,7 +5,44 @@ fulfillment, customer email and controlled order checks are complete.
 
 ## Payment migration required
 
-The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The existing code is still Square-based. PayPal migration, replacement tax handling, sandbox capture/refund/webhook validation and a new controlled live order are launch blockers. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
+The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The migration branch implements PayPal checkout/capture/refunds, approved Printful tax quotes and release gates. Refund routing and launch gates are also implemented; app-specific sandbox checks and a controlled live order remain launch work. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
+
+PayPal checkout now freezes the server-owned price, address and live Printful
+quote before creating an order. Durable request keys survive lost responses.
+A verified completed capture establishes payment and queues fulfillment once;
+approval or pending capture does not. Verified webhooks queue capture even if
+no browser returns, and the reconciliation timer can recover provider success.
+The browser reviews quoted tax and the total before redirect. Payment checks
+use mocked providers and local databases. A read-only live Printful shipping/cost
+probe succeeded; it created no order, payment or fulfillment.
+
+Verified reversals now block unsent fulfillment atomically with event acceptance.
+A refunded capture recovered after a lost response records the captured payment
+and reconciles authoritative refunds. A newly recovered partial refund remains
+in PAYMENT_REVIEW, appears in owner attention and blocks shipment; the owner
+can refund the remaining balance. A stale completion cannot release that hold.
+
+The owner confirmed no legacy Square payment records exist. BMB is in Fremont
+County, Colorado, USA, with no resale certificates held or planned. The owner
+reports accountant guidance on Printful tax and filing treatment; this is
+recorded as supplied guidance, not an independent legal finding.
+
+The approved customer pricing is **$35 per shirt + live shipping + Printful's
+quoted tax separately**. The implementation reads actual `costs.tax + costs.vat`
+from the [order estimation API](https://developers.printful.com/docs/#operation/estimateOrderCosts),
+including an explicit valid zero, and refuses incomplete/unavailable quotes.
+Supplier costs and fees are retained separately. No fixed Fremont County rate
+is applied across delivery addresses. No separate GIS key or tax service is
+requested under this approved policy.
+
+PayPal sandbox/live app credentials and webhook IDs have not been supplied in
+the inspected staging or production configuration. Sandbox credentials belong
+in `/etc/blackmetalbuddha-staging/staging.env`; live credentials belong in
+`/etc/blackmetalbuddha/blackmetalbuddha.env`. Public checkout remains closed and the
+migration branch has not been deployed to production. Private staging now
+runs reviewed commit `bb324d6`, with its isolated database upgraded to
+`0011_paypal_receipts`; all staging provider gates remain disabled. Its own
+backup restoration passed and does not replace the pending production check.
 
 ## Approved product decisions
 
@@ -57,7 +94,7 @@ SMTP authentication and this message's delivery are verified. Order, tracking
 and refund notification workflows remain part of the controlled order check.
 
 Follow [the launch handoff](28_LAUNCH_INPUT_HANDOFF.md): complete payment,
-notification workflows and support readiness; approve policies and tax settings;
+notification workflows and support readiness; approve policies;
 provide staging and backup inputs; and complete one
 controlled real order. Keep credentials and deployment details in the private
 handoff, outside public documentation.

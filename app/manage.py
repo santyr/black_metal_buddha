@@ -26,6 +26,9 @@ from .orders import (
     validate_pending_catalog,
 )
 from .payments.square import SquareClient
+from .payments.paypal import PayPalClient
+from .payments.paypal_checkout import prepare_paypal_checkout
+from .payments.paypal_capture import capture_paypal_order
 from .reconcile import reconcile_orders, reconcile_printful_order, reconcile_square_order
 from .refunds import request_refund
 from .schemas import CreateOrderIn
@@ -79,23 +82,29 @@ def list_orders(_: argparse.Namespace) -> None:
 
 def reconcile(_: argparse.Namespace) -> None:
     square = None
+    paypal = None
     printful = None
 
     if settings.square_access_token and settings.square_location_id:
         square = SquareClient()
+    if settings.paypal_client_id and settings.paypal_client_secret and settings.paypal_merchant_id:
+        paypal = PayPalClient()
     if settings.printful_mode != "disabled" and settings.printful_token:
         printful = PrintfulClient()
 
-    if square is None and printful is None:
+    if square is None and paypal is None and printful is None:
         raise SystemExit("No configured provider is available for reconciliation.")
 
     with SessionLocal() as session:
         counts = reconcile_orders(
             session,
             square_client=square,
+            paypal_client=paypal,
             printful_client=printful,
         )
     print(counts)
+    if paypal is not None:
+        paypal.close()
 
 
 def checkout_input(args: argparse.Namespace) -> CreateOrderIn:
@@ -145,18 +154,8 @@ def create_checkout_from_cli(args: argparse.Namespace, *, is_canary: bool) -> Or
             currency=selected["currency"],
         )
 
-        square = SquareClient()
-        validate_pending_catalog(session, order)
-        link = square.create_payment_link(order)
-        square_order = square.get_order(link["order_id"])
-        sync_square_pricing(session, order, square_order)
-        set_square_checkout(
-            session,
-            order,
-            payment_link_id=link["id"],
-            square_order_id=link["order_id"],
-            checkout_url=link["url"],
-        )
+        with PayPalClient(settings) as paypal:
+            prepare_paypal_checkout(session, order, config=settings, client=paypal, printful_client=printful)
 
         print(f"Order: {order.order_number}")
         print(f"Mode: {'LIVE PRODUCTION CANARY' if is_canary else 'SANDBOX'}")
@@ -165,15 +164,17 @@ def create_checkout_from_cli(args: argparse.Namespace, *, is_canary: bool) -> Or
             f"Shipping: {order.currency} {order.shipping_cents / 100:.2f} "
             f"({order.shipping_method})"
         )
-        print(f"Square tax: {order.currency} {order.tax_cents / 100:.2f}")
+        print(f"Quoted tax: {order.currency} {order.tax_cents / 100:.2f}")
         print(f"Total: {order.currency} {order.total_cents / 100:.2f}")
-        print(f"Checkout: {order.square_checkout_url}")
+        print(f"Checkout: {order.paypal_checkout_url}")
         return order
 
 
 def sandbox_checkout(args: argparse.Namespace) -> None:
-    if settings.app_env == "production" or settings.square_environment != "sandbox":
-        raise SystemExit("sandbox-checkout requires APP_ENV != production and Square sandbox")
+    if settings.app_env == "production" or settings.paypal_environment != "sandbox":
+        raise SystemExit("sandbox-checkout requires APP_ENV != production and PayPal sandbox")
+    if settings.printful_mode != "disabled" or settings.printful_confirm_enabled:
+        raise SystemExit("Sandbox checkout requires Printful fulfillment disabled")
     if not settings.printful_token:
         raise SystemExit("PRINTFUL_TOKEN is required to quote shipping")
     create_checkout_from_cli(args, is_canary=False)
@@ -183,13 +184,13 @@ def production_canary(args: argparse.Namespace) -> None:
     if not args.i_understand_this_is_live:
         raise SystemExit(
             "Refusing live canary. Re-run with --i-understand-this-is-live "
-            "only when a real Square charge and Printful fulfillment are intended."
+            "only when a real PayPal charge and Printful fulfillment are intended."
         )
     settings.validate_canary_safety()
     order = create_checkout_from_cli(args, is_canary=True)
     print()
     print("LIVE CANARY CREATED.")
-    print("Pay the Square checkout yourself, then allow the worker/reconciliation timer to run.")
+    print("Pay the PayPal checkout yourself, then allow the worker/reconciliation timer to run.")
     print(f"Check with: python -m app.manage canary-status {order.order_number}")
 
 
@@ -201,7 +202,10 @@ def canary_status(args: argparse.Namespace) -> None:
         if not order.is_canary:
             raise SystemExit("Refusing: order is not marked as a canary")
 
-        if order.square_order_id and settings.square_access_token:
+        if order.payment_provider == "paypal" and order.paypal_order_id:
+            with PayPalClient(settings) as provider:
+                capture_paypal_order(session, order, client=provider, config=settings)
+        elif order.square_order_id and settings.square_access_token:
             reconcile_square_order(session, order, client=SquareClient())
         if order.payment_state == "COMPLETED" and settings.printful_token:
             reconcile_printful_order(session, order, client=PrintfulClient())
@@ -212,6 +216,8 @@ def canary_status(args: argparse.Namespace) -> None:
 
         checks = {
             "payment_completed": order.payment_state == "COMPLETED",
+            "paypal_capture_completed": order.payment_provider == "paypal" and bool(order.paypal_capture_id),
+            "quote_preserved": bool(order.printful_estimate_json and order.paypal_snapshot),
             "printful_confirmed": order.printful_confirmed_at is not None,
             "printful_cost_known": order.printful_cost_cents is not None,
             "printful_cost_within_retail": (
@@ -242,26 +248,23 @@ def canary_status(args: argparse.Namespace) -> None:
 
 
 def refund_order(args: argparse.Namespace) -> None:
-    if settings.square_environment != "sandbox":
-        raise SystemExit("refund-order is sandbox-only; use the gated admin UI in production")
-
     with SessionLocal() as session:
         order = session.scalar(select(Order).where(Order.order_number == args.order_number))
         if order is None:
             raise SystemExit("Order not found")
-
-        refund = request_refund(
-            session,
-            order,
-            amount_cents=args.amount_cents,
-            reason=args.reason,
-            client=SquareClient(),
-        )
-        print(
-            refund.square_refund_id,
-            refund.status,
-            f"{refund.currency} {refund.amount_cents / 100:.2f}",
-        )
+        paypal = order.payment_provider == "paypal"
+        environment = settings.paypal_environment if paypal else settings.square_environment
+        if settings.app_env == "production" or environment != "sandbox":
+            raise SystemExit("refund-order is sandbox-only; use the gated admin UI in production")
+        provider = PayPalClient(settings) if paypal else SquareClient()
+        try:
+            refund = request_refund(session, order, amount_cents=args.amount_cents,
+                                    reason=args.reason, client=provider)
+            print(refund.paypal_refund_id or refund.square_refund_id, refund.status,
+                  f"{refund.currency} {refund.amount_cents / 100:.2f}")
+        finally:
+            if paypal:
+                provider.close()
 
 
 def ops_report(args: argparse.Namespace) -> None:

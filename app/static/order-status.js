@@ -1,5 +1,17 @@
 (() => {
-  if (document.querySelector('[data-order-pending]')) {
+  const pending = document.querySelector('[data-order-pending]');
+  if (pending) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('PayerID') && params.has('token')) {
+      try {
+        const token = sessionStorage.getItem('bmb-order-token-' + pending.dataset.orderNumber);
+        if (token) fetch('/api/phase1/orders/' + encodeURIComponent(pending.dataset.orderNumber) + '/paypal-capture', {
+          method: 'POST', headers: {'X-BMB-Order-Token': token, 'Content-Type': 'application/json'}, body: '{}'
+        }).then((response) => response.ok ? response.json() : null).then((order) => {
+          if (order?.payment_state === 'COMPLETED') window.location.reload();
+        }).catch(() => {});
+      } catch (_) { /* Verified webhook processing confirms without storage. */ }
+    }
     let attempts = 0;
     async function checkPayment() {
       attempts += 1;
@@ -24,6 +36,7 @@
     if (active && active === marker.dataset.orderNumber) {
       window.BMBCart.clear();
       sessionStorage.removeItem('bmb-active-order');
+      sessionStorage.removeItem('bmb-order-token-' + active);
     }
   } catch (_) { /* The order remains viewable when browser storage is disabled. */ }
 })();

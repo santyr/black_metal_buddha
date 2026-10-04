@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import datetime, timezone
 from typing import Any
 
@@ -22,6 +22,39 @@ class PrintfulCostGuardError(RuntimeError):
 
 def money_to_cents(value: str | int | float | Decimal) -> int:
     return int((Decimal(str(value)) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def exact_cost_cents(value: Any) -> int:
+    """Reject incomplete, negative and sub-cent quote values instead of rounding."""
+    if not isinstance(value, (str, int, float, Decimal)) or isinstance(value, bool):
+        raise PrintfulConfigurationError("Printful estimate contains an invalid cost")
+    try:
+        representation = str(value)
+        if len(representation) > 64:
+            raise PrintfulConfigurationError("Printful estimate contains an invalid cost")
+        amount = Decimal(representation)
+        if not amount.is_finite() or amount < 0 or amount > Decimal("92233720368547758.07"):
+            raise PrintfulConfigurationError("Printful estimate contains an invalid cost")
+        # Use digits directly: Decimal arithmetic can round under its context.
+        _, digits, exponent = amount.as_tuple()
+        if not any(digits):
+            return 0
+        if exponent < -2:
+            remove = -exponent - 2
+            if remove >= len(digits) or any(digits[-remove:]):
+                raise PrintfulConfigurationError("Printful estimate contains an invalid cost")
+            digits = digits[:-remove]
+            exponent = -2
+        coefficient = int(''.join(str(digit) for digit in digits))
+        return coefficient * 10 ** (exponent + 2)
+    except (InvalidOperation, ValueError, OverflowError):
+        raise PrintfulConfigurationError("Printful estimate contains an invalid cost") from None
+
+
+def _retail_decimal(cents: int) -> str:
+    if type(cents) is not int or cents < 0:
+        raise PrintfulConfigurationError("Retail prices must be nonnegative integer cents")
+    return f"{cents // 100}.{cents % 100:02d}"
 
 
 class PrintfulClient:
@@ -129,6 +162,53 @@ class PrintfulClient:
                 }
             )
         return rates
+
+    def estimate_order_costs(self, order: Order) -> dict[str, Any]:
+        """Read an estimate without creating, confirming or charging an order.
+
+        Retail prices are supplied for destinations where Printful's calculation
+        uses them. The returned costs are supplier charges; this method makes no
+        decision about what BMB charges the buyer or how BMB files tax returns.
+        Quotes can run with fulfillment disabled; staging still mocks the call.
+        """
+        if not order.shipping_method:
+            raise PrintfulConfigurationError("Select shipping before estimating costs")
+        if order.currency != "USD" or order.ship_country not in {"US", "CA"}:
+            raise PrintfulConfigurationError("Cost estimates require USD and US/Canada shipping")
+        items = self._order_items(order)
+        subtotal = 0
+        for payload, item in zip(items, order.items):
+            if type(item.quantity) is not int or not 1 <= item.quantity <= 10:
+                raise PrintfulConfigurationError("Invalid item quantity")
+            payload["retail_price"] = _retail_decimal(item.unit_price_cents)
+            subtotal += item.unit_price_cents * item.quantity
+        if not items or subtotal != order.subtotal_cents or not 0 <= order.discount_cents <= subtotal:
+            raise PrintfulConfigurationError("Retail item totals are inconsistent")
+        payload = {
+            "shipping": order.shipping_method, "recipient": self._recipient(order), "items": items,
+            "retail_costs": {"currency": order.currency,
+                "subtotal": _retail_decimal(order.subtotal_cents),
+                "discount": _retail_decimal(order.discount_cents),
+                "shipping": _retail_decimal(order.shipping_cents)},
+        }
+        response = self.client.post(f"{self.API_BASE}/orders/estimate-costs",
+                                    headers=self._headers(), json=payload)
+        response.raise_for_status()
+        data = response.json()
+        result = data.get("result") if isinstance(data, dict) else None
+        costs = result.get("costs") if isinstance(result, dict) else None
+        if not isinstance(costs, dict) or costs.get("currency") != order.currency:
+            raise PrintfulConfigurationError("Printful estimate is incomplete or has the wrong currency")
+        if costs.get("calculation_status") not in (None, "done"):
+            raise PrintfulConfigurationError("Printful estimate is still calculating")
+        required = ("subtotal", "discount", "shipping", "tax", "vat", "total")
+        if any(key not in costs for key in required):
+            raise PrintfulConfigurationError("Printful estimate is incomplete")
+        amounts = {key: exact_cost_cents(costs[key]) for key in required}
+        minimum_total = amounts["subtotal"] - amounts["discount"] + amounts["shipping"] + amounts["tax"] + amounts["vat"]
+        if amounts["discount"] > amounts["subtotal"] or minimum_total > amounts["total"]:
+            raise PrintfulConfigurationError("Printful estimate totals are inconsistent")
+        return result
 
     def cancel_order(self, order_id_or_external_id: str) -> dict[str, Any]:
         # Printful currently documents cancellation through the v1 DELETE

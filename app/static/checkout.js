@@ -10,11 +10,14 @@
   const shippingEl = app.querySelector('[data-checkout-shipping]');
   const shippingStep = app.querySelector('[data-shipping-step]');
   const shippingRatesEl = app.querySelector('[data-shipping-rates]');
-  const squareButton = app.querySelector('[data-square-button]');
+  const paypalButton = app.querySelector('[data-paypal-button]');
   const quoteButton = app.querySelector('[data-quote-button]');
   const statusEl = app.querySelector('[data-checkout-status]');
 
   let orderNumber = null;
+  let orderToken = null;
+  let shippingSaved = false;
+  let approvalUrl = null;
   let selectedShipping = null;
 
   function updateAddressLabels() {
@@ -45,6 +48,7 @@
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(orderToken ? {'X-BMB-Order-Token': orderToken} : {}),
         ...(options.headers || {})
       }
     });
@@ -120,7 +124,7 @@
   function renderShippingRates(rates) {
     shippingRatesEl.innerHTML = '';
     selectedShipping = null;
-    squareButton.disabled = true;
+    paypalButton.disabled = true;
 
     if (!rates.length) {
       const message = document.createElement('p');
@@ -152,14 +156,14 @@
 
       radio.addEventListener('change', () => {
         selectedShipping = rate;
-        squareButton.disabled = false;
+        paypalButton.disabled = false;
         shippingEl.textContent = window.BMBCart.formatMoney(rate.rate_cents, rate.currency);
       });
 
       if (index === 0) {
         radio.checked = true;
         selectedShipping = rate;
-        squareButton.disabled = false;
+        paypalButton.disabled = false;
         shippingEl.textContent = window.BMBCart.formatMoney(rate.rate_cents, rate.currency);
       }
 
@@ -182,6 +186,7 @@
         body: JSON.stringify(orderPayload())
       });
       orderNumber = order.order_number;
+      orderToken = order.order_token;
       subtotalEl.textContent = window.BMBCart.formatMoney(order.subtotal_cents, order.currency);
 
       const rates = await api('/api/v1/orders/' + encodeURIComponent(orderNumber) + '/shipping-rates');
@@ -190,7 +195,7 @@
       form.querySelectorAll('input, select, button').forEach((control) => {
         control.disabled = true;
       });
-      setStatus('Choose a shipping method, then continue to Square.');
+      setStatus('Choose shipping, then review your total.');
       shippingStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
       quoteButton.disabled = false;
@@ -198,26 +203,46 @@
     }
   });
 
-  squareButton.addEventListener('click', async () => {
+  paypalButton.addEventListener('click', async () => {
     if (!orderNumber || !selectedShipping) return;
-    squareButton.disabled = true;
-    setStatus('Preparing secure Square checkout…');
+    paypalButton.disabled = true;
+    if (approvalUrl) {
+      try {
+        sessionStorage.setItem('bmb-active-order', orderNumber);
+        sessionStorage.setItem('bmb-order-token-' + orderNumber, orderToken);
+      } catch (_) { /* Webhook confirmation also works without storage. */ }
+      window.location.assign(approvalUrl);
+      return;
+    }
+    setStatus('Calculating applicable tax and preparing your total…');
 
     try {
-      await api('/api/v1/orders/' + encodeURIComponent(orderNumber) + '/shipping', {
+      if (!shippingSaved) {
+        await api('/api/v1/orders/' + encodeURIComponent(orderNumber) + '/shipping', {
         method: 'POST',
         body: JSON.stringify({ shipping: selectedShipping.shipping })
       });
-      const checkout = await api('/api/v1/orders/' + encodeURIComponent(orderNumber) + '/square-checkout', {
+        shippingSaved = true;
+        shippingRatesEl.querySelectorAll('input').forEach((control) => { control.disabled = true; });
+      }
+      const checkout = await api('/api/phase1/orders/' + encodeURIComponent(orderNumber) + '/paypal-checkout', {
         method: 'POST',
         body: '{}'
       });
-      if (!checkout.square_checkout_url) throw new Error('Square checkout URL was not returned.');
-      try { sessionStorage.setItem('bmb-active-order', orderNumber); } catch (_) { /* Payment must work without browser storage. */ }
-      window.location.assign(checkout.square_checkout_url);
+      if (!checkout.checkout_url) throw new Error('PayPal checkout URL was not returned.');
+      const paymentUrl = new URL(checkout.checkout_url);
+      if (paymentUrl.protocol !== 'https:' || !['www.paypal.com', 'paypal.com', 'www.sandbox.paypal.com'].includes(paymentUrl.hostname) || paymentUrl.username || paymentUrl.password) {
+        throw new Error('Invalid payment approval URL.');
+      }
+      approvalUrl = paymentUrl.href;
+      app.querySelector('[data-checkout-tax]').textContent = window.BMBCart.formatMoney(checkout.tax_cents, checkout.currency);
+      app.querySelector('[data-checkout-total]').textContent = window.BMBCart.formatMoney(checkout.total_cents, checkout.currency);
+      paypalButton.textContent = 'Pay ' + window.BMBCart.formatMoney(checkout.total_cents, checkout.currency) + ' with PayPal';
+      paypalButton.disabled = false;
+      setStatus('Review your total, then continue to secure payment.');
     } catch (error) {
-      squareButton.disabled = false;
-      setStatus(error.message || 'Unable to start Square checkout.', true);
+      paypalButton.disabled = false;
+      setStatus(error.message || 'Unable to prepare PayPal checkout.', true);
     }
   });
 

@@ -61,6 +61,11 @@ def apply_refund_status(session: Session, refund: Refund, order: Order, *, statu
 
 def submit_refund_request(session: Session, refund: Refund, order: Order, *, client: SquareClient) -> Refund:
     """Retry a persisted request with exactly the same provider idempotency key."""
+    if order.payment_provider == "paypal":
+        from .payments.paypal_refunds import submit_paypal_refund
+        return submit_paypal_refund(session, refund, order, client=client)
+    if refund.payment_provider == "paypal" or order.paypal_capture_id or refund.paypal_refund_id:
+        raise RefundError("Mixed provider identifiers require review")
     if refund.order_id != order.id or not refund.idempotency_key:
         raise RefundError("Invalid persisted refund request")
     if refund.square_refund_id or refund.status != "REQUESTED":
@@ -99,6 +104,11 @@ def submit_refund_request(session: Session, refund: Refund, order: Order, *, cli
 
 def request_refund(session: Session, order: Order, *, amount_cents: int | None,
                    reason: str, client: SquareClient) -> Refund:
+    if order.payment_provider == "paypal":
+        from .payments.paypal_refunds import request_paypal_refund
+        return request_paypal_refund(session, order, amount_cents=amount_cents, reason=reason, client=client)
+    if order.paypal_capture_id or hasattr(client, "refund_capture"):
+        raise RefundError("Mixed provider identifiers require review")
     _lock_order(session, order)
     if order.payment_state != "COMPLETED" or not order.square_payment_id:
         raise RefundError("Only completed Square payments can be refunded")
@@ -123,7 +133,7 @@ def request_refund(session: Session, order: Order, *, amount_cents: int | None,
         else:
             raise RefundError("A refund is already pending; wait for its final status")
     else:
-        refund = Refund(order_id=order.id, square_refund_id=None,
+        refund = Refund(order_id=order.id, payment_provider="square", square_refund_id=None,
                         idempotency_key=str(uuid4()), amount_cents=amount,
                         currency=order.currency, status="REQUESTED", reason=reason)
         session.add(refund)

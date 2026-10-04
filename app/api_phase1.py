@@ -5,13 +5,14 @@ import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .db import SessionLocal
 from .fulfillment.printful import PrintfulClient, verify_printful_webhook
-from .models import FulfillmentEvent, Order, PaymentEvent, Refund
+from .models import FulfillmentEvent, Order, PaymentEvent, Refund, Job
 from .orders import (
     OrderError,
     create_order,
@@ -24,8 +25,13 @@ from .orders import (
     shipping_quote_is_fresh,
     sync_square_pricing,
     validate_pending_catalog,
+    verify_order_access,
 )
 from .payments.square import SquareClient, verify_square_webhook
+from .payments.paypal import PayPalClient, PayPalAPIError, PayPalConfigurationError
+from .payments.paypal_checkout import prepare_paypal_checkout, lock_order
+from .payments.paypal_capture import capture_paypal_order
+from .tax import TaxConfigurationError
 from .rate_limit import limiter
 from .refunds import apply_refund_status, get_refund_by_square_id
 from .schemas import CatalogVariantOut, CreateOrderIn, OrderOut, SelectShippingIn, ShippingRateOut
@@ -34,6 +40,7 @@ from .storefront import sellable_catalog
 from .shipments import upsert_printful_shipment
 
 router = APIRouter(prefix="/api/v1", tags=["phase1"])
+paypal_router = APIRouter(prefix="/api/phase1", tags=["paypal"])
 
 
 def _object(value, name: str) -> dict:
@@ -54,11 +61,14 @@ def _webhook_event(body: bytes) -> dict:
     return event
 
 
-def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent) -> bool:
+def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent, *, before_commit=None) -> bool:
     model = type(event)
     provider, event_id = event.provider, event.provider_event_id
     session.add(event)
     try:
+        if before_commit is not None:
+            session.flush()
+            before_commit()
         session.commit()
         return False
     except IntegrityError:
@@ -66,6 +76,9 @@ def _store_event(session: Session, event: PaymentEvent | FulfillmentEvent) -> bo
         if session.scalar(select(model).where(model.provider == provider,
                                                model.provider_event_id == event_id)) is not None:
             return True
+        raise
+    except Exception:
+        session.rollback()
         raise
 
 
@@ -117,7 +130,7 @@ def _get_order_or_404(session: Session, order_number: str) -> Order:
     return order
 
 
-def _order_out(order: Order, checkout_url: str | None = None) -> OrderOut:
+def _order_out(order: Order, checkout_url: str | None = None, *, order_token: str | None = None) -> OrderOut:
     return OrderOut(
         order_number=order.order_number,
         order_state=order.order_state,
@@ -133,6 +146,8 @@ def _order_out(order: Order, checkout_url: str | None = None) -> OrderOut:
         refunded_cents=order.refunded_cents,
         refund_state=order.refund_state,
         square_checkout_url=checkout_url or order.square_checkout_url,
+        checkout_url=order.paypal_checkout_url or checkout_url or order.square_checkout_url,
+        order_token=order_token,
     )
 
 
@@ -165,7 +180,7 @@ def api_create_order(
         order = create_order(session, data)
     except OrderError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return _order_out(order)
+    return _order_out(order, order_token=getattr(order, "_plain_order_token", None))
 
 
 @router.get("/orders/{order_number}", response_model=OrderOut)
@@ -186,7 +201,8 @@ def api_shipping_rates(
     _require_phase1()
     _limit_customer_mutation(request, bucket="shipping-rates", limit=60)
     order = _get_order_or_404(session, order_number)
-    if order.square_payment_link_id:
+    _require_order_token(request, order, allow_legacy=True)
+    if order.square_payment_link_id or order.paypal_create_request_id:
         raise HTTPException(status_code=409, detail="Checkout already created")
 
     try:
@@ -207,7 +223,8 @@ def api_select_shipping(
     _require_phase1()
     _limit_customer_mutation(request, bucket="select-shipping", limit=30)
     order = _get_order_or_404(session, order_number)
-    if order.square_payment_link_id:
+    _require_order_token(request, order, allow_legacy=True)
+    if order.square_payment_link_id or order.paypal_create_request_id:
         raise HTTPException(status_code=409, detail="Checkout already created")
 
     try:
@@ -239,36 +256,207 @@ def api_square_checkout(
     request: Request,
     session: Session = Depends(db_session),
 ):
-    _require_phase1()
-    _limit_customer_mutation(request, bucket="square-checkout", limit=20)
-    order = _get_order_or_404(session, order_number)
-    if order.square_payment_link_id:
-        return _order_out(order, order.square_checkout_url)
-    if not shipping_quote_is_fresh(order):
-        raise HTTPException(status_code=409, detail="Shipping quote is missing or expired")
+    raise HTTPException(status_code=410, detail="New Square checkout is retired; use PayPal")
+
+
+def _require_order_token(request: Request, order: Order, *, allow_legacy: bool = False) -> None:
+    if allow_legacy and order.order_access_token_hash is None:
+        return
     try:
-        validate_pending_catalog(session, order)
+        verify_order_access(order, request.headers.get("x-bmb-order-token"))
+    except OrderError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from None
+
+
+def _require_paypal_checkout() -> None:
+    _require_phase1()
+    if settings.app_env == "production" and not settings.paypal_production_canary_approved:
+        raise HTTPException(status_code=503, detail="PayPal launch verification is incomplete")
+
+
+@paypal_router.post("/orders/{order_number}/paypal-checkout", response_model=OrderOut)
+def api_paypal_checkout(order_number: str, request: Request, session: Session = Depends(db_session)):
+    _require_paypal_checkout()
+    _limit_customer_mutation(request, bucket="paypal-checkout", limit=20)
+    order = _get_order_or_404(session, order_number)
+    _require_order_token(request, order)
+    try:
+        prepare_paypal_checkout(session, order, config=settings)
     except OrderError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
+    except (TaxConfigurationError, PayPalConfigurationError):
+        raise HTTPException(status_code=503, detail="Checkout configuration is incomplete") from None
+    except Exception:
+        raise HTTPException(status_code=502, detail="Unable to prepare PayPal checkout; retry this order") from None
+    return _order_out(order)
 
-    client = SquareClient()
+
+@paypal_router.post("/orders/{order_number}/paypal-capture", response_model=OrderOut)
+def api_paypal_capture(order_number: str, request: Request, session: Session = Depends(db_session)):
+    _require_paypal_checkout()
+    _limit_customer_mutation(request, bucket="paypal-capture", limit=30)
+    order = _get_order_or_404(session, order_number)
+    _require_order_token(request, order)
     try:
-        payment_link = client.create_payment_link(order)
-        square_order = client.get_order(payment_link["order_id"])
-        sync_square_pricing(session, order, square_order)
-        set_square_checkout(
-            session,
-            order,
-            payment_link_id=payment_link["id"],
-            square_order_id=payment_link["order_id"],
-            checkout_url=payment_link["url"],
-        )
+        capture_paypal_order(session, order, config=settings)
     except OrderError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail="Unable to create Square checkout") from exc
+        raise HTTPException(status_code=409, detail=str(exc)) from None
+    except PayPalConfigurationError:
+        raise HTTPException(status_code=503, detail="Payment configuration is incomplete") from None
+    except Exception:
+        raise HTTPException(status_code=502, detail="Payment confirmation is pending; retry this order") from None
+    return _order_out(order)
 
-    return _order_out(order, payment_link["url"])
+
+@paypal_router.post("/webhooks/paypal", include_in_schema=False)
+async def paypal_webhook(request: Request, session: Session = Depends(db_session)):
+    # Existing payments remain recoverable while public checkout is disabled.
+    body = await request.body()
+    return await run_in_threadpool(_process_paypal_webhook, body, dict(request.headers), session)
+
+
+def _process_paypal_webhook(body: bytes, headers: dict, session: Session):
+    if len(body) > 1_000_000:
+        raise HTTPException(status_code=413, detail="Webhook body is too large")
+    try:
+        event = json.loads(body)
+    except (ValueError, UnicodeDecodeError):
+        raise HTTPException(status_code=400, detail="Invalid webhook JSON") from None
+    if not isinstance(event, dict):
+        raise HTTPException(status_code=400, detail="Invalid webhook event")
+    event_id, kind = event.get('id'), event.get('event_type')
+    if (not isinstance(event_id, str) or not 1 <= len(event_id) <= 128
+            or not isinstance(kind, str) or not 1 <= len(kind) <= 128):
+        raise HTTPException(status_code=400, detail="Invalid PayPal event identity")
+    provider = PayPalClient(settings)
+    try:
+        verified = provider.verify_webhook(headers, event)
+    except (PayPalAPIError, PayPalConfigurationError):
+        raise HTTPException(status_code=503, detail="PayPal verification is temporarily unavailable") from None
+    finally:
+        provider.close()
+    if not verified:
+        raise HTTPException(status_code=401, detail="Invalid PayPal signature")
+    resource = _object(event.get('resource'), 'resource')
+    order_id = None
+    capture_events = {'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DECLINED',
+                      'PAYMENT.CAPTURE.REVERSED'}
+    refund_events = {'PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.REFUND.PENDING', 'PAYMENT.REFUND.FAILED'}
+    refund_data = None
+    if kind == 'CHECKOUT.ORDER.APPROVED':
+        order_id = resource.get('id')
+    elif kind in capture_events:
+        related = _object(_object(resource.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
+        order_id = related.get('order_id')
+    elif kind in refund_events:
+        refund_id = resource.get('id')
+        if not isinstance(refund_id, str) or not 1 <= len(refund_id) <= 128:
+            raise HTTPException(status_code=400, detail="Invalid PayPal refund identity")
+        lookup = PayPalClient(settings)
+        try:
+            refund_data = lookup.get_refund(refund_id)
+            if refund_data.get('id') != refund_id:
+                raise HTTPException(status_code=409, detail="PayPal refund identity mismatch")
+            from .payments.paypal_refunds import refund_capture_identity
+            from .refunds import RefundError
+            try:
+                capture_id = refund_capture_identity(refund_data, settings)
+            except RefundError:
+                raise HTTPException(status_code=409, detail="PayPal refund capture relationship missing") from None
+            capture = lookup.get_capture(capture_id)
+            if capture.get('id') != capture_id:
+                raise HTTPException(status_code=409, detail="PayPal refund capture identity mismatch")
+            related = _object(_object(capture.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
+            order_id = related.get('order_id')
+        except (PayPalAPIError, PayPalConfigurationError):
+            raise HTTPException(status_code=503, detail="PayPal refund lookup is temporarily unavailable") from None
+        finally:
+            lookup.close()
+    if order_id is not None and (not isinstance(order_id, str) or not 1 <= len(order_id) <= 128):
+        raise HTTPException(status_code=400, detail="Invalid PayPal order identity")
+    order = session.scalar(select(Order).where(Order.paypal_order_id == order_id)) if order_id else None
+    if order is None and kind in capture_events and isinstance(resource.get('id'), str):
+        # Capture callbacks can omit related_ids, and can outrun our POST response.
+        # Resolve the relationship via a fixed API endpoint, never a webhook URL.
+        lookup = PayPalClient(settings)
+        try:
+            capture = lookup.get_capture(resource['id'])
+            if capture.get('id') != resource['id']:
+                raise HTTPException(status_code=409, detail="PayPal capture identity mismatch")
+            related = _object(_object(capture.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
+            resolved = related.get('order_id')
+            order = session.scalar(select(Order).where(Order.paypal_order_id == resolved)) if isinstance(resolved, str) else None
+        except (PayPalAPIError, PayPalConfigurationError):
+            raise HTTPException(status_code=503, detail="PayPal capture lookup is temporarily unavailable") from None
+        finally:
+            lookup.close()
+    if order is not None:
+        lock_order(session, order)
+    existing = session.scalar(select(PaymentEvent).where(PaymentEvent.provider == 'paypal',
+                                                       PaymentEvent.provider_event_id == event_id))
+    if existing:
+        session.rollback()
+        return {'ok':True, 'duplicate':True}
+    result = 'IGNORED'
+    if order is not None and order.payment_provider == 'paypal':
+        enqueue_job(session, order, 'CAPTURE_PAYPAL_ORDER')
+        job = session.scalar(select(Job).where(Job.order_id == order.id, Job.job_type == 'CAPTURE_PAYPAL_ORDER'))
+        if job is not None and job.state != 'RUNNING':
+            job.state = 'PENDING'
+            job.next_attempt_at = datetime.now(timezone.utc)
+            job.last_error = None
+            job.attempt_count = 0
+        result = 'REVERSAL_QUEUED' if kind == 'PAYMENT.CAPTURE.REVERSED' else 'CAPTURE_QUEUED'
+        if refund_data is not None:
+            from .payments.paypal import decimal_to_cents
+            amount = _object(refund_data.get('amount'), 'refund amount')
+            try:
+                cents = decimal_to_cents(amount.get('value'))
+            except ValueError:
+                raise HTTPException(status_code=409, detail="Invalid PayPal refund amount") from None
+            if amount.get('currency_code') != order.currency or not 0 < cents <= order.total_cents:
+                raise HTTPException(status_code=409, detail="PayPal refund amount/currency mismatch")
+            refund = session.scalar(select(Refund).where(Refund.paypal_refund_id == refund_data['id']))
+            if refund is None and isinstance(refund_data.get('custom_id'), str):
+                refund = session.scalar(select(Refund).where(Refund.paypal_request_id == refund_data['custom_id']))
+            if refund is None:
+                unresolved = session.scalar(select(Refund.id).where(Refund.order_id == order.id,
+                    Refund.status == 'REQUESTED', Refund.paypal_refund_id.is_(None)))
+                if unresolved is not None:
+                    raise HTTPException(status_code=503, detail="Refund request is still being resolved")
+                refund = Refund(order_id=order.id, payment_provider='paypal', paypal_refund_id=refund_data['id'],
+                                amount_cents=cents, currency=order.currency, status='PENDING', reason='PayPal dashboard refund')
+                session.add(refund)
+            elif (refund.order_id != order.id or refund.payment_provider != 'paypal'
+                  or refund.amount_cents != cents or refund.currency != order.currency):
+                raise HTTPException(status_code=409, detail="PayPal refund reservation mismatch")
+            refund.paypal_refund_id = refund_data['id']
+            if refund.status == 'REQUESTED':
+                refund.status = 'PENDING'
+            if refund.status not in {'COMPLETED', 'FAILED', 'REJECTED'}:
+                order.refund_state = 'PENDING'
+            session.flush()
+            enqueue_job(session, order, f'RECONCILE_PAYPAL_REFUND:{refund.id}')
+            result = 'REFUND_QUEUED'
+    # Event + its durable job are committed together; duplicate races roll back both.
+    def hold_reversal():
+        from .payments.paypal_refunds import apply_paypal_reversal
+        from .refunds import RefundError
+        lookup = PayPalClient(settings)
+        try:
+            apply_paypal_reversal(session, order, client=lookup, commit=False)
+        except (PayPalAPIError, PayPalConfigurationError):
+            raise HTTPException(status_code=503, detail="PayPal reversal lookup is temporarily unavailable") from None
+        except (RefundError, OrderError):
+            raise HTTPException(status_code=409, detail="PayPal reversal binding mismatch") from None
+        finally:
+            lookup.close()
+
+    duplicate = _store_event(session, PaymentEvent(provider='paypal', provider_event_id=event_id,
+        provider_payment_id=resource.get('id') if isinstance(resource.get('id'), str) and len(resource['id']) <= 128 else None,
+        event_type=kind, payload_hash=hashlib.sha256(body).hexdigest(), processing_result=result),
+        before_commit=hold_reversal if result == 'REVERSAL_QUEUED' else None)
+    return {'ok':True, 'result':result, 'duplicate':duplicate}
 
 
 @router.post("/webhooks/square", include_in_schema=False)

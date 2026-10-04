@@ -6,7 +6,7 @@ Replace Square with PayPal for new customer checkouts. Use the same PayPal
 Business account already configured for Printful billing. Keep the self-hosted
 BMB storefront, catalog, order database and direct Printful integration.
 
-This document specifies the target. The current application still uses Square;
+This document specifies the target. Production checkout remains closed;
 [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md) must be
 implemented and validated before launch. Existing Square records remain intact.
 
@@ -33,6 +33,21 @@ implemented and validated before launch. Existing Square records remain intact.
 - Enforce one active attempt per local order. Shipping/address changes require
   requoting and a new attempt; never fulfill an address different from the paid
   snapshot without an explicit reviewed correction process.
+
+### Approved quote policy (owner decision, 2026-10-04)
+
+Charge $35/current trusted catalog merchandise prices, live shipping and
+Printful's quoted tax separately. Use a complete `/orders/estimate-costs`
+response's `costs.tax + costs.vat`, preserving the response and timestamp.
+Do not substitute a local flat rate, estimate an unknown tax as zero, or pass
+supplier fees off as tax. Configuration defaults closed; enable
+`CHECKOUT_TAX_MODE=printful_quote` and `CHECKOUT_TAX_POLICY_APPROVED=true` only
+for the approved setup. Explicit complete zero-tax quotes are valid for US/CA.
+
+BMB is in Fremont County, Colorado; no resale certificates are held or planned.
+The owner reports accountant advice on Printful collection and their filing
+approach. This records the owner's guidance and checkout instruction without
+asserting an independent legal conclusion about returns or remittance.
 
 ## Capture, webhooks and reconciliation
 

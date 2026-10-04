@@ -6,7 +6,7 @@ Self-hosted storefront and ecommerce backend for blackmetalbuddha.com.
 
 Black Metal Buddha owns its storefront, catalog, cart, order database, payment integration, and Printful fulfillment orchestration.
 
-- **PayPal checkout** is the approved launch payment path (decision: 2026-10-04); migration from the existing Square implementation is pending.
+- **PayPal checkout** is the approved launch payment path (decision: 2026-10-04); checkout, quote, capture and refund support is implemented on the migration branch; account-specific launch verification remains pending.
 - **Printful** is the launch fulfillment provider.
 - **LNbits and Strike are not dependencies** of this project.
 - **Lightning remains deferred** until an approved provider exposes an official online API that can accept Lightning and automatically settle the merchant side to fiat/USD without manual conversion.
@@ -42,14 +42,14 @@ See docs/16_PHASE0_5_SAMPLE_VALIDATION.md.
 
 ### Phase 1 — PayPal + Printful ecommerce
 
-The existing Square-based software is substantially complete, but **PayPal migration is a new launch blocker**. See [the updated integration design](docs/03_PAYPAL_INTEGRATION.md) and [implementation plan](docs/superpowers/plans/2026-10-04-paypal-migration.md). The following describes the existing implementation, not completed PayPal support:
+PayPal software is implemented on the migration branch; **sandbox/live validation and controlled release remain launch gates**. See [the updated integration design](docs/03_PAYPAL_INTEGRATION.md) and [implementation plan](docs/superpowers/plans/2026-10-04-paypal-migration.md). Implemented software includes:
 
 - database-backed sellable variants and prices
 - customer size/quantity cart
 - shipping-address checkout
 - live Printful shipping quotes
-- Square-hosted checkout
-- Square tax synchronization and payment webhooks
+- PayPal-hosted checkout with quoted-total review
+- Approved Printful tax quote pass-through, verified PayPal webhooks and authoritative capture recovery
 - durable orders, jobs, refunds, shipments, and audit logs
 - Printful draft + gated production confirmation
 - exactly-once / external-ID fulfillment protections
@@ -139,7 +139,7 @@ to use Chromium installed by `playwright install chromium`.
 
 - **Phase 0:** storefront — implemented
 - **Phase 0.5:** physical sample approved; Comfort Colors 1717 selected
-- **Phase 1:** PayPal + Printful — migration, tax replacement, sandbox validation and live canary required; existing Square implementation retained until safe cutover
+- **Phase 1:** PayPal + Printful — software implemented; app-specific sandbox validation and live canary required; legacy Square history preserved, new Square checkout retired
 - **Phase 2:** Printful-supported marketplaces/ecommerce channels
 - **Phase 3:** SEO/content/marketing expansion
 - **Future Lightning:** only when an approved provider provides the required automated Lightning-to-fiat API flow

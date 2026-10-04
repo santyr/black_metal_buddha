@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
+import hmac
+import secrets
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,6 +18,14 @@ from .settings import settings
 
 class OrderError(ValueError):
     pass
+
+
+def verify_order_access(order: Order, token: str | None) -> None:
+    if not isinstance(token, str) or not 16 <= len(token) <= 128 or not order.order_access_token_hash:
+        raise OrderError("Order access token required")
+    actual = hashlib.sha256(token.encode()).hexdigest()
+    if not hmac.compare_digest(actual, order.order_access_token_hash):
+        raise OrderError("Order access token required")
 
 
 def new_order_number() -> str:
@@ -47,6 +58,7 @@ def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = Fal
     except CatalogSyncError as exc:
         raise OrderError(str(exc)) from None
     order_id = str(uuid4())
+    access_token = secrets.token_urlsafe(32)
     order_number = new_order_number()
     items: list[OrderItem] = []
     subtotal = 0
@@ -95,6 +107,7 @@ def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = Fal
 
     order = Order(
         id=order_id,
+        order_access_token_hash=hashlib.sha256(access_token.encode()).hexdigest(),
         order_number=order_number,
         email=str(data.recipient.email),
         customer_name=data.recipient.name,
@@ -118,6 +131,7 @@ def create_order(session: Session, data: CreateOrderIn, *, is_canary: bool = Fal
     session.add(order)
     session.commit()
     session.refresh(order)
+    order._plain_order_token = access_token
     return order
 
 
@@ -166,8 +180,10 @@ def set_shipping_rate(
     shipping_cents: int,
     currency: str,
 ) -> None:
-    if order.square_payment_link_id:
-        raise OrderError("Shipping cannot change after Square checkout is created")
+    session.execute(update(Order).where(Order.id == order.id).values(id=Order.id))
+    session.refresh(order)
+    if order.square_payment_link_id or order.paypal_create_request_id:
+        raise OrderError("Shipping cannot change after payment checkout is created")
     if currency != order.currency:
         raise OrderError("Shipping quote currency mismatch")
     if shipping_cents < 0:

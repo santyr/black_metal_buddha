@@ -11,12 +11,16 @@
   <dl class="admin-dl">
     <dt>Order</dt><dd>{{ order.order_state }}</dd>
     <dt>Payment</dt><dd>{{ order.payment_state }}</dd>
+    <dt>Payment provider</dt><dd>{{ order.payment_provider or '—' }}</dd>
     <dt>Fulfillment</dt><dd>{{ order.fulfillment_state }}</dd>
     <dt>Refund</dt><dd>{{ order.refund_state }}</dd>
-    <dt>Total</dt><dd>{{ order.currency }} {{ '%.2f' | format(order.total_cents / 100) }}</dd>
+    <dt>Customer gross</dt><dd>{{ order.currency }} {{ '%.2f' | format(order.total_cents / 100) }}</dd>
+    <dt>PayPal fee</dt><dd>{% if order.paypal_fee_cents is not none %}{{ order.currency }} {{ '%.2f' | format(order.paypal_fee_cents / 100) }}{% else %}Unknown{% endif %}</dd>
+    <dt>PayPal net receipt</dt><dd>{% if order.paypal_net_cents is not none %}{{ order.currency }} {{ '%.2f' | format(order.paypal_net_cents / 100) }}{% else %}Unknown{% endif %}</dd>
     <dt>Refunded</dt><dd>{{ order.currency }} {{ '%.2f' | format(order.refunded_cents / 100) }}</dd>
     <dt>Printful cost</dt><dd>{% if order.printful_cost_cents is not none %}{{ order.printful_cost_currency }} {{ '%.2f' | format(order.printful_cost_cents / 100) }}{% else %}—{% endif %}</dd>
   </dl>
+  <p class="microcopy">A completed payment does not establish the available PayPal balance or Printful funding. Supplier charges and refunds are shown separately.</p>
 </section>
 
 <section class="admin-panel">
@@ -30,6 +34,8 @@
   <dl class="admin-dl">
     <dt>Square order</dt><dd>{{ order.square_order_id or '—' }}</dd>
     <dt>Square payment</dt><dd>{{ order.square_payment_id or '—' }}</dd>
+    <dt>PayPal order</dt><dd>{{ order.paypal_order_id or '—' }}</dd>
+    <dt>PayPal capture</dt><dd>{{ order.paypal_capture_id or '—' }}</dd>
     <dt>Printful order</dt><dd>{{ order.printful_order_id or '—' }}</dd>
     <dt>Printful external</dt><dd>{{ order.printful_external_id or '—' }}</dd>
   </dl>
@@ -59,7 +65,7 @@
     <input type="hidden" name="csrf" value="{{ token_refund }}">
     <label>Refund amount in {{ order.currency }} <input name="amount" inputmode="decimal" placeholder="blank = remaining balance"></label>
     <label>Reason <input name="reason" value="Customer refund" maxlength="192"></label>
-    <button class="button button-danger" type="submit">Request Square refund</button>
+    <button class="button button-danger" type="submit">Request {{ 'PayPal' if order.payment_provider == 'paypal' else 'Square' }} refund</button>
   </form>
   {% endif %}
 </section>
@@ -98,7 +104,7 @@
 {% if refunds %}
 <section class="admin-panel"><h2>Refunds</h2>
   <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>Status</th><th>Amount</th><th>Reason</th></tr></thead>
-  <tbody>{% for refund in refunds %}<tr><td>{{ refund.square_refund_id }}</td><td>{{ refund.status }}</td><td>{{ refund.currency }} {{ '%.2f' | format(refund.amount_cents / 100) }}</td><td>{{ refund.reason or '—' }}</td></tr>{% endfor %}</tbody></table></div>
+  <tbody>{% for refund in refunds %}<tr><td>{{ refund.paypal_refund_id or refund.square_refund_id or 'Pending provider confirmation' }}</td><td>{{ refund.status }}</td><td>{{ refund.currency }} {{ '%.2f' | format(refund.amount_cents / 100) }}</td><td>{{ refund.reason or '—' }}</td></tr>{% endfor %}</tbody></table></div>
 </section>
 {% endif %}
 

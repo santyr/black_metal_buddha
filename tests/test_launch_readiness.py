@@ -58,6 +58,10 @@ def settings(**overrides):
         public_base_url="https://blackmetalbuddha.com",
         database_url="postgresql+psycopg://example",
         phase1_api_enabled=False,
+        paypal_environment="production",
+        paypal_client_id="live", paypal_client_secret="private", paypal_merchant_id="MERCHANT",
+        paypal_webhook_id="WEBHOOK", paypal_webhook_notification_url="https://blackmetalbuddha.com/api/phase1/webhooks/paypal",
+        checkout_tax_mode="printful_quote", checkout_tax_policy_approved=True,
         square_environment="production",
         square_api_version="2026-09-16",
         square_access_token="sq",
@@ -177,3 +181,35 @@ def test_invalid_catalog_import_rolls_back_atomically():
         with pytest.raises(ValueError):
             import_catalog_manifest(db, manifest, apply=True)
         assert db.query(ProductVariant).count() == 0
+
+
+def paypal_ready(**overrides):
+    from dataclasses import replace
+    base=settings(phase1_api_enabled=True,production_checkout_enabled=True,production_canary_approved=True)
+    values=dict(paypal_environment='production',paypal_client_id='live',paypal_client_secret='private',
+        paypal_merchant_id='MERCHANT',paypal_webhook_id='WEBHOOK',
+        paypal_webhook_notification_url='https://blackmetalbuddha.com/api/phase1/webhooks/paypal',
+        paypal_production_canary_approved=True,checkout_tax_mode='printful_quote',checkout_tax_policy_approved=True,
+)
+    return replace(base,**(values|overrides))
+
+
+@pytest.mark.parametrize('changes',[
+    {'paypal_production_canary_approved':False}, {'paypal_environment':'sandbox'},
+    {'paypal_client_id':None}, {'paypal_client_secret':None}, {'paypal_merchant_id':None},
+    {'paypal_webhook_id':None}, {'paypal_webhook_notification_url':'https://other.example/webhook'},
+    {'checkout_tax_mode':'disabled'}, {'checkout_tax_policy_approved':False}])
+def test_paypal_launch_gate_refuses_missing_live_prerequisite(changes):
+    with pytest.raises(ValueError): paypal_ready(**changes).validate_safety()
+
+
+def test_paypal_launch_gate_needs_no_square_credentials():
+    paypal_ready(square_access_token=None,square_location_id=None,square_webhook_signature_key=None).validate_safety()
+
+
+def test_restore_runbook_explains_destructive_test_database_acknowledgment():
+    from pathlib import Path
+    runbook = Path('docs/24_PHASE1_LAUNCH_RUNBOOK.md').read_text()
+    restore_section = runbook.split('export BMB_RESTORE_TEST_DATABASE_URL=', 1)[1].split('\n---', 1)[0]
+    assert 'BMB_ALLOW_RESTORE_TEST=true permits overwriting the disposable restore database' in restore_section
+    assert 'live-cost acknowledgment' not in restore_section

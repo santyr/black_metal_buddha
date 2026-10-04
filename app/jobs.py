@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import httpx
 
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
@@ -46,6 +47,24 @@ def process_submit_printful_job(
     if order is None:
         job.state = "FAILED"
         job.last_error = "Order not found"
+        session.commit()
+        return
+
+    # Serialize fulfillment with payment callbacks and refresh cached worker state.
+    # Keep this order lock through supplier confirmation: a committed reversal wins
+    # before any submission; an already-running confirmation requires owner action.
+    from .payments.paypal_checkout import lock_order
+    lock_order(session, order)
+    if order.payment_state == "REVERSED":
+        job.state = "CANCELED"
+        job.last_error = "PayPal reversed the capture; owner review required"
+        session.commit()
+        return
+
+    if order.order_state == "PAYMENT_REVIEW":
+        job.state = "PENDING"
+        job.last_error = "Recovered refunded capture; owner review required before fulfillment"
+        job.next_attempt_at = datetime.now(timezone.utc) + timedelta(hours=1)
         session.commit()
         return
 
@@ -151,6 +170,13 @@ def process_submit_printful_job(
         session.commit()
     except PrintfulCostGuardError as exc:
         _fail_permanently(session, job, order, exc)
+    except httpx.HTTPStatusError as exc:
+        _retry_or_fail(session, job, RuntimeError("Printful request failed; reconciliation required"))
+        if exc.response.status_code == 402:
+            order.fulfillment_state = "HOLD"
+            order.order_state = "FULFILLMENT_HOLD"
+            job.last_error = "Printful funding declined; owner review required"
+            session.commit()
     except Exception as exc:
         _retry_or_fail(session, job, exc)
 
@@ -198,6 +224,52 @@ def process_email_job(
         _retry_or_fail(session, job, exc)
 
 
+def process_paypal_capture_job(session: Session, job: Job, *, config: Settings = settings,
+                               client=None) -> None:
+    from .payments.paypal_capture import capture_paypal_order
+    order = session.get(Order, job.order_id)
+    if order is None:
+        job.state = "FAILED"
+        job.last_error = "Order not found"
+        session.commit()
+        return
+    try:
+        status = capture_paypal_order(session, order, config=config, client=client)
+        if status in {"COMPLETED", "DECLINED", "FAILED", "VOIDED", "REFUNDED", "PARTIALLY_REFUNDED", "REVERSED"}:
+            job.state = "COMPLETED"
+            job.last_error = None
+        else:
+            job.state = "PENDING"
+            job.next_attempt_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+            job.last_error = "Waiting for authoritative PayPal capture completion"
+        session.commit()
+    except Exception as exc:
+        _retry_or_fail(session, job, exc)
+
+
+def process_paypal_refund_job(session: Session, job: Job, *, config: Settings = settings,
+                              client=None) -> None:
+    from .payments.paypal import PayPalClient
+    from .payments.paypal_refunds import reconcile_paypal_refund
+    from .models import Refund
+    provider = client or PayPalClient(config)
+    try:
+        refund = session.get(Refund, int(job.job_type.split(':', 1)[1]))
+        order = session.get(Order, job.order_id)
+        if refund is None or order is None or refund.order_id != order.id:
+            raise ValueError('Refund job identity mismatch')
+        result = reconcile_paypal_refund(session, order, refund.paypal_refund_id, client=provider)
+        job.state = 'PENDING' if result.status == 'PENDING' else 'COMPLETED'
+        job.next_attempt_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        job.last_error = None
+        session.commit()
+    except Exception as exc:
+        _retry_or_fail(session, job, exc)
+    finally:
+        if client is None:
+            provider.close()
+
+
 def process_pending_jobs(
     session: Session,
     *,
@@ -232,6 +304,10 @@ def process_pending_jobs(
         try:
             if job.job_type == "SUBMIT_PRINTFUL_ORDER":
                 process_submit_printful_job(session, job, config=config)
+            elif job.job_type == "CAPTURE_PAYPAL_ORDER":
+                process_paypal_capture_job(session, job, config=config)
+            elif job.job_type.startswith("RECONCILE_PAYPAL_REFUND:"):
+                process_paypal_refund_job(session, job, config=config)
             elif job.job_type.startswith("SEND_"):
                 process_email_job(session, job, config=config)
             else:

@@ -7,7 +7,12 @@ handoff.
 
 ## Decisions recorded
 
-- On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The application migration is pending; this handoff describes the target setup.
+- On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The software migration is implemented on the migration branch; account-specific verification and release remain pending.
+- The business is based in **Colorado, USA**. The owner reports Colorado as
+  the only jurisdiction for BMB's own tax obligations. No resale certificates
+  are held or planned. Do not request certificates or apply a Printful resale
+  exemption. The owner-approved checkout uses actual Printful quoted tax/VAT
+  separately from merchandise and shipping; no separate Colorado calculator is requested.
 
 - All five published physical samples approved; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
@@ -83,14 +88,28 @@ do not request replacement Square credentials for the new launch.
 1. Verify the PayPal Business merchant account and eligibility to accept the intended
    PayPal/card checkout methods. Confirm the merchant account identity.
 2. Create separate sandbox and live REST apps, with separate buyer/merchant test
-   accounts for sandbox. Store client IDs/secrets privately.
+   accounts for sandbox. Store sandbox settings privately in
+   `/etc/blackmetalbuddha-staging/staging.env` and live settings separately in
+   `/etc/blackmetalbuddha/blackmetalbuddha.env`. Neither inspected file currently
+   contains the required PayPal app settings.
 3. After the PayPal listener is deployed, register its exact HTTPS webhook URL
-   on each environment's app and record each webhook ID. The planned settings are
+   on each environment's app and record each webhook ID. The implemented settings are
    `PAYPAL_ENVIRONMENT` (`sandbox` or `production`), `PAYPAL_CLIENT_ID`,
    `PAYPAL_CLIENT_SECRET`, `PAYPAL_MERCHANT_ID`, `PAYPAL_WEBHOOK_ID` and
-   `PAYPAL_WEBHOOK_NOTIFICATION_URL`. These settings still need implementation.
-4. Approve the replacement server-side tax approach for USD sales to US/Canada;
-   PayPal Orders does not replace Square tax synchronization automatically.
+   `PAYPAL_WEBHOOK_NOTIFICATION_URL`. The client/settings are implemented;
+   checkout/capture and the verified listener are implemented on the migration branch; app-specific sandbox verification is pending.
+4. The checkout tax approach is approved: **$35 per shirt + live shipping +
+   Printful's quoted tax separately**. BMB is in Fremont County, Colorado, USA;
+   no resale certificates are held or planned. The owner reports accountant
+   guidance on filing treatment; that is recorded as supplied professional
+   guidance, not an independent legal conclusion. No Colorado GIS key or new
+   retail-tax service is requested for this approved approach.
+   Configure `CHECKOUT_TAX_MODE=printful_quote` and
+   `CHECKOUT_TAX_POLICY_APPROVED=true` in the intended environment only when
+   the quote path is ready. Checkout adds the actual `costs.tax + costs.vat`
+   from Printful's estimate. A complete explicit zero is valid; missing,
+   malformed, pending or unavailable quotes block payment. Supplier fees remain
+   supplier costs. Current catalog prices come from the trusted Printful import.
 5. Printful PayPal setup is already reported complete. Verify its automatic-payment
    funding preference and backup source during the controlled order; do not assume
    held customer receipts are spendable or ask to repeat completed account setup.
@@ -98,7 +117,7 @@ do not request replacement Square credentials for the new launch.
    launch checks pass. Optional Pay with Crypto requires separate eligibility,
    approval and testing and is not needed for the initial launch.
 
-**Provide:** Merchant/card readiness, approved tax approach and secure locations
+**Provide:** Merchant/card readiness and secure locations
 of sandbox/live app settings. Do not post secrets. See [PayPal integration](03_PAYPAL_INTEGRATION.md)
 and [implementation plan](superpowers/plans/2026-10-04-paypal-migration.md).
 
@@ -174,3 +193,33 @@ Anything still missing:
 
 Do not paste tokens, passwords or private recipient information into this public
 document, Git, or chat. Leave launch switches unchanged while providing inputs.
+
+
+## Remaining evidence before release
+
+Software checkout/capture/refund and release gates are implemented on the
+migration branch. Provide the private sandbox/live PayPal app settings and
+merchant/card readiness, complete policies/staging/support/backup inputs above,
+and approve the exact controlled live order costs when presented.
+
+The inspected production database has zero linked Square payment orders and
+zero Square/unresolved refunds; no unpaid Square link was found to expire.
+Synthetic PostgreSQL restore/migration checks do not establish restoration of
+the current production backup. The attempted production export to `/tmp` was
+rejected by automatic approval review because it could expose sensitive data.
+Before deployment, approve a protected backup/restore destination and restricted
+temporary database, or supply evidence from your approved backup procedure.
+Live charges/refunds/cancellation and public activation remain separate gates.
+
+Read-only quote evidence (2026-10-04): one $35 size-L shirt to a synthetic Canon
+City, CO 81212 address returned $4.95 shipping, $2.10 tax and $0 VAT, for a
+customer example total of $42.05. Printful supplier total was $22.65. This
+checks the live quote protocol only; actual customer quotes vary. No provider
+order/payment/confirmation was created.
+
+Private staging refreshed on 2026-10-04 to reviewed PayPal commit `bb324d6`.
+Its staging-only backup restore and 0008→0011 upgrade passed; 20 fixture
+variants remain, with no orders or refunds. Checkout/Printful/email remain
+disabled. See [private staging](27_PRIVATE_STAGING.md) for the settings path,
+SSH preview and pending public HTTPS callback setup. Production is unchanged;
+its protected backup approval and restoration remain pending.
