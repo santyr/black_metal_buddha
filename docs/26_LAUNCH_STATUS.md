@@ -1,7 +1,11 @@
-# Launch status — 2026-10-03
+# Launch status — payment update 2026-10-04
 
 The public preview is available. Purchasing opens after the payment,
 fulfillment, customer email and controlled order checks are complete.
+
+## Payment migration required
+
+The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The existing code is still Square-based. PayPal migration, replacement tax handling, sandbox capture/refund/webhook validation and a new controlled live order are launch blockers. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
 
 ## Approved product decisions
 
