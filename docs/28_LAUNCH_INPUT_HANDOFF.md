@@ -216,3 +216,10 @@ City, CO 81212 address returned $4.95 shipping, $2.10 tax and $0 VAT, for a
 customer example total of $42.05. Printful supplier total was $22.65. This
 checks the live quote protocol only; actual customer quotes vary. No provider
 order/payment/confirmation was created.
+
+Private staging refreshed on 2026-10-04 to reviewed PayPal commit `bb324d6`.
+Its staging-only backup restore and 0008→0011 upgrade passed; 20 fixture
+variants remain, with no orders or refunds. Checkout/Printful/email remain
+disabled. See [private staging](27_PRIVATE_STAGING.md) for the settings path,
+SSH preview and pending public HTTPS callback setup. Production is unchanged;
+its protected backup approval and restoration remain pending.

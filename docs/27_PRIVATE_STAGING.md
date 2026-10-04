@@ -37,14 +37,40 @@ not a separate billing sandbox.
 
 ## Current readiness
 
-The private staging service is running, but staging provider credentials have
-not been supplied. Its catalog is not yet connected to the shared Printful
-store. Existing disabled catalog rows do not prove current product readiness.
+The private staging service was refreshed on 2026-10-04 to reviewed PayPal
+commit `bb324d62aca519f6c0fe7275576f4a53b06ffb12`. A protected backup of the
+staging-only database was restored into a new disposable database and upgraded
+successfully before refresh. Staging is now at `0011_paypal_receipts`, with its
+20 fixture variants preserved and zero orders, refunds, events or jobs. This
+staging check does not establish production backup restoration.
+
+Source: `/opt/blackmetalbuddha/staging` (a release symlink).
+Private settings: `/etc/blackmetalbuddha-staging/staging.env`.
+Listener: `http://127.0.0.1:8091`; SSH forwarding can expose it locally:
+
+```bash
+ssh -N -L 8091:127.0.0.1:8091 your-vps
+```
+
+Open `http://127.0.0.1:8091` on your computer. The public staging hostname/DNS
+and HTTPS callback decision are still pending; this local preview does not
+provide a public webhook address.
+
+Checkout, Printful confirmation/catalog synchronization, email and owner-console
+gates remain closed. A rollback snapshot retains the old runtime plus the new
+additive migration files, so Alembic can recognize the upgraded schema without
+removing payment fields. Production source and database were not changed.
+
+Staging provider credentials have not been supplied. Its catalog is not yet
+connected to the shared Printful store. Existing disabled catalog rows do not prove current product readiness.
 
 The owner still needs to provide read-only Printful access, PayPal Sandbox
 app settings and the staging hostname/DNS decision through the private handoff.
 Public HTTPS and verified PayPal app callbacks must be verified before relying on
-staging payment results.
+staging payment results. Post-refresh storefront smoke and 26 Chromium
+page/viewport checks passed, including decoded images, preview cart and blocked
+local storage. Checkout/capture return 503 while disabled; new Square creation
+returns 410, and malformed PayPal callbacks return 400 without a provider call.
 
 Refresh staging from the reviewed release before validating a deployment.
 Verify its source, health, database isolation and provider gates against the

@@ -10,10 +10,11 @@
 
 **Spec:** [PayPal integration](../../03_PAYPAL_INTEGRATION.md), approved 2026-10-04.
 
-**Status:** Implementation started. Task 1 adds the PayPal client/configuration and
-an additive database migration. Checkout, capture processing, webhook routes,
-refund dispatch and production readiness remain pending; the public checkout
-stays closed.
+**Status (2026-10-04):** Tasks 1–4 are implemented and verified. Task 5 software
+and release gates are implemented; the reviewed branch passes 310 local checks
+and its GitHub checks. Account-specific sandbox/live verification, protected
+production backup restoration and the controlled live order remain pending.
+Public checkout stays closed. See [current launch status](../../26_LAUNCH_STATUS.md).
 
 **Owner clarification (2026-10-04):** There are no legacy Square payment records.
 No historical live-payment migration is required. Preserve the existing schema
@@ -22,20 +23,21 @@ and compatibility fixtures while implementing new PayPal sales.
 **Tax API finding (2026-10-04):** Printful's
 [`POST /orders/estimate-costs`](https://developers.printful.com/docs/#operation/estimateOrderCosts)
 includes the tax charged to BMB on fulfillment. The standalone `/tax/rates`
-endpoint has been retired. Printful's
-[tax guide](https://www.printful.com/ca/taxes-guide) explains that its supplier
-taxes do not replace the seller's own tax obligations. Task 2 therefore still
-needs the approved treatment of supplier tax versus retail tax; do not copy an
-estimate into customer sales tax without that decision.
+endpoint has been retired. The owner subsequently approved passing through
+Printful quoted tax/VAT separately from $35 merchandise and live shipping.
+Task 2 implements that approved quote policy and fails closed on incomplete
+quotes. The owner reports accountant guidance on filing treatment; it remains
+owner-supplied professional guidance, not an independently verified legal finding.
 
 **Owner tax inputs (2026-10-04):** Business based in Colorado, USA; owner reports
 Colorado as the only jurisdiction for BMB's own tax obligations. No resale
 certificates are held or planned. Do not request a certificate or change Printful
 tax exemptions. The supplier's charges may apply to other destinations in its
 [state list](https://help.printful.com/hc/en-us/articles/50264701567121-In-which-states-will-I-be-charged-sales-tax).
-Exact Colorado retail-tax calculation/service, shipping taxability and applicable
-delivery-fee treatment remain pending; the location statement supplies the scope,
-not a numeric tax rate or an approved zero-tax fallback.
+The approved quote policy uses actual `costs.tax + costs.vat`; a complete
+explicit zero is valid. No separate retail-tax service or flat Fremont County
+rate is required under the owner-approved approach. Supplier fees remain separate
+from customer tax; no tax exemption is applied.
 
 ## Global constraints
 
@@ -44,7 +46,7 @@ not a numeric tax rate or an approved zero-tax fallback.
 - Server controls totals; completed capture is required before paid state.
 - Public checkout and chargeable Printful confirmation remain gated.
 - Staging uses the existing Printful store read-only; mock all fulfillment writes.
-- PayPal settings below are planned, not existing configuration.
+- PayPal settings/interfaces below are implemented; account credentials are still pending.
 - No LNbits, Strike, additional crypto processor or native Lightning integration.
 - Pay with Crypto is optional after core checkout; not a public-launch requirement.
 - Preserve historical Square identifiers and completed transactions.

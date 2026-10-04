@@ -39,7 +39,10 @@ PayPal sandbox/live app credentials and webhook IDs have not been supplied in
 the inspected staging or production configuration. Sandbox credentials belong
 in `/etc/blackmetalbuddha-staging/staging.env`; live credentials belong in
 `/etc/blackmetalbuddha/blackmetalbuddha.env`. Public checkout remains closed and the
-migration branch has not been deployed.
+migration branch has not been deployed to production. Private staging now
+runs reviewed commit `bb324d6`, with its isolated database upgraded to
+`0011_paypal_receipts`; all staging provider gates remain disabled. Its own
+backup restoration passed and does not replace the pending production check.
 
 ## Approved product decisions
 
