@@ -1,5 +1,8 @@
 # Data Model
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+
 Keep the schema small and auditable.
 
 ## products
@@ -66,7 +69,9 @@ total_cents
 payment_state
 fulfillment_state
 order_state
-square_payment_id
+payment_provider
+paypal_order_id
+paypal_capture_id
 printful_order_id
 printful_external_id
 created_at
@@ -93,6 +98,10 @@ quantity
 line_total_cents
 printful_variant_id_snapshot
 ```
+
+## Migration compatibility
+
+Add PayPal order/capture/refund identifiers and a provider discriminator with unique constraints. Preserve existing Square columns and historical IDs; never relabel Square records as PayPal. Refunds and reconciliation must dispatch by the recorded provider. Add durable request IDs for create, capture and refund retries.
 
 ## payment_events
 

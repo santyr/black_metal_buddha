@@ -8,12 +8,12 @@ The customer should be able to:
 
 1. browse products
 2. select size/quantity
-3. check out through Square
+3. check out through PayPal
 4. receive confirmation
 5. have the order automatically submitted to Printful
 6. receive fulfillment and tracking updates
 
-No order should require manual transfer from Square to Printful.
+No order should require manual transfer from PayPal to Printful.
 
 ## Launch collection
 
@@ -23,45 +23,31 @@ Initial designs:
 2. **Dharma of Decay** — *All Things Pass*
 3. **Meditate on Death** — *Emptiness Is Freedom*
 
-## Research conclusion
+## Payment decision — 2026-10-04
 
-Square's public APIs support normal online fiat checkout and hosted payment links.
+Use PayPal for customer payments and the same merchant PayPal account for
+Printful billing. This consolidates payment administration and allows available
+USD proceeds to fund fulfillment. It does not guarantee immediate availability:
+held payments cannot fund Printful, and the Printful billing agreement and backup
+funding must be checked.
 
-The preferred launch pattern is Square's hosted Checkout / Payment Links API:
+The repository currently implements Square. This is an approved plan change,
+not a completed code migration. PayPal implementation and a new live canary are
+required before public checkout opens.
 
-```text
-BMB cart
-   ↓
-local BMB order
-   ↓
-Square CreatePaymentLink
-   ↓
-Square-hosted checkout
-   ↓
-verified Square webhook
-   ↓
-Square payment = COMPLETED
-   ↓
-BMB order = PAID
-   ↓
-Printful
-```
+### Planned flow
 
-This pattern was independently validated by LNbits' Square fiat-provider implementation, but Black Metal Buddha will implement it directly rather than route ecommerce orders through LNbits.
+1. BMB validates the cart, recipient, live Printful shipping and approved tax rules.
+2. BMB persists a priced order and creates a PayPal Orders v2 order.
+3. Customer approves payment through PayPal's supported checkout.
+4. BMB captures server-side and verifies completed capture, merchant, order,
+   currency and gross amount; verified webhooks/reconciliation recover missed responses.
+5. BMB marks the order paid and queues Printful exactly once.
+6. Printful bills the merchant separately using its configured PayPal method.
 
-## Why hosted Square checkout
-
-It reduces payment-front-end complexity while preserving our own storefront and order system.
-
-Benefits:
-
-- Square hosts the payment UI
-- Square handles sensitive payment data
-- simpler PCI/security boundary
-- Square order/payment IDs remain available for reconciliation
-- payment status is webhook/API driven
-- card and eligible Square wallet methods can be enabled according to current Square support
-- easier future adaptation if Square later adds Lightning to hosted checkout
+Use PayPal-hosted payment collection or eligible PayPal-hosted card components;
+BMB must never receive raw card data. See [PayPal integration](03_PAYPAL_INTEGRATION.md)
+and [migration tasks](superpowers/plans/2026-10-04-paypal-migration.md).
 
 ## Phase 0 — website and infrastructure
 
@@ -91,15 +77,16 @@ Before public launch:
 - revise artwork if needed
 - photograph approved products
 
-## Phase 1 — Square fiat + Printful automation
+## Phase 1 — PayPal fiat + Printful automation
 
 Implement:
 
 - local BMB order state machine
-- Square hosted Checkout/Payment Links API
-- signed Square webhooks
+- PayPal Orders v2 creation, buyer approval and server-side capture
+- verified PayPal webhooks
 - server-side amount verification
-- idempotent Square checkout creation
+- idempotent PayPal order creation, capture and refund requests
+- replace Square tax synchronization with approved server-side tax calculation
 - Printful product/variant mapping
 - Printful order creation
 - signed Printful webhooks
@@ -114,7 +101,7 @@ A real order must complete:
 ```text
 customer
   ↓
-Square
+PayPal
   ↓
 BMB verified paid state
   ↓
@@ -163,10 +150,10 @@ Focus on:
 
 Lightning remains outside the active implementation plan.
 
-Revisit only when Square exposes an official developer API that can:
+Revisit only when an approved provider exposes an official developer API that can:
 
 1. initiate/accept an online Lightning payment
-2. associate it with a Square/BMB order
+2. associate it with a provider/BMB order
 3. expose reliable server-verifiable status/webhooks
 4. automatically settle the payment to fiat/USD
 5. require no manual BTC sale/conversion before Printful fulfillment

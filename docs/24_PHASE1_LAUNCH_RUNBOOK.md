@@ -1,5 +1,9 @@
 # Phase 1 — Launch Readiness & Production Canary
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+> The Square-specific details below describe the existing implementation/history, not the new launch target. Replace provider-specific procedures during migration before using them to launch PayPal.
+
 This document is the final software-side launch procedure.
 
 The store is still not authorized for public transactions until the physical-product gate and live canary pass.

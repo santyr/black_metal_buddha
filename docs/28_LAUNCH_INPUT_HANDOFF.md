@@ -7,6 +7,8 @@ handoff.
 
 ## Decisions recorded
 
+- On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The application migration is pending; this handoff describes the target setup.
+
 - All five published physical samples approved; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
   Lotus of the Void's physical sample is approved and all seven logical SKUs
@@ -61,7 +63,7 @@ for catalog reads and previews, with fulfillment disabled.
 2. Keep staging `PRINTFUL_MODE=disabled` and `PRINTFUL_CONFIRM_ENABLED=false`.
    Do not give staging permission to edit products, place/confirm orders or
    replace production webhook subscriptions.
-3. Keep the staging database, service account, settings and Square Sandbox
+3. Keep the staging database, service account, settings and PayPal Sandbox
    credentials separate. Do not copy the production environment file or customer data.
 4. Choose a staging hostname and arrange DNS access or the requested DNS record.
 
@@ -69,32 +71,36 @@ for catalog reads and previews, with fulfillment disabled.
 contact. There is no need to create another Printful store.
 
 Once read-only access is supplied, I will populate the staging catalog through
-the API. Staging payments use Square Sandbox; actual Printful order submission,
+the API. Staging payments use PayPal Sandbox; actual Printful order submission,
 production callbacks and fulfillment are checked in the approved controlled
 production order in Step 7. Printful draft orders are not a payment sandbox.
 
 ## Step 3 Finish payment readiness and staging
 
-Your Square production settings have been supplied. You do not need to submit
-them again unless they change.
+PayPal is the approved provider. Previously supplied Square settings are historical;
+do not request replacement Square credentials for the new launch.
 
-1. Confirm the merchant account can accept payments and that settlement is set up.
-2. Confirm the tax settings you want for launch with the person responsible for them.
-3. Obtain separate Square **Sandbox** credentials and location for staging. Save
-   them in the private staging settings, keeping production access separate.
-4. Leave checkout activation switches closed until the launch checks pass.
+1. Verify the PayPal Business merchant account and eligibility to accept the intended
+   PayPal/card checkout methods. Confirm the merchant account identity.
+2. Create separate sandbox and live REST apps, with separate buyer/merchant test
+   accounts for sandbox. Store client IDs/secrets privately.
+3. After the PayPal listener is deployed, register its exact HTTPS webhook URL
+   on each environment's app and record each webhook ID. The planned settings are
+   `PAYPAL_ENVIRONMENT` (`sandbox` or `production`), `PAYPAL_CLIENT_ID`,
+   `PAYPAL_CLIENT_SECRET`, `PAYPAL_MERCHANT_ID`, `PAYPAL_WEBHOOK_ID` and
+   `PAYPAL_WEBHOOK_NOTIFICATION_URL`. These settings still need implementation.
+4. Approve the replacement server-side tax approach for USD sales to US/Canada;
+   PayPal Orders does not replace Square tax synchronization automatically.
+5. Printful PayPal setup is already reported complete. Verify its automatic-payment
+   funding preference and backup source during the controlled order; do not assume
+   held customer receipts are spendable or ask to repeat completed account setup.
+6. Keep checkout/fulfillment activation gates closed until the migration and
+   launch checks pass. Optional Pay with Crypto requires separate eligibility,
+   approval and testing and is not needed for the initial launch.
 
-**Provide:** Merchant/settlement readiness, approved tax settings, and the secure
-location of staging credentials. Production callback delivery and checkout totals
-will be checked during the controlled order.
-
-For future credential changes, use the intended application's **Production**
-settings. Save `SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`,
-`SQUARE_WEBHOOK_SIGNATURE_KEY` and the exact `SQUARE_WEBHOOK_NOTIFICATION_URL`
-privately, with `SQUARE_ENVIRONMENT=production`. I will verify access and
-configuration before using replacement settings.
-
-Reference: [Square access tokens](https://developer.squareup.com/docs/build-basics/access-tokens).
+**Provide:** Merchant/card readiness, approved tax approach and secure locations
+of sandbox/live app settings. Do not post secrets. See [PayPal integration](03_PAYPAL_INTEGRATION.md)
+and [implementation plan](superpowers/plans/2026-10-04-paypal-migration.md).
 
 ## Step 4 Set up email and support
 
@@ -147,7 +153,7 @@ retrieval/decryption and restoration before relying on it.
 1. Choose one design and size for the controlled launch order.
 2. Provide the recipient name, email, full address and optional phone privately.
 3. Review the exact merchandise, shipping and tax total I show you.
-4. Pay the approved Square checkout link. This is a real purchase; Printful
+4. Pay the approved PayPal checkout. This is a real purchase; Printful
    fulfillment is chargeable after payment is confirmed.
 5. Confirm receipt of customer emails, tracking and the physical shirt.
    Report defects or unexpected costs.

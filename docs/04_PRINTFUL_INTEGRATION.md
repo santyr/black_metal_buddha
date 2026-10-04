@@ -70,18 +70,15 @@ Track relevant:
 
 ## Shipping
 
-The checkout total must be deterministic before Square is charged.
+The checkout total must be deterministic before PayPal is charged.
 
-Choose one:
-
-1. flat shipping rules maintained by BMB
-2. server-side Printful rate estimation before Square payment-link creation
-
-If real-time Printful shipping rates require customer address before checkout creation, collect shipping in BMB before sending the buyer to Square.
+Use the approved live Printful quote, collected after BMB validates the recipient and before creating the PayPal order. Lock recipient and totals for that payment attempt; changed addresses require a fresh quote and checkout.
 
 ## Printful billing
 
-A customer can successfully pay Square while Printful billing later fails.
+Owner decision (2026-10-04): use the configured merchant PayPal account for Printful billing and customer receipts. Check the Printful automatic-payment agreement uses available balance as intended; retain backup funding or a funded Printful Wallet for holds and timing gaps. Do not implement automatic transfers or crypto conversion as part of the BMB application.
+
+A customer can successfully pay PayPal while Printful billing later fails.
 
 Therefore alert on:
 

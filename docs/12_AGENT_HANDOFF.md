@@ -1,13 +1,16 @@
 # Coding Agent Handoff
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+
 ## Mission
 
-Implement Black Metal Buddha Phase 0 and Phase 1.
+Migrate the existing Phase 1 Square implementation to PayPal using [the implementation plan](superpowers/plans/2026-10-04-paypal-migration.md). Phase 0 already exists.
 
 Repository:
 
 ```text
-lightning-goats/black_metal_buddha
+santyr/black_metal_buddha
 ```
 
 Domain:
@@ -19,8 +22,8 @@ blackmetalbuddha.com
 ## Architecture
 
 - self-hosted BMB storefront/order service
-- Square hosted Checkout/Payment Links
-- verified Square webhooks
+- PayPal Orders v2 checkout and capture
+- verified PayPal webhooks
 - local BMB database
 - automatic Printful fulfillment
 - no LNbits
@@ -32,7 +35,7 @@ blackmetalbuddha.com
 1. `00_MASTER_PLAN.md`
 2. `01_ARCHITECTURE.md`
 3. `02_DATA_MODEL.md`
-4. `03_SQUARE_INTEGRATION.md`
+4. `03_PAYPAL_INTEGRATION.md`
 5. `04_PRINTFUL_INTEGRATION.md`
 6. `05_PHASE0_VPS_DEPLOYMENT.md`
 7. `06_SECURITY_PRIVACY.md`
@@ -48,15 +51,15 @@ one SKU
   ↓
 local cart/order
   ↓
-Square Sandbox payment link
+PayPal Sandbox order
   ↓
-Square-hosted checkout
+PayPal-hosted checkout
   ↓
-verified payment webhook
+server-side capture + verified payment webhook
   ↓
 BMB PAID
   ↓
-Printful draft/test-safe order
+mocked Printful fulfillment (staging writes disabled)
 ```
 
 No production Printful fulfillment until explicitly enabled by the release plan.
@@ -65,10 +68,13 @@ No production Printful fulfillment until explicitly enabled by the release plan.
 
 - server controls all totals
 - browser return is never proof of payment
-- verify Square webhooks
-- use Square idempotency
+- verify PayPal webhooks
+- persist operation-specific PayPal-Request-Id values
+- require completed capture, not buyer approval
+- preserve historical Square payment/refund records
+- replace Square tax synchronization before live checkout
 - use Printful `external_id`
 - verify Printful webhooks
 - duplicate events must be harmless
-- no undocumented Square APIs
+- no undocumented PayPal APIs
 - no Lightning code until ADR-001 is reopened

@@ -1,5 +1,8 @@
 # Phase 0 — VPS Deployment
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+
 ## Domain
 
 Canonical:
@@ -49,23 +52,24 @@ staging.blackmetalbuddha.com
 Use:
 
 - separate DB
-- Square Sandbox
+- PayPal Sandbox
 - test-safe Printful behavior
 
 Protect staging from public indexing/access.
 
-## Required secrets/config
+## Planned secrets/config (not yet implemented)
 
 ```text
 DATABASE_URL
 APP_SECRET_KEY
 PUBLIC_BASE_URL
 
-SQUARE_APPLICATION_ID
-SQUARE_LOCATION_ID
-SQUARE_ACCESS_TOKEN
-SQUARE_WEBHOOK_SIGNATURE_KEY
-SQUARE_WEBHOOK_NOTIFICATION_URL
+PAYPAL_ENVIRONMENT
+PAYPAL_CLIENT_ID
+PAYPAL_CLIENT_SECRET
+PAYPAL_MERCHANT_ID
+PAYPAL_WEBHOOK_ID
+PAYPAL_WEBHOOK_NOTIFICATION_URL
 
 PRINTFUL_TOKEN
 PRINTFUL_STORE_ID

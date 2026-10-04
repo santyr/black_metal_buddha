@@ -1,5 +1,9 @@
 # Square Integration
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+> The Square-specific details below describe the existing implementation/history, not the new launch target. Replace provider-specific procedures during migration before using them to launch PayPal.
+
 ## Decision
 
 Use Square's hosted Checkout / Payment Links API for Phase 1.

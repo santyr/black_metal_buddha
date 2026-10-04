@@ -1,10 +1,13 @@
 # Architecture
 
+> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
+
+
 ## Core principle
 
 Black Metal Buddha owns the ecommerce state.
 
-Square owns payment processing.
+PayPal owns payment processing.
 
 Printful owns fulfillment.
 
@@ -27,14 +30,14 @@ LNbits and Strike are not in the production architecture.
           |               +-------------------+
           |                                   |
           v                                   v
-      PostgreSQL                         Square Checkout
+      PostgreSQL                         PayPal Checkout
                                               |
-                                    Square-hosted payment
+                                    PayPal-hosted payment
                                               |
-                                        Square webhook
+                                        PayPal webhook
                                               |
                                               v
-                                     verified BMB PAID
+                                     verified capture → BMB PAID
                                               |
                                               v
                                            Printful
@@ -53,7 +56,7 @@ LNbits and Strike are not in the production architecture.
 - minimal JavaScript
 - PostgreSQL
 - systemd
-- Square Checkout/Payment Links API
+- PayPal Orders v2 API
 - Printful API
 - database-backed retry jobs
 
@@ -71,11 +74,11 @@ app/
   checkout/
   payments/
     base.py
-    square.py
+    paypal.py
   fulfillment/
     printful.py
   webhooks/
-    square.py
+    paypal.py
     printful.py
   jobs/
   notifications/
@@ -85,7 +88,7 @@ app/
 ```
 
 Do not add an LNbits payment provider module.
-Do not add a Lightning provider module until the Square Lightning ADR is reopened.
+Do not add a Lightning provider module until ADR-001 is reopened.
 
 ## Order state
 
@@ -115,9 +118,8 @@ For each order keep:
 
 ```text
 BMB order number
-Square order ID
-Square payment-link ID
-Square payment ID
+PayPal order ID
+PayPal capture ID
 Printful external ID
 Printful order ID
 ```
@@ -127,9 +129,9 @@ Example:
 ```text
 BMB-000041
   ↕
-Square order: ...
+PayPal order: ...
   ↕
-Square payment: ...
+PayPal capture: ...
   ↕
 Printful external_id: BMB-000041
 ```
@@ -146,10 +148,10 @@ Printful external_id: BMB-000041
 - payment status
 - fulfillment status
 
-### Square is authoritative for
+### PayPal is authoritative for
 
 - payment completion
-- Square payment/order identity
+- PayPal order/capture identity
 
 ### Printful is authoritative for
 
@@ -161,4 +163,4 @@ Printful external_id: BMB-000041
 - ecommerce order
 - product snapshot
 - customer shipment request
-- correlation of Square + Printful records
+- correlation of PayPal + Printful records
