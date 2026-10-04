@@ -7,11 +7,12 @@ handoff.
 
 ## Decisions recorded
 
-- On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The application migration is pending; this handoff describes the target setup.
+- On 2026-10-04 the owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing. The software migration is implemented on the migration branch; account-specific verification and release remain pending.
 - The business is based in **Colorado, USA**. The owner reports Colorado as
   the only jurisdiction for BMB's own tax obligations. No resale certificates
   are held or planned. Do not request certificates or apply a Printful resale
-  exemption. The exact Colorado checkout-tax calculation remains to be supplied.
+  exemption. The owner-approved checkout uses actual Printful quoted tax/VAT
+  separately from merchandise and shipping; no separate Colorado calculator is requested.
 
 - All five published physical samples approved; Black Comfort Colors 1717 selected.
 - Longchenpa — Rest in Illusion, Meditate on Death and Dharma of Decay approved.
@@ -189,3 +190,20 @@ Anything still missing:
 
 Do not paste tokens, passwords or private recipient information into this public
 document, Git, or chat. Leave launch switches unchanged while providing inputs.
+
+
+## Remaining evidence before release
+
+Software checkout/capture/refund and release gates are implemented on the
+migration branch. Provide the private sandbox/live PayPal app settings and
+merchant/card readiness, complete policies/staging/support/backup inputs above,
+and approve the exact controlled live order costs when presented.
+
+The inspected production database has zero linked Square payment orders and
+zero Square/unresolved refunds; no unpaid Square link was found to expire.
+Synthetic PostgreSQL restore/migration checks do not establish restoration of
+the current production backup. The attempted production export to `/tmp` was
+rejected by automatic approval review because it could expose sensitive data.
+Before deployment, approve a protected backup/restore destination and restricted
+temporary database, or supply evidence from your approved backup procedure.
+Live charges/refunds/cancellation and public activation remain separate gates.

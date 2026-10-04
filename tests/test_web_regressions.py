@@ -28,7 +28,7 @@ def test_api_errors_are_json_and_keep_retry_after(monkeypatch):
         raise HTTPException(429, 'Please wait', headers={'Retry-After': '600'})
     monkeypatch.setattr(api, '_limit_customer_mutation', limited)
     with TestClient(main.app) as client:
-        response = client.post('/api/v1/orders/BMB-UNKNOWN/square-checkout')
+        response = client.post('/api/phase1/orders/BMB-UNKNOWN/paypal-checkout')
         missing = client.get('/api/v1/orders/BMB-UNKNOWN')
     assert response.status_code == 429
     assert response.json() == {'detail': 'Please wait'}
@@ -60,7 +60,7 @@ def test_order_status_reports_exceptions_before_normal_states(monkeypatch, state
 
 
 def test_checkout_api_uses_catalog_prices_and_reuses_checkout(monkeypatch):
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, select
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy.pool import StaticPool
     from app.db import Base
@@ -109,15 +109,21 @@ def test_checkout_api_uses_catalog_prices_and_reuses_checkout(monkeypatch):
             assert data['subtotal_cents'] == 6400
             client.headers['X-BMB-Order-Token'] = data['order_token']
             path = '/api/v1/orders/' + data['order_number']
-            assert client.post(path + '/square-checkout').status_code == 409
+            assert client.post(path + '/square-checkout').status_code == 410
             assert client.get(path + '/shipping-rates').json()[0]['rate_cents'] == 500
             assert client.post(path + '/shipping', json={'shipping': 'STANDARD'}).status_code == 200
-            for _ in range(2):
-                checkout = client.post(path + '/square-checkout')
-                assert checkout.status_code == 200, checkout.text
-                assert checkout.json()['total_cents'] == 7590
-                assert checkout.json()['square_checkout_url'] == 'https://square.example/checkout'
-            assert Payments.calls == 1
+            # Existing Square records still accept verified late callbacks;
+            # the public endpoint cannot create a new Square payment link.
+            from app.models import Order
+            with Session() as legacy:
+                saved = legacy.scalar(select(Order).where(Order.order_number == data['order_number']))
+                saved.square_order_id = 'SQ-1'
+                saved.payment_provider = 'square'
+                saved.tax_cents = 690
+                saved.total_cents = 7590
+                legacy.commit()
+            Payments.number = data['order_number']
+            assert Payments.calls == 0
             for status in ('COMPLETED', 'FAILED'):
                 event = {'event_id': 'EVENT-' + status, 'type': 'payment.updated',
                          'data': {'object': {'payment': {'id': 'PAY-1', 'order_id': 'SQ-1',

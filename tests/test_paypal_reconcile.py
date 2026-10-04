@@ -151,3 +151,17 @@ def test_uncertain_capture_cannot_repeat_after_retention_but_can_recover(checkou
         assert provider.capture_keys==[]
         provider.capture_order('PPORDER',request_id='original-key')
         assert capture_paypal_order(session,order,config=provider.config,client=provider)=='COMPLETED'
+
+
+def test_actual_provider_receipt_fee_and_net_survive_restart(checkout_database):
+    factory,identity=checkout_database;provider=frozen(factory,identity);provider.remote['status']='APPROVED'
+    provider.capture['seller_receivable_breakdown']={
+        'gross_amount':{'currency_code':'USD','value':'41.08'},
+        'paypal_fee':{'currency_code':'USD','value':'1.50'},
+        'net_amount':{'currency_code':'USD','value':'39.58'}}
+    with factory() as session:
+        capture_paypal_order(session,session.get(Order,identity),config=provider.config,client=provider)
+    with factory() as session:
+        order=session.get(Order,identity)
+        assert order.paypal_fee_cents==150 and order.paypal_net_cents==3958
+        assert order.paypal_capture_json is not None and order.total_cents==4108

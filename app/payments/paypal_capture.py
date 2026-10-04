@@ -1,5 +1,6 @@
 """One authoritative capture path for browser callbacks, jobs and reconciliation."""
 from datetime import datetime, timedelta, timezone
+import json
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -54,6 +55,16 @@ def apply_paypal_capture(session: Session, order: Order, capture: dict, *,
         if status not in {'COMPLETED', 'PENDING', 'DECLINED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED'}:
             raise OrderError("PayPal capture status requires review")
         order.paypal_capture_id = identity
+        order.paypal_capture_json = json.dumps({key:value for key,value in capture.items()
+                                               if key != '_paypal_order'}, sort_keys=True, allow_nan=False)
+        breakdown = capture.get('seller_receivable_breakdown') or {}
+        for field, column in (('paypal_fee', 'paypal_fee_cents'), ('net_amount', 'paypal_net_cents')):
+            money = breakdown.get(field) if isinstance(breakdown, dict) else None
+            if isinstance(money, dict) and money.get('currency_code') == order.currency:
+                try:
+                    setattr(order, column, decimal_to_cents(money.get('value')))
+                except ValueError:
+                    pass  # Unknown receipt data never becomes an invented fee/net.
         newly_paid = status == 'COMPLETED' and order.payment_state != 'COMPLETED'
         if status == 'COMPLETED':
             if newly_paid:

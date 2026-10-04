@@ -145,3 +145,15 @@ def test_dashboard_refund_callback_queues_exact_refund_reconciliation(webhook_ap
             process_paypal_refund_job(session,job,config=provider.config,client=provider)
             assert job.state=='COMPLETED' and session.get(Order,identity).refunded_cents==4108
     finally: api.PayPalClient=original
+
+
+def test_provider_verification_does_not_block_the_event_loop(webhook_app):
+    import asyncio
+    factory,identity,provider=webhook_app
+    def verify(*_):
+        try: asyncio.get_running_loop()
+        except RuntimeError: return True
+        pytest.fail('Synchronous provider HTTP is running on the ASGI event loop')
+    provider.verify_webhook=verify
+    with TestClient(app) as browser:
+        assert browser.post('/api/phase1/webhooks/paypal',json=event()).status_code==200

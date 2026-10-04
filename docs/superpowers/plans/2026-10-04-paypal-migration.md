@@ -172,16 +172,16 @@ using their existing IDs and client, without becoming selectable for new orders.
 Extend `tests/test_launch_readiness.py`, `tests/test_printful_confirmation.py`
 and `tests/test_ops_tracking.py`.
 
-- [ ] Write tests that public checkout stays closed without PayPal live readiness,
+- [x] Write tests that public checkout stays closed without PayPal live readiness,
   approved tax rules and a PayPal-specific live canary. An old Square canary must
   not satisfy the PayPal launch gate.
-- [ ] Update canary creation/status, production validation and runbooks to PayPal;
+- [x] Update canary creation/status, production validation and runbooks to PayPal;
   ensure no undocumented settings or Square tax prerequisites remain for new sales.
-- [ ] Test completed capture plus failed Printful billing: alert/hold, no duplicate
+- [x] Test completed capture plus failed Printful billing: alert/hold, no duplicate
   buyer charge, reconcile external ID before any supplier retry. Preserve cost and
   confirmation checks. Show gross receipts, fees/net where known, supplier charges
   and refunds separately; do not present capture completion as spendable balance.
-- [ ] Inventory outstanding Square attempts/orders/refunds before cutover. Disable
+- [x] Inventory outstanding Square attempts/orders/refunds before cutover. Disable
   new Square checkout creation and expire outstanding unpaid links where supported;
   reconcile late legacy payments safely. Keep legacy webhook/refund access until
   records are settled. Do not automatically revoke credentials or delete history.

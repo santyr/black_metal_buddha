@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import httpx
 
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
@@ -151,6 +152,13 @@ def process_submit_printful_job(
         session.commit()
     except PrintfulCostGuardError as exc:
         _fail_permanently(session, job, order, exc)
+    except httpx.HTTPStatusError as exc:
+        _retry_or_fail(session, job, RuntimeError("Printful request failed; reconciliation required"))
+        if exc.response.status_code == 402:
+            order.fulfillment_state = "HOLD"
+            order.order_state = "FULFILLMENT_HOLD"
+            job.last_error = "Printful funding declined; owner review required"
+            session.commit()
     except Exception as exc:
         _retry_or_fail(session, job, exc)
 

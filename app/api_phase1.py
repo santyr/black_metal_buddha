@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -249,39 +250,7 @@ def api_square_checkout(
     request: Request,
     session: Session = Depends(db_session),
 ):
-    _require_phase1()
-    _limit_customer_mutation(request, bucket="square-checkout", limit=20)
-    order = _get_order_or_404(session, order_number)
-    _require_order_token(request, order, allow_legacy=True)
-    if order.paypal_create_request_id or order.payment_provider == "paypal":
-        raise HTTPException(status_code=409, detail="PayPal checkout already created")
-    if order.square_payment_link_id:
-        return _order_out(order, order.square_checkout_url)
-    if not shipping_quote_is_fresh(order):
-        raise HTTPException(status_code=409, detail="Shipping quote is missing or expired")
-    try:
-        validate_pending_catalog(session, order)
-    except OrderError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from None
-
-    client = SquareClient()
-    try:
-        payment_link = client.create_payment_link(order)
-        square_order = client.get_order(payment_link["order_id"])
-        sync_square_pricing(session, order, square_order)
-        set_square_checkout(
-            session,
-            order,
-            payment_link_id=payment_link["id"],
-            square_order_id=payment_link["order_id"],
-            checkout_url=payment_link["url"],
-        )
-    except OrderError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail="Unable to create Square checkout") from exc
-
-    return _order_out(order, payment_link["url"])
+    raise HTTPException(status_code=410, detail="New Square checkout is retired; use PayPal")
 
 
 def _require_order_token(request: Request, order: Order, *, allow_legacy: bool = False) -> None:
@@ -337,6 +306,10 @@ def api_paypal_capture(order_number: str, request: Request, session: Session = D
 async def paypal_webhook(request: Request, session: Session = Depends(db_session)):
     # Existing payments remain recoverable while public checkout is disabled.
     body = await request.body()
+    return await run_in_threadpool(_process_paypal_webhook, body, dict(request.headers), session)
+
+
+def _process_paypal_webhook(body: bytes, headers: dict, session: Session):
     if len(body) > 1_000_000:
         raise HTTPException(status_code=413, detail="Webhook body is too large")
     try:
@@ -351,7 +324,7 @@ async def paypal_webhook(request: Request, session: Session = Depends(db_session
         raise HTTPException(status_code=400, detail="Invalid PayPal event identity")
     provider = PayPalClient(settings)
     try:
-        verified = provider.verify_webhook(dict(request.headers), event)
+        verified = provider.verify_webhook(headers, event)
     except (PayPalAPIError, PayPalConfigurationError):
         raise HTTPException(status_code=503, detail="PayPal verification is temporarily unavailable") from None
     finally:
@@ -378,12 +351,15 @@ async def paypal_webhook(request: Request, session: Session = Depends(db_session
             refund_data = lookup.get_refund(refund_id)
             if refund_data.get('id') != refund_id:
                 raise HTTPException(status_code=409, detail="PayPal refund identity mismatch")
-            prefix = settings.paypal_api_base + '/v2/payments/captures/'
-            up = next((link.get('href') for link in refund_data.get('links', [])
-                       if isinstance(link, dict) and link.get('rel') == 'up'), None)
-            if not isinstance(up, str) or not up.startswith(prefix):
-                raise HTTPException(status_code=409, detail="PayPal refund capture relationship missing")
-            capture = lookup.get_capture(up[len(prefix):])
+            from .payments.paypal_refunds import refund_capture_identity
+            from .refunds import RefundError
+            try:
+                capture_id = refund_capture_identity(refund_data, settings)
+            except RefundError:
+                raise HTTPException(status_code=409, detail="PayPal refund capture relationship missing") from None
+            capture = lookup.get_capture(capture_id)
+            if capture.get('id') != capture_id:
+                raise HTTPException(status_code=409, detail="PayPal refund capture identity mismatch")
             related = _object(_object(capture.get('supplementary_data'), 'supplementary_data').get('related_ids'), 'related_ids')
             order_id = related.get('order_id')
         except (PayPalAPIError, PayPalConfigurationError):

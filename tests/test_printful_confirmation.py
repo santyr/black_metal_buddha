@@ -213,3 +213,29 @@ def test_calculating_costs_retry_without_confirmation():
         assert order.printful_confirmed_at is None
     finally:
         session.close()
+
+
+def test_printful_funding_decline_holds_paid_order_and_reuses_external_id():
+    import httpx
+    session,order,job=make_order()
+    order.payment_provider='paypal'
+    class FundingDeclined(ConfirmablePrintful):
+        lookups=[]
+        def get_order_by_external_id(self,external_id):
+            self.lookups.append(external_id)
+            return super().get_order_by_external_id(external_id)
+        def confirm_order(self,identity):
+            self.confirm_calls+=1
+            if self.confirm_calls==1:
+                request=httpx.Request('POST','https://api.printful.com/orders/@test/confirm')
+                raise httpx.HTTPStatusError('Funding declined',request=request,response=httpx.Response(402,request=request))
+            return {'id':777,'status':'pending','costs':{'currency':'USD','subtotal':'15.00','discount':'0.00',
+                'shipping':'5.00','tax':'1.00','vat':'0.00','total':'21.00','calculation_status':'done'}}
+    provider=FundingDeclined()
+    process_submit_printful_job(session,job,config=config(),client=provider)
+    assert order.payment_state=='COMPLETED' and order.order_state=='FULFILLMENT_HOLD'
+    assert job.state=='PENDING'
+    process_submit_printful_job(session,job,config=config(),client=provider)
+    assert provider.lookups==[order.order_number,order.order_number]
+    assert job.state=='COMPLETED' and order.payment_state=='COMPLETED'
+    session.close()

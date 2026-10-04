@@ -126,7 +126,7 @@ If a deployment fails, check out that known-good commit, reinstall requirements 
 
 ## Phase 0 boundary
 
-Do not add Square or Printful secrets to this environment yet. No checkout, customer order, or payment flow should be enabled until Phase 1.
+Do not add PayPal or Printful secrets to this environment yet. No checkout, customer order, or payment flow should be enabled until Phase 1.
 
 
 ---
@@ -168,3 +168,21 @@ safe initial settings are in `deploy/staging.env.example`.
 
 See `docs/27_PRIVATE_STAGING.md` for the deployment procedure, SSH forwarding,
 verified isolation, and remaining provider callback setup.
+
+
+## PayPal migration release gates
+
+Keep public checkout closed during schema migration and callback registration.
+Use the PayPal fields documented in `.env.example` and the launch runbook;
+`PAYPAL_PRODUCTION_CANARY_APPROVED` is distinct from historical Square approval.
+Verify a PostgreSQL backup restoration and additive 0009–0011 upgrades before
+release. Never downgrade populated payment/quote/receipt history.
+
+Configure the exact HTTPS `/api/phase1/webhooks/paypal` listener and app-specific
+webhook ID. Closed public checkout still accepts verified callbacks and runs
+reconciliation. New Square creation returns 410; historical callbacks and
+refunds continue to dispatch by persisted provider.
+
+The approved tax policy uses complete Printful quote tax/VAT separately from
+$35 merchandise and live shipping. Unknown tax blocks checkout. Funding errors
+hold supplier fulfillment without repeating the buyer payment.

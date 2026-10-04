@@ -133,6 +133,8 @@ class Settings:
 
     def validate_safety(self) -> None:
         self.paypal_api_base  # Reject typos instead of silently selecting a payment environment.
+        if self.checkout_tax_mode not in {"disabled", "printful_quote"}:
+            raise ValueError("CHECKOUT_TAX_MODE must be disabled or printful_quote")
         if self.printful_catalog_sync_enabled and (not self.printful_token or not self.printful_store_id):
             raise ValueError("Printful catalog sync requires a token and store ID")
         if self.printful_mode not in {"disabled", "draft", "production"}:
@@ -160,14 +162,13 @@ class Settings:
                 missing.append("PRODUCTION_CHECKOUT_ENABLED")
             if not self.phase0_5_approved:
                 missing.append("PHASE0_5_APPROVED")
-            if not self.production_canary_approved:
-                missing.append("PRODUCTION_CANARY_APPROVED")
+            if not self.paypal_production_canary_approved:
+                missing.append("PAYPAL_PRODUCTION_CANARY_APPROVED")
             if not self.production_catalog_approved:
                 missing.append("PRODUCTION_CATALOG_APPROVED")
             if not self.production_catalog_fingerprint:
                 missing.append("PRODUCTION_CATALOG_FINGERPRINT")
-            if self.square_environment != "production":
-                missing.append("SQUARE_ENVIRONMENT=production")
+            missing.extend(self._paypal_live_prerequisites())
             if self.printful_mode != "production":
                 missing.append("PRINTFUL_MODE=production")
             if not self.printful_confirm_enabled:
@@ -180,14 +181,6 @@ class Settings:
                 missing.append("admin credentials + APP_SECRET_KEY")
             if not self.support_email:
                 missing.append("SUPPORT_EMAIL")
-            if not self.square_access_token:
-                missing.append("SQUARE_ACCESS_TOKEN")
-            if not self.square_location_id:
-                missing.append("SQUARE_LOCATION_ID")
-            if not self.square_webhook_signature_key:
-                missing.append("SQUARE_WEBHOOK_SIGNATURE_KEY")
-            if not self.square_webhook_notification_url:
-                missing.append("SQUARE_WEBHOOK_NOTIFICATION_URL")
             if not self.printful_token:
                 missing.append("PRINTFUL_TOKEN")
             if not self.printful_store_id:
@@ -217,8 +210,7 @@ class Settings:
             missing.append("PRODUCTION_CATALOG_APPROVED=true")
         if not self.production_catalog_fingerprint:
             missing.append("PRODUCTION_CATALOG_FINGERPRINT")
-        if self.square_environment != "production":
-            missing.append("SQUARE_ENVIRONMENT=production")
+        missing.extend(self._paypal_live_prerequisites())
         if self.printful_mode != "production":
             missing.append("PRINTFUL_MODE=production")
         if not self.printful_confirm_enabled:
@@ -227,13 +219,6 @@ class Settings:
             missing.append("EMAIL_MODE=smtp")
         if self.database_url.startswith("sqlite"):
             missing.append("PostgreSQL DATABASE_URL")
-        if not self.square_access_token or not self.square_location_id:
-            missing.append("live Square credentials")
-        expected_square_webhook_url = f"{self.public_base_url}/api/v1/webhooks/square"
-        if not self.square_webhook_signature_key:
-            missing.append("SQUARE_WEBHOOK_SIGNATURE_KEY")
-        if self.square_webhook_notification_url != expected_square_webhook_url:
-            missing.append(f"SQUARE_WEBHOOK_NOTIFICATION_URL={expected_square_webhook_url}")
         if not self.printful_token or not self.printful_store_id:
             missing.append("live Printful credentials")
         if not self.printful_webhook_secret_key:
@@ -246,6 +231,22 @@ class Settings:
             missing.append("SUPPORT_EMAIL")
         if missing:
             raise ValueError("Production canary prerequisites are not satisfied: " + ", ".join(missing))
+
+    def _paypal_live_prerequisites(self) -> list[str]:
+        missing = []
+        if self.paypal_environment != "production":
+            missing.append("PAYPAL_ENVIRONMENT=production")
+        for name in ("paypal_client_id", "paypal_client_secret", "paypal_merchant_id", "paypal_webhook_id"):
+            if not getattr(self, name):
+                missing.append(name.upper())
+        expected = f"{self.public_base_url}/api/phase1/webhooks/paypal"
+        if not self.public_base_url.startswith("https://") or self.paypal_webhook_notification_url != expected:
+            missing.append(f"PAYPAL_WEBHOOK_NOTIFICATION_URL={expected}")
+        if self.checkout_tax_mode != "printful_quote":
+            missing.append("CHECKOUT_TAX_MODE=printful_quote")
+        if not self.checkout_tax_policy_approved:
+            missing.append("CHECKOUT_TAX_POLICY_APPROVED")
+        return missing
 
 
 settings = Settings.from_env()

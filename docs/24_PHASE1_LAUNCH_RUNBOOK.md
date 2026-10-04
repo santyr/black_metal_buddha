@@ -1,8 +1,8 @@
 # Phase 1 — Launch Readiness & Production Canary
 
-> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
-
-> The Square-specific details below describe the existing implementation/history, not the new launch target. Replace provider-specific procedures during migration before using them to launch PayPal.
+PayPal is implemented on the migration branch. Production checkout stays closed
+until the app-specific sandbox checks, backup restoration and controlled live
+order are verified. All physical samples are approved.
 
 This document is the final software-side launch procedure.
 
@@ -79,7 +79,7 @@ Keep:
 ```
 PHASE1_API_ENABLED=false
 PRODUCTION_CHECKOUT_ENABLED=false
-PRODUCTION_CANARY_APPROVED=false
+PAYPAL_PRODUCTION_CANARY_APPROVED=false
 PRODUCTION_CANARY_MODE=true
 ```
 
@@ -91,8 +91,14 @@ PHASE0_5_APPROVED=true
 PRODUCTION_CATALOG_APPROVED=true
 PRODUCTION_CATALOG_FINGERPRINT=<approved sha256>
 
-SQUARE_ENVIRONMENT=production
-live Square credentials
+PAYPAL_ENVIRONMENT=production
+PAYPAL_CLIENT_ID=<live app client ID>
+PAYPAL_CLIENT_SECRET=<private live secret>
+PAYPAL_MERCHANT_ID=<verified merchant>
+PAYPAL_WEBHOOK_ID=<live app webhook ID>
+PAYPAL_WEBHOOK_NOTIFICATION_URL=https://blackmetalbuddha.com/api/phase1/webhooks/paypal
+CHECKOUT_TAX_MODE=printful_quote
+CHECKOUT_TAX_POLICY_APPROVED=true
 
 PRINTFUL_MODE=production
 PRINTFUL_CONFIRM_ENABLED=true
@@ -111,7 +117,7 @@ The public checkout route remains hidden while the webhook, worker, admin, and c
 
 # 3. Run one controlled live canary
 
-The canary is a **real Square transaction and a real chargeable Printful fulfillment**.
+The canary is a **real PayPal transaction and a real chargeable Printful fulfillment**.
 
 Use the owner/test recipient and one approved SKU.
 
@@ -143,13 +149,13 @@ The command:
 2. validates exact catalog fingerprint
 3. creates a DB order marked `is_canary=true`
 4. obtains current live Printful shipping
-5. creates the live Square checkout
-6. synchronizes Square tax/total
-7. prints the hosted Square checkout URL
+5. creates the live PayPal checkout
+6. quotes actual Printful tax/VAT and freezes pricing, address and request key
+7. prints the hosted PayPal checkout URL
 
 Pay the checkout yourself.
 
-Square webhooks then mark the order paid. The worker creates/reuses the Printful draft, verifies costs, and confirms production exactly once.
+Verified PayPal webhooks queue authoritative capture; only a completed matching capture marks the order paid. The worker creates/reuses the Printful draft, verifies costs, and confirms production exactly once.
 
 During the canary, public checkout remains off.
 
@@ -167,7 +173,7 @@ python -m app.manage canary-status BMB-...
 
 Exit 0 requires:
 
-- Square payment completed
+- PayPal payment completed
 - Printful confirmation recorded
 - Printful cost known
 - Printful cost <= retail order total
@@ -179,7 +185,7 @@ Exit 2 means the canary is not ready for approval.
 
 Also verify manually:
 
-- Square Dashboard payment
+- PayPal Dashboard payment
 - tax amount
 - shipping amount
 - BMB admin order state
@@ -190,12 +196,12 @@ Also verify manually:
 - tracking email
 - order-status tracking page
 - reconciliation after temporarily simulating/missing a webhook if practical
-- Square refund canary if refund behavior has not already been verified
+- PayPal refund canary if refund behavior has not already been verified
 
 Once fully satisfied:
 
 ```
-PRODUCTION_CANARY_APPROVED=true
+PAYPAL_PRODUCTION_CANARY_APPROVED=true
 PRODUCTION_CANARY_MODE=false
 ```
 
@@ -242,7 +248,7 @@ export BMB_ALLOW_RESTORE_TEST=true
 bash deploy/verify-backup.sh /var/backups/blackmetalbuddha/blackmetalbuddha-....dump
 ```
 
-The script deliberately refuses without the explicit destructive-test acknowledgment.
+The command refuses without the explicit live-cost acknowledgment. Review the exact merchandise/shipping/tax total before paying; payment and Printful confirmation incur real charges.
 
 ---
 
@@ -254,12 +260,12 @@ Only after all launch gates pass:
 APP_ENV=production
 PHASE1_API_ENABLED=true
 PRODUCTION_CHECKOUT_ENABLED=true
-PRODUCTION_CANARY_APPROVED=true
+PAYPAL_PRODUCTION_CANARY_APPROVED=true
 PRODUCTION_CATALOG_APPROVED=true
 PHASE0_5_APPROVED=true
 ```
 
-All other live Square, Printful, SMTP, PostgreSQL, admin, support-contact, and fingerprint prerequisites must also remain configured.
+All other live PayPal, Printful, SMTP, PostgreSQL, admin, support-contact, and fingerprint prerequisites must also remain configured.
 
 Restart:
 
@@ -345,3 +351,28 @@ PRINTFUL_MODE=disabled
 Restart the worker.
 
 Do not delete provider/order records during an incident.
+
+## PayPal evidence and rollback
+
+Record sandbox buyer approval, authoritative completed capture, a real app's
+verified webhook, refund and lost-response reconciliation. Simulator events do
+not prove app verification. Keep staging Printful fulfillment disabled.
+
+Record the live merchant/capture, actual gross/fees/net where known, Printful
+supplier tax/charges, funding preference and backup source, receipt email,
+shipment/tracking and reconciliation. Held receipts are not proof of spendable
+balance. A funding decline holds fulfillment for owner review; never charge the
+buyer again to retry Printful. Refund and Printful cancellation need separate
+explicit authorization. Merchant guest/card eligibility must be checked in the
+account and actual hosted flow.
+
+No legacy Square payments are reported. Before cutover, inventory actual
+Square orders/links/refunds. New Square checkout creation is retired with HTTP
+410; existing Square callbacks and provider-specific reconciliation/refunds
+remain for recorded history. Never erase identifiers or revoke credentials as
+part of deployment. If an unpaid legacy link exists, review and expire it using
+its provider-supported operation before opening new checkout.
+
+Rollback closes new checkout and retains additive migrations, frozen quotes,
+provider receipts, request IDs and webhook/reconciliation processing. It does
+not reopen Square checkout.

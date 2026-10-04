@@ -346,7 +346,7 @@ def test_shipping_and_square_cannot_access_a_new_order_without_token(checkout_da
         with TestClient(app) as browser:
             assert browser.get('/api/v1/orders/'+number+'/shipping-rates').status_code == 403
             assert browser.post('/api/v1/orders/'+number+'/shipping',json={'shipping':'STANDARD'}).status_code == 403
-            assert browser.post('/api/v1/orders/'+number+'/square-checkout').status_code == 403
+            assert browser.post('/api/v1/orders/'+number+'/square-checkout').status_code == 410
     finally: app.dependency_overrides.clear()
 
 
@@ -364,3 +364,9 @@ def test_stale_shipping_object_cannot_mutate_an_active_attempt(checkout_database
 def test_quote_does_not_round_tiny_fractions_or_allocate_unbounded_integers(value):
     def handler(request): return httpx.Response(200,json={'result':{'costs':costs(tax=value,total=value)}})
     with pytest.raises(PrintfulConfigurationError): pf_client(handler).estimate_order_costs(make_order())
+
+
+def test_new_square_checkout_route_is_retired(monkeypatch):
+    monkeypatch.setattr(api,'settings',checkout_config(phase1_api_enabled=True))
+    with TestClient(app) as browser:
+        assert browser.post('/api/v1/orders/ANY/square-checkout').status_code==410

@@ -1,6 +1,8 @@
 """PayPal refund reservations and authoritative recovery, separate from Printful."""
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
+import re
+from urllib.parse import urlsplit
 
 from sqlalchemy import select
 
@@ -9,6 +11,23 @@ from ..refunds import RefundError, TERMINAL_REFUND_STATES, _lock_order, apply_re
 from .paypal import decimal_to_cents
 from .paypal_checkout import validate_snapshot, validate_remote_order
 from .paypal_capture import remote_capture_id
+
+
+def refund_capture_identity(data, config):
+    hosts = ({'api-m.sandbox.paypal.com', 'api.sandbox.paypal.com'} if config.paypal_environment == 'sandbox'
+             else {'api-m.paypal.com', 'api.paypal.com'})
+    links = [link for link in data.get('links', []) if isinstance(link, dict) and link.get('rel') == 'up']
+    if len(links) != 1:
+        raise RefundError('PayPal refund capture relationship missing')
+    try:
+        url = urlsplit(links[0].get('href'))
+        match = re.fullmatch(r'/v2/payments/captures/([A-Za-z0-9_-]{1,128})', url.path)
+        if (url.scheme != 'https' or url.hostname not in hosts or url.port not in {None,443}
+                or url.username or url.password or url.query or url.fragment or match is None):
+            raise ValueError
+        return match.group(1)
+    except (TypeError, ValueError):
+        raise RefundError('PayPal refund capture relationship missing') from None
 
 
 def _binding(order, client, *, allow_unrecorded=False):
@@ -38,10 +57,8 @@ def reconcile_paypal_refund(session, order, refund_id, *, client):
     _binding(order, client)
     data = client.get_refund(refund_id)
     try:
-        expected_up = client.config.paypal_api_base + '/v2/payments/captures/' + order.paypal_capture_id
         if (data['id'] != refund_id or data['amount']['currency_code'] != order.currency
-                or not any(link.get('rel') == 'up' and link.get('href') == expected_up
-                           for link in data['links'] if isinstance(link, dict))):
+                or refund_capture_identity(data, client.config) != order.paypal_capture_id):
             raise ValueError
         amount = decimal_to_cents(data['amount']['value'])
         status = data['status']

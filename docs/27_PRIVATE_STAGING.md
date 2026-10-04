@@ -1,9 +1,5 @@
 # Private staging
 
-> **Payment decision updated 2026-10-04:** PayPal replaces Square for the planned launch. PayPal migration is not implemented yet. See [PayPal integration](03_PAYPAL_INTEGRATION.md) and [migration plan](superpowers/plans/2026-10-04-paypal-migration.md).
-
-> The Square-specific details below describe the existing implementation/history, not the new launch target. Replace provider-specific procedures during migration before using them to launch PayPal.
-
 Staging uses a separate application source snapshot, service account and
 database. It is available privately; production customer data and settings
 are not copied into it. Deployment details and installation records belong
@@ -28,9 +24,9 @@ The API should be used for supported work. Store and private-token creation
 require Printful's dashboard or Developer Portal. A draft Printful order is
 not a separate billing sandbox.
 
-## Square and email
+## PayPal and email
 
-- Use separate Square Sandbox credentials and location for staging payments.
+- Use separate PayPal Sandbox REST app credentials, merchant/buyer test accounts and webhook ID for staging payments.
   Keep the production merchant credentials out of staging.
 - Use fixture events for staging fulfillment handling. These checks do not
   establish production Printful callback delivery or fulfillment readiness.
@@ -45,9 +41,9 @@ The private staging service is running, but staging provider credentials have
 not been supplied. Its catalog is not yet connected to the shared Printful
 store. Existing disabled catalog rows do not prove current product readiness.
 
-The owner still needs to provide read-only Printful access, Square Sandbox
-access and the staging hostname/DNS decision through the private handoff.
-Public HTTPS and signed Square callbacks must be verified before relying on
+The owner still needs to provide read-only Printful access, PayPal Sandbox
+app settings and the staging hostname/DNS decision through the private handoff.
+Public HTTPS and verified PayPal app callbacks must be verified before relying on
 staging payment results.
 
 Refresh staging from the reviewed release before validating a deployment.
@@ -56,10 +52,26 @@ actual running instance.
 
 ## Production verification
 
-Actual Square production payment, Printful order submission and billing,
+Actual PayPal production payment, Printful order submission and billing,
 provider callbacks, customer email delivery, shipment tracking and refund
 reconciliation must be verified in the approved controlled production order.
 Staging results do not replace that order or authorize a charge.
 
 Follow [the launch input handoff](28_LAUNCH_INPUT_HANDOFF.md) for account steps,
 owner decisions and the controlled order approval sequence.
+
+## Quote and callback configuration
+
+Configure `PAYPAL_ENVIRONMENT=sandbox`, `PAYPAL_CLIENT_ID`,
+`PAYPAL_CLIENT_SECRET`, `PAYPAL_MERCHANT_ID`, `PAYPAL_WEBHOOK_ID` and the exact
+public staging `PAYPAL_WEBHOOK_NOTIFICATION_URL` ending in
+`/api/phase1/webhooks/paypal`. The signature verifier uses that app's webhook ID.
+Keep all credentials private; never copy live secrets into staging.
+
+The approved policy is `$35 + live shipping + Printful quoted tax/VAT`.
+`CHECKOUT_TAX_MODE=printful_quote` and `CHECKOUT_TAX_POLICY_APPROVED=true`
+require a complete valid quote; explicit zero is allowed, unknown is not.
+Mock shipping/estimate APIs for checkout audits; any real Printful estimate is
+read-only and needs appropriate token permission. No staging order submission,
+confirmation, product edits or production webhook replacement is permitted.
+`PAYPAL_PRODUCTION_CANARY_APPROVED=false` remains false in staging.

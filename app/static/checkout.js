@@ -230,7 +230,11 @@
         body: '{}'
       });
       if (!checkout.checkout_url) throw new Error('PayPal checkout URL was not returned.');
-      approvalUrl = checkout.checkout_url;
+      const paymentUrl = new URL(checkout.checkout_url);
+      if (paymentUrl.protocol !== 'https:' || !['www.paypal.com', 'paypal.com', 'www.sandbox.paypal.com'].includes(paymentUrl.hostname) || paymentUrl.username || paymentUrl.password) {
+        throw new Error('Invalid payment approval URL.');
+      }
+      approvalUrl = paymentUrl.href;
       app.querySelector('[data-checkout-tax]').textContent = window.BMBCart.formatMoney(checkout.tax_cents, checkout.currency);
       app.querySelector('[data-checkout-total]').textContent = window.BMBCart.formatMoney(checkout.total_cents, checkout.currency);
       paypalButton.textContent = 'Pay ' + window.BMBCart.formatMoney(checkout.total_cents, checkout.currency) + ' with PayPal';

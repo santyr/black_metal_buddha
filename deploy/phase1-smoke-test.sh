@@ -26,6 +26,9 @@ for row in data:
 print(f"Catalog variants: {len(data)}")
 PY
 
+checkout_html="$(curl -fsS "$BASE_URL/checkout")"
+grep -q 'data-paypal-button' <<<"$checkout_html" || fail "PayPal checkout controls missing"
+
 checkout_status="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/checkout")"
 [[ "$checkout_status" == "200" ]] || fail "checkout did not return 200"
 

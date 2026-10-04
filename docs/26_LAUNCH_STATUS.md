@@ -5,7 +5,7 @@ fulfillment, customer email and controlled order checks are complete.
 
 ## Payment migration required
 
-The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The migration branch implements PayPal checkout/capture and approved Printful tax quotes. Refund routing, launch gates, app-specific sandbox checks and a controlled live order remain launch work. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
+The owner selected PayPal instead of Square for customer checkout and PayPal for Printful billing on 2026-10-04. The migration branch implements PayPal checkout/capture/refunds, approved Printful tax quotes and release gates. Refund routing and launch gates are also implemented; app-specific sandbox checks and a controlled live order remain launch work. See [the migration plan](superpowers/plans/2026-10-04-paypal-migration.md). Optional Pay with Crypto is not a launch requirement; Lightning remains deferred. Existing product and email approvals below remain recorded.
 
 PayPal checkout now freezes the server-owned price, address and live Printful
 quote before creating an order. Durable request keys survive lost responses.
