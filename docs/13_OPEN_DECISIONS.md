@@ -1,7 +1,16 @@
 # Open Decisions Before Public Launch
 
-These do not block Phase 0. Updated with owner decisions through 2026-10-02.
+These do not block Phase 0. Payment decision updated 2026-10-04; older non-payment items below may be superseded by the launch handoff.
 See [the step-by-step launch handoff](28_LAUNCH_INPUT_HANDOFF.md) for account setup and required inputs.
+
+## Payment decision and remaining launch gates
+
+- PayPal replaces Square for customer checkout; PayPal also funds Printful billing.
+- Implement and validate the migration before accepting public payments.
+- Verify PayPal Business/card eligibility, separate sandbox/live app credentials and webhook IDs.
+- Replace Square tax calculation with an owner-approved approach for USD sales to the United States and Canada. Missing tax configuration must block launch.
+- Confirm funding behavior, backup funding, capture/refund reconciliation and a new live canary.
+- Pay with Crypto is optional and approval-gated; Lightning remains deferred.
 
 ## Confirmed product decisions
 
